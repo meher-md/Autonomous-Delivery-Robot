@@ -1,0 +1,16 @@
+# Core ROS 2 Python client library
+rclpy
+
+# Standard ROS 2 message packages
+std_msgs
+geometry_msgs
+sensor_msgs
+nav_msgs
+
+# For transforms and TF2
+tf2_ros
+tf_transformations
+
+# Visualization tools
+rqt_gui
+rqt_gui_py

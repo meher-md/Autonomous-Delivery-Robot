@@ -1,0 +1,182 @@
+<?xml version='1.0' encoding='utf-8'?>
+<robot name="Delivery">
+    <link name="imu_link">
+        <inertial>
+            <origin xyz="8.99166259286588e-05 1.7603271319330817e-05 -0.0028696207661189277" rpy="0.0 -0.0 0.0" />
+            <mass value="0.00503330222650723" />
+            <inertia ixx="9.557633986025452e-08" iyy="2.6676421636538834e-07" izz="3.5934625289719144e-07" ixy="6.607922607530792e-11" iyz="6.909517510553763e-10" ixz="5.498141258139348e-10" />
+        </inertial>
+        <visual name="imu_link_visual">
+            <origin xyz="-3.3228426410403246e-09 5.064589458925183e-10 -0.0027999974962699525" rpy="-1.5707963267948966 -0.0 0.0" />
+            <geometry>
+                <mesh filename="file:///home/mo/ws/src/my_andino_description/meshes/imu_link.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+        </visual>
+        <collision name="imu_link_collision">
+            <origin xyz="-3.3228426410403246e-09 5.064589458925183e-10 -0.0027999974962699525" rpy="-1.5707963267948966 -0.0 0.0" />
+            <geometry>
+                <mesh filename="file:///home/mo/ws/src/my_andino_description/meshes/imu_link.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+        </collision>
+    </link>
+    <link name="lidar_link">
+        <inertial>
+            <origin xyz="-0.028972608259800872 0.05958286337131728 0.03120073942739367" rpy="0.0 -0.0 0.0" />
+            <mass value="1.410953783641384" />
+            <inertia ixx="0.0016474228485213738" iyy="0.0012540667561132812" izz="0.0012356399730581585" ixy="8.085849843228465e-07" iyz="-0.00016065429393374853" ixz="-2.5614385939232154e-06" />
+        </inertial>
+        <visual name="lidar_link_visual">
+            <origin xyz="-0.028885350537293242 0.052111250055448526 0.0249999974962698" rpy="1.5707963267948966 -3.9468598293029e-16 -1.5707963267948966" />
+            <geometry>
+                <mesh filename="file:///home/mo/ws/src/my_andino_description/meshes/lidar_link.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+        </visual>
+        <collision name="lidar_link_collision">
+            <origin xyz="-0.028885350537293242 0.052111250055448526 0.0249999974962698" rpy="1.5707963267948966 -3.9468598293029e-16 -1.5707963267948966" />
+            <geometry>
+                <mesh filename="file:///home/mo/ws/src/my_andino_description/meshes/lidar_link.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+        </collision>
+    </link>
+    <link name="base_link">
+        <inertial>
+            <origin xyz="-0.011844739748998735 -0.0004948041824183136 0.10152377122236672" rpy="0.0 0.0 0.0" />
+            <mass value="16.543447208903643" />
+            <inertia ixx="0.3338390877547308" iyy="0.5651997293781754" izz="0.615040440874407" ixy="-0.0006609221777232888" iyz="0.0007188970446689869" ixz="-0.005196647103717367" />
+        </inertial>
+        <visual name="base_link_visual">
+            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+            <geometry>
+                <mesh filename="file:///home/mo/ws/src/my_andino_description/meshes/base_link.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+        </visual>
+        <collision name="base_link_collision">
+            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+            <geometry>
+                <mesh filename="file:///home/mo/ws/src/my_andino_description/meshes/base_link.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+        </collision>
+    </link>
+    <link name="back_left_wheel">
+        <inertial>
+            <origin xyz="1.1053294137752801e-07 -5.658930191998479e-08 0.0147883114746557" rpy="0.0 -0.0 0.0" />
+            <mass value="3.675037015768583" />
+            <inertia ixx="0.004730098657774295" iyy="0.004730113509961442" izz="0.007490883027543083" ixy="2.206676286142796e-09" iyz="-2.5840700697890163e-09" ixz="-5.077942498431322e-09" />
+        </inertial>
+        <visual name="back_left_wheel_visual">
+            <origin xyz="0.01528498465831671 -0.01699592807995231 -0.03385797158010519" rpy="1.5707963267948943 -7.454431049104364e-16 -1.2955881910165148" />
+            <geometry>
+                <mesh filename="file:///home/mo/ws/src/my_andino_description/meshes/back_left_wheel.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+        </visual>
+        <collision name="back_left_wheel_collision">
+            <origin xyz="0.01528498465831671 -0.01699592807995231 -0.03385797158010519" rpy="1.5707963267948943 -7.454431049104364e-16 -1.2955881910165148" />
+            <geometry>
+                <mesh filename="file:///home/mo/ws/src/my_andino_description/meshes/back_left_wheel.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+        </collision>
+    </link>
+    <link name="front_left_wheel">
+        <inertial>
+            <origin xyz="1.2463378449956154e-07 -8.44382896048046e-09 0.0147883114746557" rpy="0.0 -0.0 0.0" />
+            <mass value="3.675037015768583" />
+            <inertia ixx="0.004730099401484056" iyy="0.004730112766250905" izz="0.007490883027542972" ixy="-3.91944402974853e-09" iyz="-4.392751496640448e-09" ixz="-3.6285882828985082e-09" />
+        </inertial>
+        <visual name="front_left_wheel_visual">
+            <origin xyz="0.020789592869120854 -0.009501852225285531 -0.03385797158010519" rpy="1.570796326794896 -8.799890779046393e-17 -0.8859378372009385" />
+            <geometry>
+                <mesh filename="file:///home/mo/ws/src/my_andino_description/meshes/front_left_wheel.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+        </visual>
+        <collision name="front_left_wheel_collision">
+            <origin xyz="0.020789592869120854 -0.009501852225285531 -0.03385797158010519" rpy="1.570796326794896 -8.799890779046393e-17 -0.8859378372009385" />
+            <geometry>
+                <mesh filename="file:///home/mo/ws/src/my_andino_description/meshes/front_left_wheel.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+        </collision>
+    </link>
+    <link name="front_right_wheel">
+        <inertial>
+            <origin xyz="1.0243549350752445e-07 6.09345168101072e-08 0.024788312487573575" rpy="0.0 -0.0 0.0" />
+            <mass value="3.675037015768583" />
+            <inertia ixx="0.004730107626319813" iyy="0.004730104541415516" izz="0.007490883027542972" ixy="-7.591912005305845e-09" iyz="-5.683658902141679e-09" ixz="-3.9867186115044217e-10" />
+        </inertial>
+        <visual name="front_right_wheel_visual">
+            <origin xyz="0.02243941263695442 0.004354872346952092 -0.023857970567187275" rpy="1.5707963267948968 -3.4149712681728358e-15 -0.2655481184186449" />
+            <geometry>
+                <mesh filename="file:///home/mo/ws/src/my_andino_description/meshes/front_right_wheel.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+        </visual>
+        <collision name="front_right_wheel_collision">
+            <origin xyz="0.02243941263695442 0.004354872346952092 -0.023857970567187275" rpy="1.5707963267948968 -3.4149712681728358e-15 -0.2655481184186449" />
+            <geometry>
+                <mesh filename="file:///home/mo/ws/src/my_andino_description/meshes/front_right_wheel.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+        </collision>
+    </link>
+    <link name="back_right_wheel">
+        <inertial>
+            <origin xyz="-6.034088755768608e-08 1.0519022659138955e-07 0.015288312487573596" rpy="0.0 -0.0 0.0" />
+            <mass value="3.675037015768583" />
+            <inertia ixx="0.004730104748782049" iyy="0.004730107418953078" izz="0.00749088302754275" ixy="7.63110957757718e-09" iyz="-4.760499452358411e-10" ixz="5.677701497588241e-09" />
+        </inertial>
+        <visual name="back_right_wheel_visual">
+            <origin xyz="-0.004048829936122544 0.02249664913635229 -0.033357970567187305" rpy="1.5707963267948974 -6.242175261536333e-16 1.2916271438057525" />
+            <geometry>
+                <mesh filename="file:///home/mo/ws/src/my_andino_description/meshes/back_right_wheel.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+        </visual>
+        <collision name="back_right_wheel_collision">
+            <origin xyz="-0.004048829936122544 0.02249664913635229 -0.033357970567187305" rpy="1.5707963267948974 -6.242175261536333e-16 1.2916271438057525" />
+            <geometry>
+                <mesh filename="file:///home/mo/ws/src/my_andino_description/meshes/back_right_wheel.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+        </collision>
+    </link>
+    <joint name="base_link_Rigid-14" type="fixed">
+        <origin xyz="3.3228426765674615e-09 5.064589458925183e-10 2.503730058833753e-09" rpy="3.141592653589793 -0.0 0.0" />
+        <parent link="base_link" />
+        <child link="imu_link" />
+    </joint>
+    <joint name="base_link_Rigid-15" type="fixed">
+        <origin xyz="-0.1449225166771573 5.064589458925183e-10 0.2548000025037301" rpy="0.0 -0.0 -1.5707963267948966" />
+        <parent link="base_link" />
+        <child link="lidar_link" />
+    </joint>
+    <joint name="base_link_Revolute-16" type="continuous">
+        <origin xyz="-0.1435663466771573 0.1925000005064589 -0.011605497496269948" rpy="-1.570796326794897 -0.0 0.0" />
+        <parent link="base_link" />
+        <child link="front_left_wheel" />
+        <axis xyz="0.0 -2.7354483177939876e-16 1.0" />
+    </joint>
+    <joint name="base_link_Revolute-17" type="continuous">
+        <origin xyz="0.1464336533228427 0.1925000005064589 -0.011605497496269948" rpy="-1.570796326794897 -0.0 0.0" />
+        <parent link="base_link" />
+        <child link="back_left_wheel" />
+        <axis xyz="0.0 -2.7354483177939876e-16 1.0" />
+    </joint>
+    <joint name="base_link_Revolute-18" type="continuous">
+        <origin xyz="-0.14499999667715732 -0.18349999949354107 -0.012999997496269913" rpy="1.570796326794897 -0.0 0.0" />
+        <parent link="base_link" />
+        <child link="front_right_wheel" />
+        <axis xyz="-0.0 2.7354483177939876e-16 1.0" />
+    </joint>
+    <joint name="base_link_Revolute-19" type="continuous">
+        <origin xyz="0.14356634332284268 -0.19249999949354105 -0.011605497496269948" rpy="1.570796326794897 -0.0 0.0" />
+        <parent link="base_link" />
+        <child link="back_right_wheel" />
+        <axis xyz="0.0 2.7354483177939876e-16 1.0" />
+    </joint>
+    <gazebo reference="base_link">
+  <plugin name="ignition_ros_control" filename="libignition_ros2_control.so"/>
+</gazebo>
+
+    <ros2_control name="diff_drive_base" type="diff_drive_controller/DiffDriveController">
+  <ros2_control_parameter name="left_wheel_names" type="string">["back_left_wheel_joint","front_left_wheel_joint"]</ros2_control_parameter>
+  <ros2_control_parameter name="right_wheel_names" type="string">["back_right_wheel_joint","front_right_wheel_joint"]</ros2_control_parameter>
+  <ros2_control_parameter name="wheel_separation" type="double">0.3</ros2_control_parameter>
+  <ros2_control_parameter name="wheel_radius" type="double">0.05</ros2_control_parameter>
+  <ros2_control_parameter name="cmd_vel_timeout" type="double">0.5</ros2_control_parameter>
+</ros2_control>
+
+</robot>

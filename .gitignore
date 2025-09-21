@@ -1,0 +1,35 @@
+# colcon build artifacts
+build/
+install/
+log/
+.colcon/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+
+# Editors / IDE
+.vscode/
+.idea/
+*.code-workspace
+
+# CMake cache
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# Gazebo / Ignition temp
+*.world~
+*.sdf~
+*.urdf~
+*.dae~
+*.stl~
+*.obj~
+
+# Misc
+.DS_Store
+Thumbs.db
