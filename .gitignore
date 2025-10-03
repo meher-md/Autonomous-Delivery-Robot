@@ -1,35 +1,33 @@
-# colcon build artifacts
+# --- colcon build artifacts ---
 build/
 install/
 log/
 .colcon/
 
-# Python
+# --- Python cache ---
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 *.egg-info/
 
-# Editors / IDE
+# --- Editors / IDE ---
 .vscode/
 .idea/
 *.code-workspace
 
-# CMake cache
+# --- CMake cache ---
 CMakeFiles/
 CMakeCache.txt
 cmake_install.cmake
 Makefile
 
-# Gazebo / Ignition temp
-*.world~
-*.sdf~
-*.urdf~
-*.dae~
-*.stl~
-*.obj~
+# --- Gazebo / Ignition temp (فقط الملفات المؤقتة) ---
+*~            # أي ملف مؤقت بينتهي بـ ~
+*.log         # لوجات المحاكاة
+*.bak         # نسخ مؤقتة
+*.tmp
 
-# Misc
+# --- OS / Misc ---
 .DS_Store
 Thumbs.db
