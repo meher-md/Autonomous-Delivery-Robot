@@ -2,14 +2,18 @@ package com.example.deliverybot
 
 import android.os.Bundle
 import android.view.View
-import android.widget.*
+import android.widget.Button
+import android.widget.ScrollView
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import com.example.deliverybot.teleop.CmdVelClient
 
 class ChatActivity : AppCompatActivity() {
-    private var speed = 0.5
 
+    private var speed = 0.5
     private lateinit var logText: TextView
     private lateinit var logScroll: ScrollView
+    private lateinit var cmd: CmdVelClient
 
     private fun log(msg: String) {
         logText.append("Command: $msg\n")
@@ -27,40 +31,38 @@ class ChatActivity : AppCompatActivity() {
         logText = findViewById(R.id.logText)
         logScroll = findViewById(R.id.logScroll)
 
+        // شغّل ناشر cmd_vel
+        cmd = CmdVelClient(this)
+        cmd.connect()
+
         val panelInclude = findViewById<View>(R.id.panelInclude)
         findViewById<Button>(R.id.btnTogglePanel).setOnClickListener {
             panelInclude.visibility = if (panelInclude.visibility == View.VISIBLE) View.GONE else View.VISIBLE
         }
 
-        // أزرار الاتجاهات
-        findViewById<Button>(R.id.btnUp).setOnClickListener    { log("MOVE_FORWARD") }
-        findViewById<Button>(R.id.btnDown).setOnClickListener  { log("MOVE_BACKWARD") }
-        findViewById<Button>(R.id.btnLeft).setOnClickListener  { log("TURN_LEFT") }
-        findViewById<Button>(R.id.btnRight).setOnClickListener { log("TURN_RIGHT") }
-        findViewById<Button>(R.id.btnStop).setOnClickListener  { log("STOP") }
+        // أزرار الاتجاهات (نفس IDs المستخدمة سابقًا)
+        findViewById<Button>(R.id.btnUp).setOnClickListener    { log("MOVE_FORWARD");  cmd.publish(linearX =  speed) }
+        findViewById<Button>(R.id.btnDown).setOnClickListener  { log("MOVE_BACKWARD"); cmd.publish(linearX = -speed) }
+        findViewById<Button>(R.id.btnLeft).setOnClickListener  { log("TURN_LEFT");     cmd.publish(angularZ =  speed) }
+        findViewById<Button>(R.id.btnRight).setOnClickListener { log("TURN_RIGHT");    cmd.publish(angularZ = -speed) }
+        findViewById<Button>(R.id.btnStop).setOnClickListener  { log("STOP");          cmd.stop() }
 
-        // السرعة
-        val speedText = findViewById<TextView>(R.id.speedText)
-        updateSpeedUI(speedText)
-        findViewById<Button>(R.id.btnSpeedPlus).setOnClickListener {
+        // لو عندك نصّ لعرض السرعة (اختياري)
+        val speedText = findViewById<TextView?>(R.id.speedText)
+        speedText?.let { updateSpeedUI(it) }
+        findViewById<Button?>(R.id.btnSpeedPlus)?.setOnClickListener {
             speed = (speed + 0.1).coerceAtMost(2.0)
-            updateSpeedUI(speedText)
-            log("SPEED_UP -> %.1f".format(speed))
+            speedText?.let { updateSpeedUI(it) }
         }
-        findViewById<Button>(R.id.btnSpeedMinus).setOnClickListener {
+        findViewById<Button?>(R.id.btnSpeedMinus)?.setOnClickListener {
             speed = (speed - 0.1).coerceAtLeast(0.1)
-            updateSpeedUI(speedText)
-            log("SPEED_DOWN -> %.1f".format(speed))
+            speedText?.let { updateSpeedUI(it) }
         }
+    }
 
-        // إرسال رسالة نصية (placeholder)
-        val input = findViewById<EditText>(R.id.messageInput)
-        findViewById<Button>(R.id.btnSend).setOnClickListener {
-            val txt = input.text.toString().trim()
-            if (txt.isNotEmpty()) {
-                log("MSG: $txt")
-                input.setText("")
-            }
-        }
+    override fun onDestroy() {
+        try { cmd.stop() } catch (_: Throwable) {}
+        try { cmd.close() } catch (_: Throwable) {}
+        super.onDestroy()
     }
 }
