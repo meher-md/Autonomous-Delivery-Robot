@@ -1,5 +1,6 @@
 package com.example.deliverybot
-import com.example.deliverybot.CameraActivity
+import com.example.deliverybot.ConnectionConfig
+import android.net.Uri
 
 import android.content.Context
 import android.content.Intent
@@ -23,6 +24,18 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        // Open Camera → افتح فيديو الروبوت في المتصفح/ويب فيو الافتراضي
+        findViewById<Button>(R.id.btnCamera)?.setOnClickListener {
+            val url = ConnectionConfig.cameraUrl(this)
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+        }
+
+        // Open Map → افتح خريطة SLAM (snapshot) في المتصفح/ويب فيو الافتراضي
+        findViewById<Button>(R.id.btnMap)?.setOnClickListener {
+            val url = ConnectionConfig.mapUrl(this)
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+        }
+
 
         val ipEdit = findViewById<EditText>(R.id.ipEdit)
         ipEdit.setText(Prefs.getIp(this))
@@ -43,7 +56,7 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, MapActivity::class.java))
         }
         findViewById<Button>(R.id.btnCamera).setOnClickListener {
-            startActivity(Intent(this, CameraActivity::class.java))
+            Toast.makeText(this, "Open Camera coming soon", Toast.LENGTH_SHORT).show()
         }
     }
 }

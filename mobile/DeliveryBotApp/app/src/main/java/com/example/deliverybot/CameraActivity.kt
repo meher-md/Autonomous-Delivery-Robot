@@ -1,55 +1,70 @@
 package com.example.deliverybot
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.View
-import android.view.ViewGroup
+import android.webkit.*
 import android.widget.FrameLayout
-import android.widget.ImageView
+import android.widget.ProgressBar
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.deliverybot.video.MjpegInput
 
 class CameraActivity : AppCompatActivity() {
-    private var mjpeg: MjpegInput? = null
+    private lateinit var web: WebView
+    private lateinit var progress: ProgressBar
 
+    @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        try { setContentView(R.layout.activity_camera) } catch (_: Exception) {
-            val root = FrameLayout(this).apply { id = View.generateViewId() }
-            setContentView(root)
+
+        val root = FrameLayout(this)
+        web = WebView(this)
+        progress = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply {
+            isIndeterminate = false
+            max = 100
+            visibility = View.GONE
         }
+        root.addView(web, FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT,
+            FrameLayout.LayoutParams.MATCH_PARENT
+        ))
+        root.addView(progress, FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT, 6
+        ))
+        setContentView(root)
+
+        with(web.settings) {
+            javaScriptEnabled = true
+            domStorageEnabled = true
+            cacheMode = WebSettings.LOAD_NO_CACHE
+            useWideViewPort = true
+            loadWithOverviewMode = true
+            try { mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW } catch (_: Throwable) {}
+        }
+
+        web.webChromeClient = object : WebChromeClient() {
+            override fun onProgressChanged(view: WebView?, newProgress: Int) {
+                progress.visibility = if (newProgress in 1..99) View.VISIBLE else View.GONE
+                progress.progress = newProgress
+            }
+        }
+        web.webViewClient = object : WebViewClient() {
+            override fun onReceivedError(v: WebView, req: WebResourceRequest, err: WebResourceError) {
+                if (req.isForMainFrame)
+                    Toast.makeText(this@CameraActivity, "Camera error: ${err.description}", Toast.LENGTH_SHORT).show()
+            }
+            override fun onReceivedHttpError(v: WebView, req: WebResourceRequest, resp: WebResourceResponse) {
+                if (req.isForMainFrame)
+                    Toast.makeText(this@CameraActivity, "HTTP ${resp.statusCode} ${resp.reasonPhrase}", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        val ip = "10.42.0.1"
+        val url = "http://$ip/camera/stream?topic=/image_raw"   // نفس الصفحة اللي بتشتغل عندك
+        web.loadUrl(url)
     }
 
-    private fun pickImageView(): ImageView {
-        val byId = resources.getIdentifier("cameraPreview", "id", packageName)
-        findViewById<ImageView?>(byId)?.let { return it }
-        fun dfs(v: View?): ImageView? {
-            if (v is ImageView) return v
-            if (v is ViewGroup) for (i in 0 until v.childCount) dfs(v.getChildAt(i))?.let { return it }
-            return null
-        }
-        dfs(window?.decorView?.rootView)?.let { return it }
-        val root = (window?.decorView?.rootView as? ViewGroup) ?: throw IllegalStateException("No root view")
-        val iv = ImageView(this).apply {
-            id = View.generateViewId()
-            adjustViewBounds = true
-            scaleType = ImageView.ScaleType.FIT_CENTER
-            layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-        }
-        if (root is FrameLayout) root.addView(iv) else {
-            val wrap = FrameLayout(this); wrap.addView(iv); setContentView(wrap)
-        }
-        return iv
-    }
-
-    override fun onStart() {
-        super.onStart()
-        val url = ConnectionConfig.cameraUrl(this) // http://<ip>:8080/stream.mjpg
-        val iv = pickImageView()
-        mjpeg = MjpegInput(url, iv).also { it.start() }
-    }
-
-    override fun onStop() {
-        super.onStop()
-        mjpeg?.stop(); mjpeg = null
-    }
+    override fun onResume() { super.onResume(); try { web.onResume() } catch (_: Throwable) {} }
+    override fun onPause()  { try { web.onPause() } catch (_: Throwable) {}; super.onPause() }
+    override fun onDestroy(){ try { web.destroy() } catch (_: Throwable) {}; super.onDestroy() }
 }

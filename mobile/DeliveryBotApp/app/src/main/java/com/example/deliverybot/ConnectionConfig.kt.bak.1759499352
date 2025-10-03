@@ -8,5 +8,5 @@ object ConnectionConfig {
   fun host(ctx: Context): String = (prefs(ctx).getString("BASE_IP", "") ?: "").ifBlank { "10.42.0.1" }
   fun cameraUrl(ctx: Context)   = "http://${host(ctx)}/camera/stream?topic=/image_raw"
   fun mapUrl(ctx: Context)      = "http://${host(ctx)}/map/latest.png"
-  fun rosbridgeWs(ctx: Context) = "ws://${host(ctx)}:9090"
+  fun rosbridgeWs(ctx: Context) = "ws://${host(ctx)}/rosbridge"
 }
