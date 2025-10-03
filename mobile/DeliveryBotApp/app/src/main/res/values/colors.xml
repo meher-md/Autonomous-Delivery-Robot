@@ -1,0 +1,9 @@
+<resources>
+    <color name="lavender">#C9B2FF</color>
+    <color name="bg_dark">#16141A</color>
+    <color name="field_bg">#2A2730</color>
+    <color name="text_primary">#FFFFFFFF</color>
+    <color name="text_secondary">#B6B3BD</color>
+    <color name="divider">#6E56CF</color>
+    <color name="btn_gray">#33303A</color>
+</resources>

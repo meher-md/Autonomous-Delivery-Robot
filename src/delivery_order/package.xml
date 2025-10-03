@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>delivery_order</name>
+  <version>0.0.1</version>
+  <description>Order-to-delivery node: navigate to address and verify QR</description>
+  <maintainer email="you@example.com">Your Name</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_python</buildtool_depend>
+
+  <depend>rclpy</depend>
+  <depend>nav2_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>cv_bridge</depend>
+
+  <!-- نعتمد على بايثون OpenCV و pyzbar من النظام -->
+  <exec_depend>python3-opencv</exec_depend>
+  <exec_depend>python3-pyzbar</exec_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

@@ -6,67 +6,59 @@ import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 
 class ChatActivity : AppCompatActivity() {
+    private var speed = 0.5
 
-    private lateinit var controlPanel: LinearLayout
-    private var panelVisible = false
-    private var speed = 0.2
+    private lateinit var logText: TextView
+    private lateinit var logScroll: ScrollView
+
+    private fun log(msg: String) {
+        logText.append("Command: $msg\n")
+        logScroll.post { logScroll.fullScroll(View.FOCUS_DOWN) }
+    }
+
+    private fun updateSpeedUI(speedText: TextView) {
+        speedText.text = "Speed: %.1f".format(speed)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat)
 
-        val toggleBtn = findViewById<Button>(R.id.togglePanelBtn)
-        controlPanel = findViewById(R.id.controlPanel)
+        logText = findViewById(R.id.logText)
+        logScroll = findViewById(R.id.logScroll)
 
+        val panelInclude = findViewById<View>(R.id.panelInclude)
+        findViewById<Button>(R.id.btnTogglePanel).setOnClickListener {
+            panelInclude.visibility = if (panelInclude.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+        }
+
+        // أزرار الاتجاهات
+        findViewById<Button>(R.id.btnUp).setOnClickListener    { log("MOVE_FORWARD") }
+        findViewById<Button>(R.id.btnDown).setOnClickListener  { log("MOVE_BACKWARD") }
+        findViewById<Button>(R.id.btnLeft).setOnClickListener  { log("TURN_LEFT") }
+        findViewById<Button>(R.id.btnRight).setOnClickListener { log("TURN_RIGHT") }
+        findViewById<Button>(R.id.btnStop).setOnClickListener  { log("STOP") }
+
+        // السرعة
         val speedText = findViewById<TextView>(R.id.speedText)
-        val speedBar  = findViewById<SeekBar>(R.id.speedBar)
-
-        fun updateSpeedText() { speedText.text = "Speed: ${"%.2f".format(speed)}" }
-        updateSpeedText()
-        speedBar.progress = (speed * 100).toInt()
-        speedBar.setOnSeekBarChangeListener(object: SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(sb: SeekBar?, p: Int, fromUser: Boolean) {
-                speed = p / 100.0
-                updateSpeedText()
-            }
-            override fun onStartTrackingTouch(sb: SeekBar?) {}
-            override fun onStopTrackingTouch(sb: SeekBar?) {}
-        })
-
-        toggleBtn.setOnClickListener {
-            panelVisible = !panelVisible
-            controlPanel.visibility = if (panelVisible) View.VISIBLE else View.GONE
+        updateSpeedUI(speedText)
+        findViewById<Button>(R.id.btnSpeedPlus).setOnClickListener {
+            speed = (speed + 0.1).coerceAtMost(2.0)
+            updateSpeedUI(speedText)
+            log("SPEED_UP -> %.1f".format(speed))
+        }
+        findViewById<Button>(R.id.btnSpeedMinus).setOnClickListener {
+            speed = (speed - 0.1).coerceAtLeast(0.1)
+            updateSpeedUI(speedText)
+            log("SPEED_DOWN -> %.1f".format(speed))
         }
 
-        // الأسهم (placeholder: Toast)
-        mapOf(
-            R.id.btnUp to "UP",
-            R.id.btnDown to "DOWN",
-            R.id.btnLeft to "LEFT",
-            R.id.btnRight to "RIGHT",
-            R.id.btnStop to "STOP"
-        ).forEach { (id, label) ->
-            findViewById<Button>(id).setOnClickListener {
-                Toast.makeText(this, "Cmd: $label @v=$speed", Toast.LENGTH_SHORT).show()
-                // TODO: ابعت cmd_vel عبر rosbridge هنا
-            }
-        }
-
-        // Connect placeholder
-        findViewById<Button>(R.id.btnConnect).setOnClickListener {
-            val host = findViewById<EditText>(R.id.hostInput).text.toString()
-            Toast.makeText(this, "Connecting to $host ...", Toast.LENGTH_SHORT).show()
-            // TODO: فعّل RosbridgeClient هنا
-        }
-
-        // إرسال رسالة (placeholder)
-        val chatLog = findViewById<TextView>(R.id.chatLog)
-        val sendBtn = findViewById<Button>(R.id.sendBtn)
-        val input   = findViewById<EditText>(R.id.inputMessage)
-        sendBtn.setOnClickListener {
-            val msg = input.text.toString().trim()
-            if (msg.isNotEmpty()) {
-                chatLog.append("You: $msg\n")
+        // إرسال رسالة نصية (placeholder)
+        val input = findViewById<EditText>(R.id.messageInput)
+        findViewById<Button>(R.id.btnSend).setOnClickListener {
+            val txt = input.text.toString().trim()
+            if (txt.isNotEmpty()) {
+                log("MSG: $txt")
                 input.setText("")
             }
         }

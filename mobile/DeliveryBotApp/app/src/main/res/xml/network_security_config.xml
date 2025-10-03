@@ -1,12 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
-    <!-- اسمح بالـ HTTP (cleartext) لكل الدومينات. لو عايز تقفّلها، احذف base-config وحط domain-config بس -->
-    <base-config cleartextTrafficPermitted="true" />
-    <!-- مثال لتحديد دومينات معيّنة فقط:
     <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="true">192.168.1.0</domain>
-        <domain includeSubdomains="true">10.0.2.2</domain>
-        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="false">192.168.1.11</domain>
+        <domain includeSubdomains="false">10.0.2.2</domain>
+        <domain includeSubdomains="false">localhost</domain>
     </domain-config>
-    -->
 </network-security-config>

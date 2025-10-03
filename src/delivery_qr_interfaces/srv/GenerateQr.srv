@@ -1,0 +1,9 @@
+# Request
+string order_id
+string phone
+string address
+---
+# Response
+bool   success
+string message
+string qr_base64

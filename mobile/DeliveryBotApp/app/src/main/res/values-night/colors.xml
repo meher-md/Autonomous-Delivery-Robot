@@ -1,0 +1,6 @@
+<resources>
+    <!-- Dark palette -->
+    <color name="pb_bg">#121212</color>
+    <color name="pb_text_primary">#FFFFFF</color>
+    <color name="pb_text_secondary">#CCCCCC</color>
+</resources>

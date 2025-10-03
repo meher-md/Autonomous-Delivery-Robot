@@ -1,210 +1,86 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:background="@color/bg_dark"
+    android:orientation="vertical"
+    android:padding="20dp"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:padding="16dp">
+    android:layout_height="match_parent">
 
-    <!-- العنوان -->
+    <!-- عنوان -->
     <TextView
-        android:id="@+id/title"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="Open Chat &amp; Control"
+        android:text="Robot Chat &amp; Control"
         android:textStyle="bold"
-        android:textSize="22sp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        android:textColor="@color/text_primary"
+        android:textSize="26sp"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 
-    <!-- صندوق الرسائل -->
+    <!-- صندوق اللوج (يملى المساحة المتاحة) -->
     <ScrollView
-        android:id="@+id/chatScroll"
-        android:layout_width="0dp"
+        android:id="@+id/logScroll"
+        android:layout_marginTop="12dp"
+        android:background="@color/field_bg"
+        android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:fillViewport="true"
-        app:layout_constraintTop_toBottomOf="@id/title"
-        app:layout_constraintBottom_toTopOf="@id/inputRow"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        android:layout_weight="1">
         <TextView
-            android:id="@+id/chatLog"
+            android:id="@+id/logText"
+            android:textColor="@color/text_primary"
+            android:textSize="18sp"
+            android:padding="12dp"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text=""
-            android:textColor="#DDDDDD"
-            android:padding="8dp"/>
+            android:layout_height="wrap_content"/>
     </ScrollView>
 
-    <!-- إدخال/إرسال -->
+    <!-- إدخال رسالة + إرسال -->
     <LinearLayout
-        android:id="@+id/inputRow"
-        android:layout_width="0dp"
+        android:layout_marginTop="12dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/connectRow">
-
-        <EditText
-            android:id="@+id/inputMessage"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:hint="Type message" />
+        android:orientation="horizontal">
 
         <Button
-            android:id="@+id/sendBtn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:id="@+id/btnSend"
             android:text="Send"
-            android:layout_marginStart="12dp"/>
-    </LinearLayout>
-
-    <!-- صف الاتصال (IDs مطلوبة: btnConnect) -->
-    <LinearLayout
-        android:id="@+id/connectRow"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/togglePanelBtn"
-        android:layout_marginTop="8dp">
+            android:textAllCaps="false"
+            android:textColor="@color/text_primary"
+            android:background="@drawable/btn_lavender"
+            android:layout_width="110dp"
+            android:layout_height="48dp" />
 
         <EditText
-            android:id="@+id/hostInput"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:id="@+id/messageInput"
+            android:hint="Type message"
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_secondary"
+            android:background="@drawable/edit_field_bg"
+            android:layout_marginStart="10dp"
             android:layout_weight="1"
-            android:hint="ws://&lt;ROS_IP&gt;:9090" />
-
-        <Button
-            android:id="@+id/btnConnect"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Connect"
-            android:layout_marginStart="12dp"/>
+            android:layout_width="0dp"
+            android:layout_height="48dp" />
     </LinearLayout>
 
-    <!-- زر إظهار/إخفاء لوحة التحكم -->
+    <!-- زر إظهار/إخفاء الكنترول -->
     <Button
-        android:id="@+id/togglePanelBtn"
-        android:layout_width="0dp"
-        android:layout_height="48dp"
+        android:id="@+id/btnTogglePanel"
         android:text="Control Panel"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/controlPanel"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"/>
+        android:textAllCaps="false"
+        android:textColor="@color/text_primary"
+        android:background="@drawable/btn_lavender"
+        android:layout_marginTop="12dp"
+        android:layout_width="match_parent"
+        android:layout_height="50dp" />
 
-    <!-- لوحة الأسهم داخل قسم Open Chat -->
-    <LinearLayout
-        android:id="@+id/controlPanel"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:visibility="gone"
-        android:gravity="center_horizontal"
-        android:padding="8dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent">
+    <!-- Spacer يزق الكنترول لتحت لو الشاشة طويلة -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0"/>
 
-        <!-- ↑ -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center">
-            <Button
-                android:id="@+id/btnUp"
-                android:layout_width="84dp"
-                android:layout_height="84dp"
-                android:text="↑"/>
-        </LinearLayout>
-
-        <!-- ← ■ → -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:layout_marginTop="8dp">
-            <Button
-                android:id="@+id/btnLeft"
-                android:layout_width="84dp"
-                android:layout_height="84dp"
-                android:text="←"
-                android:layout_marginEnd="8dp"/>
-            <Button
-                android:id="@+id/btnStop"
-                android:layout_width="84dp"
-                android:layout_height="84dp"
-                android:text="■"
-                android:layout_marginEnd="8dp"/>
-            <Button
-                android:id="@+id/btnRight"
-                android:layout_width="84dp"
-                android:layout_height="84dp"
-                android:text="→"/>
-        </LinearLayout>
-
-        <!-- ↓ -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:layout_marginTop="8dp">
-            <Button
-                android:id="@+id/btnDown"
-                android:layout_width="84dp"
-                android:layout_height="84dp"
-                android:text="↓"/>
-        </LinearLayout>
-
-        <!-- السرعة + سلايدر speedBar -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:layout_marginTop="8dp">
-            <Button
-                android:id="@+id/btnSpeedPlus"
-                android:layout_width="100dp"
-                android:layout_height="48dp"
-                android:text="+ Speed"
-                android:layout_marginEnd="12dp"/>
-            <TextView
-                android:id="@+id/speedText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Speed: 0.2"
-                android:textSize="16sp"
-                android:layout_marginEnd="12dp"/>
-            <Button
-                android:id="@+id/btnSpeedMinus"
-                android:layout_width="100dp"
-                android:layout_height="48dp"
-                android:text="- Speed"/>
-        </LinearLayout>
-
-        <SeekBar
-            android:id="@+id/speedBar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:max="100"
-            android:progress="20" />
-
-        <TextView
-            android:id="@+id/bridgeStatus"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="rosbridge: DISCONNECTED"
-            android:layout_marginTop="8dp"/>
-    </LinearLayout>
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <!-- لوحة التحكم أسفل الشاشة -->
+    <include
+        android:id="@+id/panelInclude"
+        layout="@layout/include_control_panel"
+        android:visibility="visible"/>
+</LinearLayout>

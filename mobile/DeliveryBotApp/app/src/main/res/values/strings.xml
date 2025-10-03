@@ -1,5 +1,5 @@
 <resources>
     <string name="app_name">DeliveryBot</string>
-    <string name="nav_header_image">Header Image Description</string>
-    <string name="action_settings">Settings</string>
+    <string name="hello_world">Hello World!</string>
+    <string name="map_view">Map View</string>
 </resources>
