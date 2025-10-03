@@ -26,30 +26,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        /* WIRE_CHAT_ORDERS */
-        try {
-            val chatIds = intArrayOf(
-                resources.getIdentifier("btnOpenChat", "id", packageName),
-                resources.getIdentifier("openChatButton", "id", packageName),
-                resources.getIdentifier("btnChat", "id", packageName)
-            ).filter { it != 0 }
-            for (id in chatIds) {
-                (findViewById<View>(id) as? Button)?.setOnClickListener {
-                    startActivity(Intent(this, ChatActivity::class.java))
-                }
-            }
-            val orderIds = intArrayOf(
-                resources.getIdentifier("btnOrders", "id", packageName),
-                resources.getIdentifier("openOrdersButton", "id", packageName),
-                resources.getIdentifier("btnOpenOrders", "id", packageName)
-            ).filter { it != 0 }
-            for (id in orderIds) {
-                (findViewById<View>(id) as? Button)?.setOnClickListener {
-                    startActivity(Intent(this, OrdersActivity::class.java))
-                }
-            }
-        } catch (_: Throwable) {}
-        /* /WIRE_CHAT_ORDERS */
 
         val ipEdit = findViewById<EditText>(R.id.ipEdit)
         ipEdit.setText(Prefs.getIp(this))
