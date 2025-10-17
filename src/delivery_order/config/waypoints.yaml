@@ -1,5 +1,0 @@
-# خريطة نقاط مسماة -> Pose2D (x,y,theta بالـ rad)
-waypoints:
-  lab_door:   {x: 1.0,  y: 2.0,  theta: 0.0}
-  office_101: {x: 3.5,  y: -1.2, theta: 1.57}
-  desk_mo:    {x: 0.0,  y: 0.0,  theta: 0.0}

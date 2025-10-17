@@ -30,7 +30,7 @@ def generate_launch_description():
         output='screen'
     )
 
-    #  SLAM Toolbox
+    # اختياري: SLAM Toolbox
     slam = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(
@@ -41,7 +41,7 @@ def generate_launch_description():
         condition=IfCondition(start_slam)
     )
 
-    # Map HTTP Bridge
+    # اختياري: bridge HTTP للـ map.png (لو عندك نود اسمها map_http_bridge)
     map_http = Node(
         package='map_http_bridge',
         executable='map_http_bridge',
