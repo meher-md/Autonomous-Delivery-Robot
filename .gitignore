@@ -31,3 +31,6 @@ Makefile
 # --- OS / Misc ---
 .DS_Store
 Thumbs.db
+.history/
+frames_*.pdf
+frames_*.gv
