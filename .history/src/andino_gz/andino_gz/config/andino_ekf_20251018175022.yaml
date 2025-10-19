@@ -1,0 +1,80 @@
+ekf_odom:
+  ros__parameters:
+    ###########################################################################
+    # General
+    ###########################################################################
+    use_sim_time: true               # Use Gazebo/Sim time
+    two_d_mode: true                 # Constrain filter to planar motion (x, y, yaw)
+    publish_tf: true                 # This node publishes TF: odom -> base_link
+    frequency: 30.0                  # Filter update rate (Hz)
+    sensor_timeout: 0.2              # Drop measurements older than this (sec)
+    print_diagnostics: true          # Helpful diagnostics in /diagnostics
+    # debug: true                    # Uncomment for verbose console logs
+    # debug_out_file: /tmp/ekf_odom.log
+
+    ###########################################################################
+    # Frames
+    #
+    # This EKF produces TF: odom -> base_link
+    # map -> odom will be published by AMCL once localization is active.
+    ###########################################################################
+    map_frame: map
+    odom_frame: odom
+    base_link_frame: base_link
+    world_frame: odom                # World frame for this filter's output
+    # transform_time_offset: 0.0     # Leave at 0 unless you have timestamp skew
+    # transform_timeout: 0.0
+
+    ###########################################################################
+    # Inputs
+    #
+    #  - odom0: nav_msgs/Odometry from the Gazebo bridge (/model/.../odometry -> /odom)
+    #  - imu0 : sensor_msgs/Imu from the Gazebo bridge (/imu/data)
+    #
+    # Each *_config vector enables which variables to fuse from that sensor:
+    #   [x, y, z,
+    #    roll, pitch, yaw,
+    #    vx, vy, vz,
+    #    vroll, vpitch, vyaw,
+    #    ax, ay, az]
+    #
+    # In 2D we typically fuse: x, y, yaw, vx, vy, vyaw (and IMU yaw + yaw rate).
+    ###########################################################################
+
+    # Odometry (position, yaw, linear velocities, yaw rate)
+    odom0: /odom
+    odom0_config: [true,  true,  false,   # x, y, z
+                   false, false, true,    # roll, pitch, yaw
+                   true,  true,  false,   # vx, vy, vz
+                   false, false, true,    # vroll, vpitch, vyaw
+                   false, false, false]   # ax, ay, az
+    odom0_differential: false
+    odom0_relative:     false
+    # odom0_queue_size: 5
+
+    # IMU (use yaw orientation + yaw rate only)
+    # If you are NOT bridging /imu/data, comment this whole block.
+    imu0: /imu/data
+    imu0_config: [false, false, false,    # x, y, z (position) - not from IMU
+                  false, false, true,     # roll, pitch, yaw (use yaw only)
+                  false, false, false,    # vx, vy, vz
+                  false, false, true,     # vroll, vpitch, vyaw (use yaw rate)
+                  false, false, false]    # ax, ay, az (not fused in this 2D setup)
+    imu0_differential: false
+    imu0_relative:     false
+    imu0_remove_gravitational_acceleration: true
+    # imu0_queue_size: 10
+
+    ###########################################################################
+    # Optional tuning (leave defaults unless you need to tighten/loosen noise)
+    #
+    # process_noise_covariance:
+    # initial_estimate_covariance:
+    #  - Uncomment and tune if the filter feels too “stiff” or too “loose”.
+    ###########################################################################
+    # process_noise_covariance: [0.05, 0,    0,    0,    0,    0,
+    #                            0,    0.05, 0,    0,    0,    0,
+    #                            0,    0,    0.0,  0,    0,    0,
+    #                            0,    0,    0,    0.05, 0,    0,
+    #                            0,    0,    0,    0,    0.05, 0,
+    #                            0,    0,    0,    0,    0,    0.05]

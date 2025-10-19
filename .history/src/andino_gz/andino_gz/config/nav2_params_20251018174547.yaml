@@ -1,22 +1,9 @@
-# This file has been copied and adapted from: https://github.com/ros-planning/navigation2/blob/3bb9a95719539fcdfedf520c63339bc3157f80b4/nav2_bringup/params/nav2_params.yaml
-#
-# Copyright could not be identified. Copyright holders identification should refer to the aforementioned code source.
-#
-# License note follows:
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-# Changes in some parameters has been introduced to adapt to the andino robot
+# This file has been adapted from Navigation2 (Apache-2.0).
+# Changes made for the Andino robot:
+# - Use base_link consistently (AMCL base_frame_id -> "base_link")
+# - Increase inflation_radius to be >= inscribed radius (0.30)
+# - Differential drive tweaks: near-zero Y velocity threshold, vy_samples=1
+
 amcl:
   ros__parameters:
     use_sim_time: True
@@ -25,7 +12,8 @@ amcl:
     alpha3: 0.2
     alpha4: 0.2
     alpha5: 0.2
-    base_frame_id: "base_footprint"
+    # Use the robot's base frame; Andino publishes TF with "base_link"
+    base_frame_id: "base_link"
     beam_skip_distance: 0.5
     beam_skip_error_threshold: 0.9
     beam_skip_threshold: 0.3
@@ -48,7 +36,7 @@ amcl:
     robot_model_type: "nav2_amcl::DifferentialMotionModel"
     save_pose_rate: 0.5
     sigma_hit: 0.2
-    tf_broadcast: true
+    tf_broadcast: true                  # Publishes map->odom
     transform_tolerance: 1.0
     update_min_a: 0.2
     update_min_d: 0.25
@@ -66,10 +54,6 @@ bt_navigator:
     odom_topic: odom
     bt_loop_duration: 10
     default_server_timeout: 20
-    # 'default_nav_through_poses_bt_xml' and 'default_nav_to_pose_bt_xml' are use defaults:
-    # nav2_bt_navigator/navigate_to_pose_w_replanning_and_recovery.xml
-    # nav2_bt_navigator/navigate_through_poses_w_replanning_and_recovery.xml
-    # They can be set here or via a RewrittenYaml remap from a parent launch file to Nav2.
     plugin_lib_names:
       - nav2_compute_path_to_pose_action_bt_node
       - nav2_compute_path_through_poses_action_bt_node
@@ -132,11 +116,12 @@ controller_server:
     use_sim_time: True
     controller_frequency: 10.0
     min_x_velocity_threshold: 0.001
-    min_y_velocity_threshold: 0.5
+    # Differential drive: lateral velocity should be ~0
+    min_y_velocity_threshold: 0.001
     min_theta_velocity_threshold: 0.001
     failure_tolerance: 0.3
     progress_checker_plugin: "progress_checker"
-    goal_checker_plugins: ["general_goal_checker"] # "precise_goal_checker"
+    goal_checker_plugins: ["general_goal_checker"]  # "precise_goal_checker"
     controller_plugins: ["FollowPath"]
 
     # Progress checker parameters
@@ -144,6 +129,7 @@ controller_server:
       plugin: "nav2_controller::SimpleProgressChecker"
       required_movement_radius: 0.5
       movement_time_allowance: 10.0
+
     # Goal checker parameters
     #precise_goal_checker:
     #  plugin: "nav2_controller::SimpleGoalChecker"
@@ -155,7 +141,8 @@ controller_server:
       plugin: "nav2_controller::SimpleGoalChecker"
       xy_goal_tolerance: 0.25
       yaw_goal_tolerance: 0.25
-    # DWB parameters
+
+    # DWB local planner parameters
     FollowPath:
       plugin: "dwb_core::DWBLocalPlanner"
       debug_trajectory_details: True
@@ -174,7 +161,7 @@ controller_server:
       decel_lim_y: 0.0
       decel_lim_theta: -3.2
       vx_samples: 20
-      vy_samples: 5
+      vy_samples: 1                  # Differential drive: only 0 lateral samples
       vtheta_samples: 20
       sim_time: 1.7
       linear_granularity: 0.05
@@ -208,12 +195,14 @@ local_costmap:
       width: 3
       height: 3
       resolution: 0.05
+      # For local planning we can keep a smaller physical radius if appropriate
       robot_radius: 0.12
       plugins: ["voxel_layer", "inflation_layer"]
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 2.0
-        inflation_radius: 0.2
+        # Increased to be >= inscribed radius to avoid collision on corners
+        inflation_radius: 0.30
       voxel_layer:
         plugin: "nav2_costmap_2d::VoxelLayer"
         enabled: True
@@ -234,6 +223,7 @@ local_costmap:
           raytrace_min_range: 0.0
           obstacle_max_range: 2.5
           obstacle_min_range: 0.0
+      # Static layer not typically used in local costmap; leaving defined but not enabled
       static_layer:
         plugin: "nav2_costmap_2d::StaticLayer"
         map_subscribe_transient_local: True
@@ -271,14 +261,16 @@ global_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 2.0
-        inflation_radius: 0.2
+        # Increased to be >= inscribed radius to avoid collision on corners
+        inflation_radius: 0.30
       always_send_full_costmap: True
 
 map_server:
   ros__parameters:
     use_sim_time: True
-    # Overridden in launch by the "map" launch configuration or provided default value.
-    # To use in yaml, remove the default "map" value in the tb3_simulation_launch.py file & provide full path to map below.
+    # This is overridden by the launch file via "map" launch argument.
+    # If you prefer to set it here, put the full path to your YAML and
+    # remove the default in the launch file.
     yaml_filename: ""
 
 map_saver:

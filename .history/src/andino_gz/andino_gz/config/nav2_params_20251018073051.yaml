@@ -2,8 +2,6 @@
 #
 # Copyright could not be identified. Copyright holders identification should refer to the aforementioned code source.
 #
-# License note follows:
-#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -17,6 +15,7 @@
 # limitations under the License.
 #
 # Changes in some parameters has been introduced to adapt to the andino robot
+
 amcl:
   ros__parameters:
     use_sim_time: True
@@ -49,7 +48,7 @@ amcl:
     save_pose_rate: 0.5
     sigma_hit: 0.2
     tf_broadcast: true
-    transform_tolerance: 1.0
+    transform_tolerance: 0.3         # CHANGED (كان 1.0)
     update_min_a: 0.2
     update_min_d: 0.25
     z_hit: 0.5
@@ -66,10 +65,6 @@ bt_navigator:
     odom_topic: odom
     bt_loop_duration: 10
     default_server_timeout: 20
-    # 'default_nav_through_poses_bt_xml' and 'default_nav_to_pose_bt_xml' are use defaults:
-    # nav2_bt_navigator/navigate_to_pose_w_replanning_and_recovery.xml
-    # nav2_bt_navigator/navigate_through_poses_w_replanning_and_recovery.xml
-    # They can be set here or via a RewrittenYaml remap from a parent launch file to Nav2.
     plugin_lib_names:
       - nav2_compute_path_to_pose_action_bt_node
       - nav2_compute_path_through_poses_action_bt_node
@@ -144,6 +139,7 @@ controller_server:
       plugin: "nav2_controller::SimpleProgressChecker"
       required_movement_radius: 0.5
       movement_time_allowance: 10.0
+
     # Goal checker parameters
     #precise_goal_checker:
     #  plugin: "nav2_controller::SimpleGoalChecker"
@@ -155,7 +151,8 @@ controller_server:
       plugin: "nav2_controller::SimpleGoalChecker"
       xy_goal_tolerance: 0.25
       yaw_goal_tolerance: 0.25
-    # DWB parameters
+
+    # === DWB Local Planner ===
     FollowPath:
       plugin: "dwb_core::DWBLocalPlanner"
       debug_trajectory_details: True
@@ -179,7 +176,7 @@ controller_server:
       sim_time: 1.7
       linear_granularity: 0.05
       angular_granularity: 0.025
-      transform_tolerance: 0.2
+      transform_tolerance: 0.3      # CHANGED (كان 0.2)
       xy_goal_tolerance: 0.25
       trans_stopped_velocity: 0.25
       short_circuit_trajectory_evaluation: True
@@ -199,21 +196,22 @@ controller_server:
 local_costmap:
   local_costmap:
     ros__parameters:
-      update_frequency: 5.0
-      publish_frequency: 2.0
+      update_frequency: 10.0         # CHANGED (كان 5.0)
+      publish_frequency: 10.0        # CHANGED (كان 2.0)
       global_frame: odom
       robot_base_frame: base_link
       use_sim_time: True
       rolling_window: true
-      width: 3
-      height: 3
+      width: 6.0                     # CHANGED (كان 3)
+      height: 6.0                    # CHANGED (كان 3)
       resolution: 0.05
+      transform_tolerance: 0.3       # ADDED
       robot_radius: 0.12
       plugins: ["voxel_layer", "inflation_layer"]
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 2.0
-        inflation_radius: 0.2
+        cost_scaling_factor: 2.5     # CHANGED
+        inflation_radius: 0.45       # CHANGED (كان 0.2)
       voxel_layer:
         plugin: "nav2_costmap_2d::VoxelLayer"
         enabled: True
@@ -230,9 +228,9 @@ local_costmap:
           clearing: True
           marking: True
           data_type: "LaserScan"
-          raytrace_max_range: 3.0
+          raytrace_max_range: 4.0    # CHANGED (كان 3.0)
           raytrace_min_range: 0.0
-          obstacle_max_range: 2.5
+          obstacle_max_range: 3.0    # CHANGED (كان 2.5)
           obstacle_min_range: 0.0
       static_layer:
         plugin: "nav2_costmap_2d::StaticLayer"
@@ -242,13 +240,14 @@ local_costmap:
 global_costmap:
   global_costmap:
     ros__parameters:
-      update_frequency: 1.0
-      publish_frequency: 1.0
+      update_frequency: 2.0          # CHANGED (كان 1.0)
+      publish_frequency: 2.0         # CHANGED (كان 1.0)
       global_frame: map
       robot_base_frame: base_link
       use_sim_time: True
       robot_radius: 0.22
       resolution: 0.05
+      transform_tolerance: 0.3       # ADDED
       track_unknown_space: true
       plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
       obstacle_layer:
@@ -261,24 +260,23 @@ global_costmap:
           clearing: True
           marking: True
           data_type: "LaserScan"
-          raytrace_max_range: 3.0
+          raytrace_max_range: 4.0    # CHANGED (كان 3.0)
           raytrace_min_range: 0.0
-          obstacle_max_range: 2.5
+          obstacle_max_range: 3.0    # CHANGED (كان 2.5)
           obstacle_min_range: 0.0
       static_layer:
         plugin: "nav2_costmap_2d::StaticLayer"
         map_subscribe_transient_local: True
+        subscribe_to_updates: True   # ADDED
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 2.0
-        inflation_radius: 0.2
+        cost_scaling_factor: 3.0     # CHANGED
+        inflation_radius: 0.50       # CHANGED (كان 0.2)
       always_send_full_costmap: True
 
 map_server:
   ros__parameters:
     use_sim_time: True
-    # Overridden in launch by the "map" launch configuration or provided default value.
-    # To use in yaml, remove the default "map" value in the tb3_simulation_launch.py file & provide full path to map below.
     yaml_filename: ""
 
 map_saver:
@@ -291,7 +289,7 @@ map_saver:
 
 planner_server:
   ros__parameters:
-    expected_planner_frequency: 10.0
+    expected_planner_frequency: 5.0  # CHANGED (كان 10.0) لتفادي تحذير missed 10Hz
     use_sim_time: True
     planner_plugins: ["GridBased"]
     GridBased:
@@ -328,7 +326,7 @@ behavior_server:
       plugin: "nav2_behaviors/AssistedTeleop"
     global_frame: odom
     robot_base_frame: base_link
-    transform_tolerance: 0.1
+    transform_tolerance: 0.3         # CHANGED (كان 0.1)
     use_sim_time: true
     simulate_ahead_time: 2.0
     max_rotational_vel: 1.0
