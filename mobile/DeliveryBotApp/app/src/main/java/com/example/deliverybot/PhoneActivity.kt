@@ -38,6 +38,12 @@ class PhoneActivity : AppCompatActivity() {
                 Toast.makeText(this, "Enter phone number", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
+
+            if (!RosBridgeClient.isConnected()) {
+                Toast.makeText(this, "Not connected to robot. Press Save / Connect first.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
             try {
                 RosBridgeClient.publish("/app/phone", phone)
                 Toast.makeText(this, "Phone sent: $phone", Toast.LENGTH_SHORT).show()

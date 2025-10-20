@@ -11,6 +11,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.example.deliverybot.net.RosBridgeClient
 
 object Prefs {
     fun saveIp(ctx: Context, ip: String) {
@@ -32,6 +33,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnPhone: Button
     // RTSP default (can be overridden when launching camera)
     private var rtspUrl: String = "rtsp://127.0.0.1:8554/stream"
+
+    private lateinit var ipEdit: EditText
+    private lateinit var btnSave: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,13 +66,23 @@ class MainActivity : AppCompatActivity() {
         } catch (_: Throwable) {}
         /* /WIRE_CHAT_ORDERS */
 
-        val ipEdit = findViewById<EditText>(R.id.ipEdit)
-        ipEdit.setText(Prefs.getIp(this))
+        // bind IP input and Save button (activity_main.xml)
+        ipEdit = findViewById(R.id.ipEdit)
+        btnSave = findViewById(R.id.btnSave)
 
-        findViewById<Button>(R.id.btnSave).setOnClickListener {
-            val ip = ipEdit.text.toString().trim()
-            Prefs.saveIp(this, ip)
-            Toast.makeText(this, "Saved IP: $ip", Toast.LENGTH_SHORT).show()
+        btnSave.setOnClickListener {
+            val ipRaw = ipEdit.text.toString().trim().ifBlank { "10.42.0.1" }
+            // build websocket URL; use ws://host:port (no /rosbridge)
+            val url = when {
+                ipRaw.startsWith("ws://") || ipRaw.startsWith("wss://") -> {
+                    // if user provided scheme and port, keep it; if they omitted port add :9090
+                    if (ipRaw.contains(":")) ipRaw else "$ipRaw:9090"
+                }
+                ipRaw.contains(":") -> "ws://$ipRaw" // user provided ip:port
+                else -> "ws://$ipRaw:9090"
+            }
+            RosBridgeClient.connect(url)
+            Toast.makeText(this, "Connecting to $url", Toast.LENGTH_SHORT).show()
         }
 
         // bind new buttons (and existing ones if not already bound)

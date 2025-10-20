@@ -46,6 +46,11 @@ class AddressActivity : AppCompatActivity() {
                 else -> "Unknown"
             }
 
+            if (!RosBridgeClient.isConnected()) {
+                Toast.makeText(this, "Not connected to robot. Press Save / Connect first.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
             try {
                 RosBridgeClient.publish("/app/address", selectedText)
                 Toast.makeText(this, "Address sent: $selectedText", Toast.LENGTH_SHORT).show()
