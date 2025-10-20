@@ -23,9 +23,20 @@ object Prefs {
 }
 
 class MainActivity : AppCompatActivity() {
+
+    // UI buttons added/declared here
+    private lateinit var btnOpenMap: Button
+    private lateinit var btnOpenCamera: Button
+    private lateinit var btnOpenChat: Button
+    private lateinit var btnAddress: Button
+    private lateinit var btnPhone: Button
+    // RTSP default (can be overridden when launching camera)
+    private var rtspUrl: String = "rtsp://127.0.0.1:8554/stream"
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
         /* WIRE_CHAT_ORDERS */
         try {
             val chatIds = intArrayOf(
@@ -60,17 +71,28 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, "Saved IP: $ip", Toast.LENGTH_SHORT).show()
         }
 
-        findViewById<Button>(R.id.btnOrders).setOnClickListener {
-            startActivity(Intent(this, OrdersActivity::class.java))
-        }
-        findViewById<Button>(R.id.btnChat).setOnClickListener {
-            startActivity(Intent(this, ChatActivity::class.java))
-        }
-        findViewById<Button>(R.id.btnMap).setOnClickListener {
+        // bind new buttons (and existing ones if not already bound)
+        btnOpenMap    = findViewById(R.id.btnMap)
+        btnOpenCamera = findViewById(R.id.btnCamera)
+        btnOpenChat   = findViewById(R.id.btnChat)
+        btnAddress    = findViewById(R.id.btnAddress)
+        btnPhone      = findViewById(R.id.btnPhone)
+
+        // click handlers
+        btnOpenMap.setOnClickListener {
             startActivity(Intent(this, MapActivity::class.java))
         }
-        findViewById<Button>(R.id.btnCamera).setOnClickListener {
-            startActivity(Intent(this, CameraActivity::class.java))
+        btnOpenCamera.setOnClickListener {
+            startActivity(Intent(this, CameraActivity::class.java).putExtra("rtspUrl", rtspUrl))
+        }
+        btnOpenChat.setOnClickListener {
+            startActivity(Intent(this, ChatActivity::class.java))
+        }
+        btnAddress.setOnClickListener {
+            startActivity(Intent(this, AddressActivity::class.java))
+        }
+        btnPhone.setOnClickListener {
+            startActivity(Intent(this, PhoneActivity::class.java))
         }
     }
 }

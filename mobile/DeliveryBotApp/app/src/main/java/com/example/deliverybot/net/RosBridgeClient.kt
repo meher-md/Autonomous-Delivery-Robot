@@ -4,6 +4,7 @@ import android.util.Log
 import okhttp3.*
 import okio.ByteString
 import java.util.concurrent.TimeUnit
+import org.json.JSONObject
 
 object RosBridgeClient {
     private const val TAG = "RosBridgeClient"
@@ -45,6 +46,26 @@ object RosBridgeClient {
 
     @JvmStatic
     fun send(json: String) { ws?.send(json) }
+
+    /**
+     * Helper: publish a plain string message to a topic using rosbridge "publish" op.
+     * Example: publish("/app/address", "Library")
+     */
+    @JvmStatic
+    fun publish(topic: String, data: String) {
+        try {
+            val obj = JSONObject()
+            obj.put("op", "publish")
+            obj.put("topic", topic)
+            val msg = JSONObject()
+            msg.put("data", data)
+            obj.put("msg", msg)
+            ws?.send(obj.toString())
+            Log.d(TAG, "WS TX publish: ${obj.toString()}")
+        } catch (t: Throwable) {
+            Log.e(TAG, "publish() error: ${t.message}", t)
+        }
+    }
 
     @JvmStatic
     fun close() { ws?.close(1000, "bye") }

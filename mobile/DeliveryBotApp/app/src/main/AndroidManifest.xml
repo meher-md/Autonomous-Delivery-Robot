@@ -16,5 +16,10 @@
         </activity>
 
 
-        <activity android:name="com.example.deliverybot.ChatActivity" android:exported="true" /><activity android:name="com.example.deliverybot.OrdersActivity" android:exported="true" /><activity android:name="com.example.deliverybot.CameraActivity" android:exported="true" android:hardwareAccelerated="true" /></application>
+        <activity android:name="com.example.deliverybot.ChatActivity" android:exported="true" /><activity android:name="com.example.deliverybot.OrdersActivity" android:exported="true" /><activity android:name="com.example.deliverybot.CameraActivity" android:exported="true" android:hardwareAccelerated="true" />
+
+        <activity android:name=".AddressActivity" android:exported="false" />
+        <activity android:name=".PhoneActivity" android:exported="false" />
+
+    </application>
 </manifest>

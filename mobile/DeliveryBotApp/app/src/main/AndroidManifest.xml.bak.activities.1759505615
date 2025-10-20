@@ -26,6 +26,8 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".AddressActivity" android:exported="false"/>
+        <activity android:name=".PhoneActivity" android:exported="false"/>
 
         <activity android:name="com.example.deliverybot.ChatActivity" android:exported="true" />
         <activity android:name="com.example.deliverybot.OrdersActivity" android:exported="true" />

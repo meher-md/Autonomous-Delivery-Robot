@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:background="@color/bg_dark"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:text="Select Address"
+        android:textStyle="bold"
+        android:textColor="@color/text_primary"
+        android:textSize="22sp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <RadioGroup
+        android:id="@+id/rgLocations"
+        android:layout_marginTop="12dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <RadioButton android:id="@+id/rbLibrary" android:text="Library" android:textColor="@color/text_primary" />
+        <RadioButton android:id="@+id/rbLab" android:text="Lab" android:textColor="@color/text_primary" />
+        <RadioButton android:id="@+id/rbLobby" android:text="Lobby" android:textColor="@color/text_primary" />
+        <RadioButton android:id="@+id/rbCafeteria" android:text="Cafeteria" android:textColor="@color/text_primary" />
+        <RadioButton android:id="@+id/rbOther" android:text="Other (specify)" android:textColor="@color/text_primary" />
+    </RadioGroup>
+
+    <EditText
+        android:id="@+id/etOther"
+        android:hint="Type custom location..."
+        android:visibility="gone"
+        android:background="@drawable/edit_field_bg"
+        android:textColor="@color/text_primary"
+        android:layout_marginTop="8dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <View android:layout_weight="1" android:layout_width="0dp" android:layout_height="0dp" />
+
+    <Button
+        android:id="@+id/btnConfirmAddress"
+        android:text="Confirm Address"
+        android:textAllCaps="false"
+        android:textColor="@color/text_primary"
+        android:background="@drawable/btn_lavender"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"/>
+</LinearLayout>
