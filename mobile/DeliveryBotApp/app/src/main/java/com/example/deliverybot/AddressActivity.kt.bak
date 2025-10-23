@@ -13,24 +13,38 @@ class AddressActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_address)
+        try {
+            setContentView(R.layout.activity_address)
+        } catch (t: Throwable) {
+            Log.e(TAG, "setContentView failed", t)
+            Toast.makeText(this, "UI error", Toast.LENGTH_SHORT).show()
+            finish()
+            return
+        }
 
-        val rg = findViewById<RadioGroup>(R.id.rgLocations)
-        val etOther = findViewById<EditText>(R.id.etOther)
-        val btnConfirm = findViewById<Button>(R.id.btnConfirmAddress)
+        val rg = findViewById<RadioGroup?>(R.id.rgLocations)
+        val etOther = findViewById<EditText?>(R.id.etOther)
+        val btnConfirm = findViewById<Button?>(R.id.btnConfirmAddress)
         tvStatus = findViewById(R.id.tvStatus)
+
+        if (rg == null || etOther == null || btnConfirm == null || tvStatus == null) {
+            Log.e(TAG, "UI elements missing (rg=$rg, etOther=$etOther, btnConfirm=$btnConfirm, tvStatus=$tvStatus)")
+            Toast.makeText(this, "UI not found — cannot continue", Toast.LENGTH_SHORT).show()
+            finish()
+            return
+        }
 
         rg.setOnCheckedChangeListener { _, checkedId ->
             etOther.visibility = if (checkedId == R.id.rbOther) View.VISIBLE else View.GONE
         }
 
-        // Subscribe to robot feedback (optional)
+        // Subscribe to robot feedback on /app/goal_status
         try {
             RosBridgeClient.subscribe("/app/goal_status") { msg ->
                 runOnUiThread { tvStatus.text = "Robot: $msg" }
             }
         } catch (t: Throwable) {
-            Log.e(TAG, "subscribe failed", t)
+            Log.e(TAG, "Failed to subscribe to status topic", t)
         }
 
         btnConfirm.setOnClickListener {
@@ -58,9 +72,10 @@ class AddressActivity : AppCompatActivity() {
                 tvStatus.text = "Sent: $selectedText"
                 Toast.makeText(this, "Sent to robot: $selectedText", Toast.LENGTH_SHORT).show()
             } catch (t: Throwable) {
-                Log.e(TAG, "publish failed", t)
+                Log.e(TAG, "Failed to publish goal", t)
                 Toast.makeText(this, "Failed to send goal", Toast.LENGTH_SHORT).show()
             }
         }
     }
 }
+

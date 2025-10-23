@@ -1,0 +1,41 @@
+waypoints:
+  Cafeteria:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: -13.98763656616211
+      y: 2.726619005203247
+      z: 0.0
+  Lab:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: -11.575770378112793
+      y: -2.5384387969970703
+      z: 0.0
+  Library:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 11.558635711669922
+      y: -2.2924938201904297
+      z: 0.0
+  Lobby:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 0.16514217853546143
+      y: 2.0657389163970947
+      z: 0.0

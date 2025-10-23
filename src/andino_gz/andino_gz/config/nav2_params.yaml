@@ -1,15 +1,6 @@
-# This file has been copied and adapted from:
-# https://github.com/ros-planning/navigation2/blob/3bb9a95719539fcdfedf520c63339bc3157f80b4/nav2_bringup/params/nav2_params.yaml
-#
-# Changes added to improve obstacle avoidance:
-# - Larger inflation radius (local & global) so the local planner keeps safe distance
-# - Consistent robot size across costmaps (avoid squeezing into too-narrow gaps)
-# - Stronger obstacle critic and better angular sampling in DWB
-# - Slightly higher planner tolerance, optional lower expected planner freq
-# - Minor velocity/stop thresholds to reduce in-place spinning
-#
-# === التعديلات الموصى بها لمعالجة فشل التخطيط ===
-# تم تقليل inflation_radius من 0.55 إلى 0.40 لحل مشكلة فشل المخطط العام والانسداد المحلي.
+# Nav2 params (tuned)
+# Fixes: DWB "No valid trajectories" near goal by allowing in-place rotation and relaxing goal yaw tolerance.
+# Also aligns velocity_smoother limits with DWB and uses balanced inflation.
 
 amcl:
   ros__parameters:
@@ -126,36 +117,36 @@ controller_server:
     min_theta_velocity_threshold: 0.001
     failure_tolerance: 0.3
     progress_checker_plugin: "progress_checker"
-    goal_checker_plugins: ["general_goal_checker"] # "precise_goal_checker"
+    goal_checker_plugins: ["general_goal_checker"]
     controller_plugins: ["FollowPath"]
 
-    # Progress checker parameters (how we decide we're stuck)
+    # Progress checker
     progress_checker:
       plugin: "nav2_controller::SimpleProgressChecker"
       required_movement_radius: 0.5
       movement_time_allowance: 10.0
 
-    # Goal checker parameters
+    # Goal checker
     general_goal_checker:
       stateful: True
       plugin: "nav2_controller::SimpleGoalChecker"
       xy_goal_tolerance: 0.25
-      yaw_goal_tolerance: 0.25
+      yaw_goal_tolerance: 0.35   # Slightly wider to allow completing the goal
 
-    # === DWB Local Planner (tuned to avoid obstacles rather than spinning in place) ===
+    # ===== DWB Local Planner =====
     FollowPath:
       plugin: "dwb_core::DWBLocalPlanner"
       debug_trajectory_details: True
 
-      # Keep small but non-zero mins to discourage complete stop
-      min_vel_x: 0.02          # was 0.0
+      # Allow in-place rotation (important for your case)
+      min_vel_x: 0.0
       min_vel_y: 0.0
       max_vel_x: 0.26
       max_vel_y: 0.0
-      max_vel_theta: 1.0
-      min_speed_xy: 0.02       # was 0.0
+      min_speed_xy: 0.0
       max_speed_xy: 0.26
-      min_speed_theta: 0.10     # was 0.0
+      min_speed_theta: 0.20      # Effective rotation
+      max_vel_theta: 1.5
 
       acc_lim_x: 2.5
       acc_lim_y: 0.0
@@ -166,21 +157,18 @@ controller_server:
 
       vx_samples: 20
       vy_samples: 5
-      vtheta_samples: 32        # was 20 (more angular options)
+      vtheta_samples: 48
 
-      sim_time: 2.5             # was 1.7 (look further ahead)
-
+      sim_time: 2.0
       linear_granularity: 0.05
       angular_granularity: 0.025
       transform_tolerance: 0.2
 
       xy_goal_tolerance: 0.25
-      trans_stopped_velocity: 0.10  # was 0.25 (less eager to consider stopped)
-
+      trans_stopped_velocity: 0.10
       short_circuit_trajectory_evaluation: True
       stateful: True
 
-      # Stronger obstacle avoidance and less obsession with perfect alignment
       critics:
         - ObstacleFootprint
         - PathAlign
@@ -190,16 +178,16 @@ controller_server:
         - PreferForward
         - RotateToGoal
 
-      # Critic weights
-      ObstacleFootprint.scale: 0.8   # stronger obstacle penalty (replaces BaseObstacle.scale)
-      PathAlign.scale: 18.0          # was 32.0
+      # Balanced critic weights
+      ObstacleFootprint.scale: 0.8
+      PathAlign.scale: 18.0
       PathAlign.forward_point_distance: 0.25
-      GoalAlign.scale: 14.0          # was 24.0
+      GoalAlign.scale: 14.0
       GoalAlign.forward_point_distance: 0.25
-      PathDist.scale: 18.0           # was 32.0
-      GoalDist.scale: 14.0           # was 24.0
+      PathDist.scale: 18.0
+      GoalDist.scale: 14.0
       PreferForward.scale: 2.0
-      RotateToGoal.scale: 16.0       # was 32.0
+      RotateToGoal.scale: 12.0
       RotateToGoal.slowing_factor: 5.0
       RotateToGoal.lookahead_time: -1.0
 
@@ -216,8 +204,8 @@ local_costmap:
       height: 3
       resolution: 0.05
 
-      # Keep robot size consistent with global costmap (helps avoid too narrow gaps)
-      robot_radius: 0.22           # was 0.12
+      # Same footprint/radius as global costmap
+      robot_radius: 0.22
 
       plugins: ["voxel_layer", "inflation_layer"]
 
@@ -237,17 +225,15 @@ local_costmap:
           clearing: True
           marking: True
           data_type: "LaserScan"
-          raytrace_max_range: 3.5      # was 3.0
+          raytrace_max_range: 3.5
           raytrace_min_range: 0.0
-          obstacle_max_range: 3.0      # was 2.5
+          obstacle_max_range: 3.0
           obstacle_min_range: 0.0
 
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 2.0
-        # === تم التعديل ===
-        inflation_radius: 0.25   # تم تقليله من 0.55 لتجنب إغلاق الممرات وتجنب الانسداد
-        # =================
+        cost_scaling_factor: 2.5
+        inflation_radius: 0.35  # Balanced radius: wider than 0.25 to avoid close passes, narrower than 0.55 to avoid blocking corridors
 
       static_layer:
         plugin: "nav2_costmap_2d::StaticLayer"
@@ -278,9 +264,9 @@ global_costmap:
           clearing: True
           marking: True
           data_type: "LaserScan"
-          raytrace_max_range: 3.5      # was 3.0
+          raytrace_max_range: 3.5
           raytrace_min_range: 0.0
-          obstacle_max_range: 3.0      # was 2.5
+          obstacle_max_range: 3.0
           obstacle_min_range: 0.0
 
       static_layer:
@@ -289,17 +275,15 @@ global_costmap:
 
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 2.0
-        # === تم التعديل ===
-        inflation_radius: 0.25   # تم تقليله من 0.55 لحل مشكلة فشل المخطط العام
-        # =================
+        cost_scaling_factor: 2.5
+        inflation_radius: 0.35
 
       always_send_full_costmap: True
 
 map_server:
   ros__parameters:
     use_sim_time: True
-    yaml_filename: ""   # provided by launch via 'map' arg
+    yaml_filename: ""   # Provided by launch via 'map' arg
 
 map_saver:
   ros__parameters:
@@ -311,13 +295,12 @@ map_saver:
 
 planner_server:
   ros__parameters:
-    # Lowering expected frequency can reduce overload on slower machines
-    expected_planner_frequency: 5.0   # was 10.0 (optional)
+    expected_planner_frequency: 5.0
     use_sim_time: True
     planner_plugins: ["GridBased"]
     GridBased:
       plugin: "nav2_navfn_planner/NavfnPlanner"
-      tolerance: 0.75     # was 0.5 (increase goal acceptance radius for plans)
+      tolerance: 0.75
       use_astar: true
       allow_unknown: true
 
@@ -352,7 +335,7 @@ behavior_server:
     transform_tolerance: 0.1
     use_sim_time: true
     simulate_ahead_time: 2.0
-    max_rotational_vel: 1.0
+    max_rotational_vel: 1.5
     min_rotational_vel: 0.4
     rotational_acc_lim: 3.2
 
@@ -377,8 +360,9 @@ velocity_smoother:
     smoothing_frequency: 10.0
     scale_velocities: False
     feedback: "OPEN_LOOP"
-    max_velocity: [0.25, 0.0, 1.0]
-    min_velocity: [-0.25, 0.0, -1.0]
+    # Make limits ≥ DWB limits
+    max_velocity: [0.26, 0.0, 1.5]
+    min_velocity: [-0.26, 0.0, -1.5]
     max_accel: [2.5, 0.0, 3.2]
     max_decel: [-2.5, 0.0, -3.2]
     odom_topic: "odom"

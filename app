@@ -48,6 +48,14 @@ else
   fi
 fi
 
+# ---------- DDS / Domain (inherit-safe) ----------
+# If you already exported ROS_DOMAIN_ID before running, we'll keep it.
+: "${ROS_DOMAIN_ID:=0}"
+: "${ROS_LOCALHOST_ONLY:=0}"   # 0 = allow LAN; set to 1 manually if you want loopback-only
+export ROS_DOMAIN_ID ROS_LOCALHOST_ONLY
+unset CYCLONEDDS_URI           # avoid custom Cyclone configs that can block participants
+echo "Using ROS_DOMAIN_ID=${ROS_DOMAIN_ID}, ROS_LOCALHOST_ONLY=${ROS_LOCALHOST_ONLY}"
+
 # ---------- Launch ----------
 echo "==> launching ${PKG}/app.launch.py (rosbridge:${ROSBRIDGE_PORT}, web_video:${WEB_VIDEO_PORT}, slam:${START_SLAM}, map_http:${START_MAP_HTTP}, map_http_port:${MAP_HTTP_PORT})"
 
@@ -57,7 +65,8 @@ ros2 launch "${PKG}" app.launch.py \
   web_video_port:="${WEB_VIDEO_PORT}" \
   start_slam:="${START_SLAM}" \
   start_map_http:="${START_MAP_HTTP}" \
-  map_http_port:="${MAP_HTTP_PORT}"
+  map_http_port:="${MAP_HTTP_PORT}" \
+  yaml_path:="${WS_ROOT}/src/andino_gz/config/named_poses.yaml"
 RC=$?
 set -e
 popd >/dev/null
@@ -68,7 +77,8 @@ if [[ ${RC} -ne 0 ]]; then
 
   # rosbridge
   if ! pgrep -f "rosbridge_websocket" >/dev/null; then
-    nohup ros2 run rosbridge_server rosbridge_websocket --port "${ROSBRIDGE_PORT}" \
+    nohup env ROS_DOMAIN_ID="${ROS_DOMAIN_ID}" ROS_LOCALHOST_ONLY="${ROS_LOCALHOST_ONLY}" \
+      ros2 run rosbridge_server rosbridge_websocket --port "${ROSBRIDGE_PORT}" \
       > "${LOG_DIR}/rosbridge.log" 2>&1 &
     echo "  -> rosbridge_server on ${ROSBRIDGE_PORT}"
   else
@@ -77,7 +87,8 @@ if [[ ${RC} -ne 0 ]]; then
 
   # web_video
   if ! pgrep -f "web_video_server" >/dev/null; then
-    nohup ros2 run web_video_server web_video_server --port "${WEB_VIDEO_PORT}" \
+    nohup env ROS_DOMAIN_ID="${ROS_DOMAIN_ID}" ROS_LOCALHOST_ONLY="${ROS_LOCALHOST_ONLY}" \
+      ros2 run web_video_server web_video_server --port "${WEB_VIDEO_PORT}" \
       > "${LOG_DIR}/web_video.log" 2>&1 &
     echo "  -> web_video_server on ${WEB_VIDEO_PORT}"
   else
@@ -86,7 +97,8 @@ if [[ ${RC} -ne 0 ]]; then
 
   # slam (optional)
   if [[ "${START_SLAM}" == "true" ]] && ! pgrep -f "async_slam_toolbox_node" >/dev/null; then
-    nohup ros2 launch slam_toolbox online_async_launch.py \
+    nohup env ROS_DOMAIN_ID="${ROS_DOMAIN_ID}" ROS_LOCALHOST_ONLY="${ROS_LOCALHOST_ONLY}" \
+      ros2 launch slam_toolbox online_async_launch.py \
       > "${LOG_DIR}/slam_toolbox.log" 2>&1 &
     echo "  -> slam_toolbox (online_async)"
   fi
@@ -95,7 +107,8 @@ if [[ ${RC} -ne 0 ]]; then
   if [[ "${START_MAP_HTTP}" == "true" ]]; then
     if ros2 pkg executables map_http_bridge >/dev/null 2>&1; then
       if ! pgrep -f "map_http_bridge" >/dev/null; then
-        nohup ros2 run map_http_bridge map_http_bridge --port "${MAP_HTTP_PORT}" \
+        nohup env ROS_DOMAIN_ID="${ROS_DOMAIN_ID}" ROS_LOCALHOST_ONLY="${ROS_LOCALHOST_ONLY}" \
+          ros2 run map_http_bridge map_http_bridge --port "${MAP_HTTP_PORT}" \
           > "${LOG_DIR}/map_http_bridge.log" 2>&1 &
         echo "  -> map_http_bridge on ${MAP_HTTP_PORT}"
       else
@@ -110,3 +123,4 @@ if [[ ${RC} -ne 0 ]]; then
 fi
 
 exit 0
+

@@ -1,0 +1,218 @@
+#!/usr/bin/env python3
+import os
+import yaml
+import difflib
+from math import sin, cos
+
+import rclpy
+from rclpy.node import Node
+from rclpy.action import ActionClient
+
+from std_msgs.msg import String, Empty
+from geometry_msgs.msg import PoseStamped, Quaternion
+from nav2_msgs.action import NavigateToPose
+from action_msgs.msg import GoalStatus
+
+DEFAULT_YAML = os.path.expanduser('~/ws/src/andino_gz/config/named_poses.yaml')
+
+
+def yaw_to_quat(yaw: float) -> Quaternion:
+    q = Quaternion()
+    q.x = 0.0
+    q.y = 0.0
+    q.z = sin(yaw / 2.0)
+    q.w = cos(yaw / 2.0)
+    return q
+
+
+def load_named_poses(path: str):
+    """Return dict: name -> {position:{x,y,z}, orientation:{x,y,z,w}}."""
+    if not os.path.exists(path):
+        return {}
+
+    with open(path, 'r') as f:
+        data = yaml.safe_load(f) or {}
+
+    base = data.get('waypoints', data) if isinstance(data, dict) else {}
+    poses = {}
+    for name, pose in (base.items() if isinstance(base, dict) else []):
+        if not isinstance(pose, dict):
+            continue
+        p = (pose.get('position') or {}) if isinstance(pose.get('position'), dict) else {}
+        o = pose.get('orientation')
+        if not isinstance(o, dict):
+            # fallback from yaw or default 0
+            if 'yaw' in pose:
+                q = yaw_to_quat(float(pose['yaw']))
+            else:
+                q = yaw_to_quat(0.0)
+            o = {'x': q.x, 'y': q.y, 'z': q.z, 'w': q.w}
+
+        poses[str(name)] = {
+            'position': {
+                'x': float(p.get('x', 0.0)),
+                'y': float(p.get('y', 0.0)),
+                'z': float(p.get('z', 0.0)),
+            },
+            'orientation': {
+                'x': float(o.get('x', 0.0)),
+                'y': float(o.get('y', 0.0)),
+                'z': float(o.get('z', 0.0)),
+                'w': float(o.get('w', 1.0)),
+            },
+        }
+    return poses
+
+
+class AppGoalGateway(Node):
+    def __init__(self):
+        super().__init__('app_goal_gateway')
+
+        # Parameters
+        self.declare_parameter('yaml_path', DEFAULT_YAML)
+        self.declare_parameter('frame_id', 'map')
+        self.declare_parameter('topic_goal_name', '/app/goal_name')
+        self.declare_parameter('topic_goal_cancel', '/app/goal_cancel')
+        self.declare_parameter('topic_status', '/app/goal_status')
+        self.declare_parameter('server_timeout', 8.0)
+        self.declare_parameter('fuzzy_cutoff', 0.7)
+
+        self.yaml_path = self.get_parameter('yaml_path').get_parameter_value().string_value
+        self.frame_id = self.get_parameter('frame_id').get_parameter_value().string_value
+        self.topic_goal_name = self.get_parameter('topic_goal_name').get_parameter_value().string_value
+        self.topic_goal_cancel = self.get_parameter('topic_goal_cancel').get_parameter_value().string_value
+        self.topic_status = self.get_parameter('topic_status').get_parameter_value().string_value
+        self.server_timeout = self.get_parameter('server_timeout').get_parameter_value().double_value
+        self.fuzzy_cutoff = float(self.get_parameter('fuzzy_cutoff').get_parameter_value().double_value)
+
+        # I/O
+        self.sub_name = self.create_subscription(String, self.topic_goal_name, self.on_name, 10)
+        self.sub_cancel = self.create_subscription(Empty, self.topic_goal_cancel, self.on_cancel, 10)
+        self.pub_status = self.create_publisher(String, self.topic_status, 10)
+
+        # Action client
+        self.client = ActionClient(self, NavigateToPose, 'navigate_to_pose')
+
+        # Data
+        self.named_poses = load_named_poses(self.yaml_path)
+        self.current_handle = None
+
+        self.get_logger().info(
+            f'Loaded {len(self.named_poses)} waypoints from {self.yaml_path} | frame={self.frame_id}'
+        )
+        self._status('ready')
+
+    # ---------- App interactions ----------
+
+    def on_name(self, msg: String):
+        name = msg.data.strip()
+        if not name:
+            return
+
+        # Hot-reload YAML so changes are picked up
+        self.named_poses = load_named_poses(self.yaml_path)
+
+        resolved = self._resolve_name(name)
+        if not resolved:
+            self.get_logger().warn(f'Name "{name}" not found.')
+            self._status(f'not_found:{name}')
+            return
+
+        if resolved != name:
+            self.get_logger().info(f'Using closest match: {resolved} (from "{name}")')
+            self._status(f'resolved:{name}->{resolved}')
+
+        self._go_to(resolved)
+
+    def on_cancel(self, _):
+        if self.current_handle:
+            self._status('cancel_requested')
+            self.current_handle.cancel_goal_async()
+        else:
+            self._status('no_active_goal')
+
+    # ---------- Internal helpers ----------
+
+    def _resolve_name(self, name: str):
+        if name in self.named_poses:
+            return name
+        # case-insensitive fuzzy match
+        names = list(self.named_poses.keys())
+        lower_map = {n.lower(): n for n in names}
+        if name.lower() in lower_map:
+            return lower_map[name.lower()]
+        cand = difflib.get_close_matches(name.lower(), [n.lower() for n in names], n=1, cutoff=self.fuzzy_cutoff)
+        return lower_map[cand[0]] if cand else None
+
+    def _go_to(self, name: str):
+        if not self.client.wait_for_server(timeout_sec=self.server_timeout):
+            self._status('error:navigate_to_pose_unavailable')
+            self.get_logger().error('navigate_to_pose action server not available')
+            return
+
+        p = self.named_poses[name]['position']
+        o = self.named_poses[name]['orientation']
+
+        goal = NavigateToPose.Goal()
+        goal.pose = PoseStamped()
+        goal.pose.header.frame_id = self.frame_id
+        goal.pose.header.stamp = self.get_clock().now().to_msg()
+        goal.pose.pose.position.x = p['x']
+        goal.pose.pose.position.y = p['y']
+        goal.pose.pose.position.z = p.get('z', 0.0)
+        goal.pose.pose.orientation = Quaternion(x=o['x'], y=o['y'], z=o['z'], w=o['w'])
+
+        self._status(f'sending:{name}')
+        send_future = self.client.send_goal_async(goal, feedback_callback=self._on_feedback)
+        send_future.add_done_callback(self._on_sent)
+
+    def _on_sent(self, fut):
+        self.current_handle = fut.result()
+        if not self.current_handle or not self.current_handle.accepted:
+            self._status('rejected')
+            self.get_logger().warn('Goal rejected')
+            return
+        res_fut = self.current_handle.get_result_async()
+        res_fut.add_done_callback(self._on_result)
+
+    def _on_feedback(self, fb_msg):
+        fb = fb_msg.feedback
+        # distance_remaining is present in Nav2 feedback; guard just in case
+        dist = getattr(fb, 'distance_remaining', None)
+        if dist is not None:
+            self._status(f'feedback:{dist:.2f}')
+        else:
+            self._status('feedback')
+
+    def _on_result(self, fut):
+        self.current_handle = None
+        try:
+            result = fut.result()
+            status = getattr(result, 'status', None)
+        except Exception:
+            status = None
+
+        if status == GoalStatus.STATUS_SUCCEEDED:
+            self._status('succeeded')
+        elif status == GoalStatus.STATUS_ABORTED:
+            self._status('finished:aborted')
+        elif status == GoalStatus.STATUS_CANCELED:
+            self._status('finished:canceled')
+        else:
+            self._status(f'finished:{status}')
+
+    def _status(self, text: str):
+        self.pub_status.publish(String(data=text))
+        self.get_logger().info(text)
+
+
+def main():
+    rclpy.init()
+    node = AppGoalGateway()
+    rclpy.spin(node)
+    node.destroy_node()
+    rclpy.shutdown()
+
+
+if __name__ == '__main__':
+    main()

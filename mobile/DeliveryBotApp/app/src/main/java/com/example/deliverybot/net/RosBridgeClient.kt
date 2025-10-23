@@ -3,39 +3,83 @@ package com.example.deliverybot.net
 import android.util.Log
 import okhttp3.*
 import okio.ByteString
-import java.util.concurrent.TimeUnit
 import org.json.JSONObject
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.TimeUnit
 
 object RosBridgeClient {
     private const val TAG = "RosBridgeClient"
-    private var ws: WebSocket? = null
-    private var connected: Boolean = false
-    private val advertisedTopics = mutableSetOf<String>()
 
+    // WebSocket state
+    private var ws: WebSocket? = null
+    @Volatile private var connected: Boolean = false
+    private var lastUrl: String = "ws://10.42.0.1:9090"
+
+    // Caches
+    private val advertisedTopics = mutableSetOf<String>() // topics we advertised
+    private val subscriptions =
+        ConcurrentHashMap<String, CopyOnWriteArrayList<(String) -> Unit>>() // topic -> callbacks
+
+    // OkHttp client
     private val client = OkHttpClient.Builder()
         .pingInterval(15, TimeUnit.SECONDS)
         .retryOnConnectionFailure(true)
         .build()
 
+    // ----------------------------------------------------------------------------
+    // Public API
+    // ----------------------------------------------------------------------------
+
     @JvmStatic
-    fun connect(baseUrl: String = "ws://10.42.0.1:9090") {
+    fun connect(baseUrl: String = lastUrl) {
+        lastUrl = baseUrl
+        if (connected && ws != null) {
+            Log.i(TAG, "Already connected to $baseUrl")
+            return
+        }
         try {
             val req = Request.Builder().url(baseUrl).build()
             ws = client.newWebSocket(req, object : WebSocketListener() {
                 override fun onOpen(webSocket: WebSocket, response: Response) {
                     connected = true
                     Log.i(TAG, "WS OPEN: $baseUrl  code=${response.code}")
+                    // Re-subscribe any previously requested topics after reconnect
+                    resubscribeAll()
                 }
+
                 override fun onMessage(webSocket: WebSocket, text: String) {
-                    Log.d(TAG, "WS RX: $text")
+                    // Route incoming messages to subscribers
+                    try {
+                        Log.d(TAG, "WS RX: $text")
+                        val obj = JSONObject(text)
+
+                        // rosbridge publish message format typically contains: "op":"publish", "topic":"...", "msg":{...}
+                        val topic = if (obj.has("topic")) obj.optString("topic") else null
+                        val msg = obj.optJSONObject("msg")
+                        val data = msg?.optString("data", null)
+
+                        if (topic != null && data != null) {
+                            subscriptions[topic]?.forEach { cb ->
+                                try { cb(data) } catch (t: Throwable) {
+                                    Log.w(TAG, "subscriber threw for $topic: ${t.message}")
+                                }
+                            }
+                        }
+                    } catch (t: Throwable) {
+                        Log.w(TAG, "onMessage parse error: ${t.message}")
+                    }
                 }
+
                 override fun onMessage(webSocket: WebSocket, bytes: ByteString) {
                     Log.d(TAG, "WS RX(bytes): ${bytes.size}B")
                 }
+
                 override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
                     connected = false
                     Log.e(TAG, "WS FAIL: ${t.message}", t)
                 }
+
                 override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
                     connected = false
                     Log.i(TAG, "WS CLOSED: $code $reason")
@@ -60,7 +104,8 @@ object RosBridgeClient {
     }
 
     /**
-     * Always advertise topic (std_msgs/msg/String) before publishing.
+     * Publish std_msgs/msg/String to a topic.
+     * Will 'advertise' the topic once per app session.
      */
     @JvmStatic
     fun publish(topic: String, data: String) {
@@ -69,46 +114,141 @@ object RosBridgeClient {
             return
         }
         try {
-            // Always advertise before publish (robust for rosbridge)
-            val adv = JSONObject()
-            adv.put("op", "advertise")
-            adv.put("topic", topic)
-            adv.put("type", "std_msgs/msg/String")
-            ws?.send(adv.toString())
-            Log.d(TAG, "WS TX advertise: ${adv.toString()}")
+            // Advertise once
+            if (advertisedTopics.add(topic)) {
+                val adv = JSONObject()
+                    .put("op", "advertise")
+                    .put("topic", topic)
+                    .put("type", "std_msgs/msg/String")
+                ws?.send(adv.toString())
+                Log.d(TAG, "WS TX advertise: $adv")
+            }
 
-            // publish
+            // Publish
             val obj = JSONObject()
-            obj.put("op", "publish")
-            obj.put("topic", topic)
-            val msg = JSONObject()
-            msg.put("data", data)
-            obj.put("msg", msg)
+                .put("op", "publish")
+                .put("topic", topic)
+                .put("msg", JSONObject().put("data", data))
             ws?.send(obj.toString())
-            Log.d(TAG, "WS TX publish: ${obj.toString()}")
+            Log.d(TAG, "WS TX publish: $obj")
         } catch (t: Throwable) {
             Log.e(TAG, "publish() error: ${t.message}", t)
+        }
+    }
+
+    /**
+     * Subscribe to std_msgs/msg/String topic.
+     * The same topic can have multiple callbacks.
+     */
+    @JvmStatic
+    fun subscribe(topic: String, callback: (String) -> Unit) {
+        // Register callback locally
+        val list = subscriptions.getOrPut(topic) { CopyOnWriteArrayList() }
+        list.add(callback)
+
+        // Send subscribe op if connected
+        if (connected) {
+            try {
+                val sub = JSONObject()
+                    .put("op", "subscribe")
+                    .put("topic", topic)
+                    .put("type", "std_msgs/msg/String")
+                ws?.send(sub.toString())
+                Log.d(TAG, "WS TX subscribe: $sub")
+            } catch (t: Throwable) {
+                Log.e(TAG, "subscribe() error: ${t.message}", t)
+            }
+        }
+    }
+
+    /**
+     * Unsubscribe from a topic (all callbacks if callback == null).
+     */
+    @JvmStatic
+    fun unsubscribe(topic: String, callback: ((String) -> Unit)? = null) {
+        val list = subscriptions[topic]
+        if (list != null) {
+            if (callback == null) list.clear() else list.remove(callback)
+            if (list.isEmpty()) {
+                subscriptions.remove(topic)
+                if (connected) {
+                    try {
+                        val unsub = JSONObject()
+                            .put("op", "unsubscribe")
+                            .put("topic", topic)
+                        ws?.send(unsub.toString())
+                        Log.d(TAG, "WS TX unsubscribe: $unsub")
+                    } catch (_: Throwable) {}
+                }
+            }
         }
     }
 
     @JvmStatic
     fun close() {
         try {
-            // unadvertise previously advertised topics
+            // Unadvertise
             for (t in advertisedTopics) {
                 try {
                     val unadv = JSONObject()
-                    unadv.put("op", "unadvertise")
-                    unadv.put("topic", t)
+                        .put("op", "unadvertise")
+                        .put("topic", t)
                     ws?.send(unadv.toString())
-                    Log.d(TAG, "WS TX unadvertise: ${unadv.toString()}")
+                    Log.d(TAG, "WS TX unadvertise: $unadv")
                 } catch (_: Throwable) { /* ignore */ }
             }
             advertisedTopics.clear()
+
+            // Unsubscribe all
+            for (t in subscriptions.keys) {
+                try {
+                    val unsub = JSONObject()
+                        .put("op", "unsubscribe")
+                        .put("topic", t)
+                    ws?.send(unsub.toString())
+                    Log.d(TAG, "WS TX unsubscribe: $unsub")
+                } catch (_: Throwable) {}
+            }
+            subscriptions.clear()
+
             ws?.close(1000, "bye")
         } finally {
             connected = false
             ws = null
         }
     }
+
+    // ----------------------------------------------------------------------------
+    // Helpers
+    // ----------------------------------------------------------------------------
+
+    private fun resubscribeAll() {
+        if (!connected) return
+        for (t in subscriptions.keys) {
+            try {
+                val sub = JSONObject()
+                    .put("op", "subscribe")
+                    .put("topic", t)
+                    .put("type", "std_msgs/msg/String")
+                ws?.send(sub.toString())
+                Log.d(TAG, "WS TX resubscribe: $sub")
+            } catch (_: Throwable) {}
+        }
+        // Re-advertise previously advertised topics (optional; rosbridge usually persists)
+        val prev = advertisedTopics.toList()
+        advertisedTopics.clear()
+        for (t in prev) {
+            if (advertisedTopics.add(t)) {
+                try {
+                    val adv = JSONObject()
+                        .put("op", "advertise")
+                        .put("topic", t)
+                        .put("type", "std_msgs/msg/String")
+                    ws?.send(adv.toString())
+                    Log.d(TAG, "WS TX re-advertise: $adv")
+                } catch (_: Throwable) {}
+            }
+        }
+    }
 }
+
