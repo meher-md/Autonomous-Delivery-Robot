@@ -91,7 +91,7 @@
         <!-- Split Orders into Address and Phone -->
         <Button
             android:id="@+id/btnAddress"
-            android:text="Address 📍"
+            android:text="Create an Order 🛒"
             android:textAllCaps="false"
             android:textSize="17sp"
             android:textColor="@color/text_primary"
