@@ -23,9 +23,9 @@ cmake_install.cmake
 Makefile
 
 # --- Gazebo / Ignition temp (فقط الملفات المؤقتة) ---
-*~            # أي ملف مؤقت بينتهي بـ ~
-*.log         # لوجات المحاكاة
-*.bak         # نسخ مؤقتة
+*~            
+*.log          
+*.bak          
 *.tmp
 
 # --- OS / Misc ---
