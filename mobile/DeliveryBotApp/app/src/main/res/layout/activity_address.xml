@@ -110,14 +110,65 @@
             android:textSize="16sp"
             android:layout_marginBottom="12dp"/>
 
+        <!-- Confirm Address button (existing) -->
         <Button
             android:id="@+id/btnConfirmAddress"
-            android:layout_width="match_parent"
-            android:layout_height="64dp"
             android:text="Confirm Address"
             android:textAllCaps="false"
-            android:textSize="18sp"
-            android:textColor="@android:color/white"
-            android:background="@drawable/btn_lavender"/>
+            android:layout_marginTop="18dp"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:background="@drawable/btn_lavender"
+            android:textColor="@color/text_primary"/>
+
+        <!-- NEW: Generate QR Code button -->
+        <Button
+            android:id="@+id/btnGenerateQR"
+            android:text="Generate the QR Code"
+            android:textAllCaps="false"
+            android:enabled="true"
+            android:layout_marginTop="12dp"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:background="@drawable/btn_lavender"
+            android:textColor="@color/text_primary"/>
+
+        <!-- NEW: QR Section -->
+        <FrameLayout
+            android:id="@+id/qrSection"
+            android:layout_width="match_parent"
+            android:layout_height="220dp"
+            android:layout_marginTop="16dp"
+            android:padding="12dp"
+            android:background="@drawable/qr_section_bg">
+
+            <ImageView
+                android:id="@+id/qrImage"
+                android:layout_width="200dp"
+                android:layout_height="200dp"
+                android:layout_gravity="center"
+                android:scaleType="fitCenter"
+                android:contentDescription="@string/qr_image"/>
+
+            <TextView
+                android:id="@+id/qrPlaceholder"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="QR Code will appear here"
+                android:textColor="@android:color/darker_gray"/>
+        </FrameLayout>
+
+        <!-- NEW: Share -->
+        <Button
+            android:id="@+id/btnShareWhatsApp"
+            android:text="Share"
+            android:textAllCaps="false"
+            android:enabled="true"
+            android:layout_marginTop="12dp"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:background="@drawable/btn_lavender"
+            android:textColor="@color/text_primary"/>
     </LinearLayout>
 </ScrollView>

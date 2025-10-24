@@ -45,7 +45,7 @@ def generate_launch_description():
         output='screen'
     )
 
-    # SLAM Toolbox (optional)
+    #  SLAM Toolbox
     slam = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(
@@ -56,7 +56,7 @@ def generate_launch_description():
         condition=IfCondition(start_slam)
     )
 
-    # Map HTTP Bridge (optional)
+    # Map HTTP Bridge
     map_http = Node(
         package='map_http_bridge',
         executable='map_http_bridge',
@@ -83,6 +83,10 @@ def generate_launch_description():
         output='screen'
     )
 
+    # Start QR generator + scanner (generate QR PNGs and scan via Pi camera)
+    qr_generator = Node(package='andino_mobile_bridge', executable='qr_generator', name='qr_generator')
+    qr_scanner = Node(package='andino_mobile_bridge', executable='qr_scanner', name='qr_scanner')
+
     # ---------- LaunchDescription ----------
     return LaunchDescription([
         # existing args
@@ -106,5 +110,7 @@ def generate_launch_description():
         web_video,
         slam,
         map_http,
-        app_goal_gateway
+        app_goal_gateway,
+        qr_generator,
+        qr_scanner
     ])

@@ -20,7 +20,11 @@ setup(
     license='Apache-2.0',
     entry_points={
         'console_scripts': [
-            'mobile_bridge = andino_mobile_bridge.mobile_bridge:main'
+            'mobile_bridge = andino_mobile_bridge.mobile_bridge:main',
+            'topic_monitor = andino_mobile_bridge.topic_monitor:main',
+            'phone_qr_sender = andino_mobile_bridge.phone_qr_sender:main',
+            'qr_generator = andino_mobile_bridge.qr_generator:main',
+            'qr_scanner = andino_mobile_bridge.qr_scanner:main'
         ],
     },
 )
