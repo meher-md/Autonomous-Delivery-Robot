@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#121212"
+    tools:context=".AddressActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Select destination or enter manually"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Card container for the options -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_card_dark"
+            android:padding="12dp"
+            android:layout_marginBottom="16dp">
+
+            <!-- IMPORTANT: IDs must match Kotlin -->
+            <RadioGroup
+                android:id="@+id/rgLocations"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <RadioButton
+                    android:id="@+id/rbLobby"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Lobby"
+                    android:textSize="18sp"
+                    android:textColor="#FFFFFF"
+                    android:buttonTint="#C9B6FF"
+                    android:layout_marginBottom="10dp"/>
+
+                <RadioButton
+                    android:id="@+id/rbLibrary"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Library"
+                    android:textSize="18sp"
+                    android:textColor="#FFFFFF"
+                    android:buttonTint="#C9B6FF"
+                    android:layout_marginBottom="10dp"/>
+
+                <RadioButton
+                    android:id="@+id/rbCafeteria"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Cafeteria"
+                    android:textSize="18sp"
+                    android:textColor="#FFFFFF"
+                    android:buttonTint="#C9B6FF"
+                    android:layout_marginBottom="10dp"/>
+
+                <RadioButton
+                    android:id="@+id/rbLab"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Lab"
+                    android:textSize="18sp"
+                    android:textColor="#FFFFFF"
+                    android:buttonTint="#C9B6FF"
+                    android:layout_marginBottom="10dp"/>
+
+                <RadioButton
+                    android:id="@+id/rbOther"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Other"
+                    android:textSize="18sp"
+                    android:textColor="#FFFFFF"
+                    android:buttonTint="#C9B6FF"/>
+            </RadioGroup>
+
+            <EditText
+                android:id="@+id/etOther"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Enter custom address (optional)"
+                android:textSize="16sp"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#9AA0A6"
+                android:backgroundTint="#9AA0A6"
+                android:layout_marginTop="8dp"
+                android:visibility="gone"/>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Robot status..."
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:layout_marginBottom="12dp"/>
+
+        <!-- Confirm Address button (existing) -->
+        <Button
+            android:id="@+id/btnConfirmAddress"
+            android:text="Confirm Address"
+            android:textAllCaps="false"
+            android:layout_marginTop="18dp"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:background="@drawable/btn_lavender"
+            android:textColor="@color/text_primary"/>
+
+        <!-- NEW: Generate QR Code button -->
+        <Button
+            android:id="@+id/btnGenerateQR"
+            android:text="Generate the QR Code"
+            android:textAllCaps="false"
+            android:enabled="true"
+            android:layout_marginTop="12dp"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:background="@drawable/btn_lavender"
+            android:textColor="@color/text_primary"/>
+
+        <!-- NEW: QR Section -->
+        <FrameLayout
+            android:id="@+id/qrSection"
+            android:layout_width="match_parent"
+            android:layout_height="220dp"
+            android:layout_marginTop="16dp"
+            android:padding="12dp"
+            android:background="@drawable/qr_section_bg">
+
+            <ImageView
+                android:id="@+id/qrImage"
+                android:layout_width="200dp"
+                android:layout_height="200dp"
+                android:layout_gravity="center"
+                android:scaleType="fitCenter"
+                android:contentDescription="@string/qr_image"/>
+
+            <TextView
+                android:id="@+id/qrPlaceholder"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="QR Code will appear here"
+                android:textColor="@android:color/darker_gray"/>
+        </FrameLayout>
+
+        <!-- NEW: Share -->
+        <Button
+            android:id="@+id/btnShareWhatsApp"
+            android:text="Share"
+            android:textAllCaps="false"
+            android:enabled="true"
+            android:layout_marginTop="12dp"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:background="@drawable/btn_lavender"
+            android:textColor="@color/text_primary"/>
+    </LinearLayout>
+</ScrollView>

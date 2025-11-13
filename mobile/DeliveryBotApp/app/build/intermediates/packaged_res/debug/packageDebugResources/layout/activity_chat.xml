@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:background="@color/bg_dark"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- عنوان -->
+    <TextView
+        android:text="Robot Chat &amp; Control"
+        android:textStyle="bold"
+        android:textColor="@color/text_primary"
+        android:textSize="26sp"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <!-- صندوق اللوج (يملى المساحة المتاحة) -->
+    <ScrollView
+        android:id="@+id/logScroll"
+        android:layout_marginTop="12dp"
+        android:background="@color/field_bg"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+        <TextView
+            android:id="@+id/logText"
+            android:textColor="@color/text_primary"
+            android:textSize="18sp"
+            android:padding="12dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+    </ScrollView>
+
+    <!-- إدخال رسالة + إرسال -->
+    <LinearLayout
+        android:layout_marginTop="12dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnSend"
+            android:text="Send"
+            android:textAllCaps="false"
+            android:textColor="@color/text_primary"
+            android:background="@drawable/btn_lavender"
+            android:layout_width="110dp"
+            android:layout_height="48dp" />
+
+        <EditText
+            android:id="@+id/messageInput"
+            android:hint="Type message"
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_secondary"
+            android:background="@drawable/edit_field_bg"
+            android:layout_marginStart="10dp"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="48dp" />
+    </LinearLayout>
+
+    <!-- زر إظهار/إخفاء الكنترول -->
+    <Button
+        android:id="@+id/btnTogglePanel"
+        android:text="Control Panel"
+        android:textAllCaps="false"
+        android:textColor="@color/text_primary"
+        android:background="@drawable/btn_lavender"
+        android:layout_marginTop="12dp"
+        android:layout_width="match_parent"
+        android:layout_height="50dp" />
+
+    <!-- Spacer يزق الكنترول لتحت لو الشاشة طويلة -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0"/>
+
+    <!-- لوحة التحكم أسفل الشاشة -->
+    <include
+        android:id="@+id/panelInclude"
+        layout="@layout/include_control_panel"
+        android:visibility="visible"/>
+</LinearLayout>

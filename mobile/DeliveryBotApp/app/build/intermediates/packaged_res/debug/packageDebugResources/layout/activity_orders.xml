@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:background="@color/bg_dark"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:padding="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <!-- عنوان بدون خلفية -->
+        <TextView
+            android:text="Orders"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            android:textSize="26sp"
+            android:gravity="center"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <!-- Order ID -->
+        <TextView
+            android:text="Order ID"
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp"
+            android:layout_marginTop="10dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <EditText
+            android:id="@+id/etOrderId"
+            android:hint="e.g. 1234"
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_secondary"
+            android:background="@drawable/edit_field_bg"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <!-- Customer Name -->
+        <TextView
+            android:text="Customer Name"
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp"
+            android:layout_marginTop="10dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <EditText
+            android:id="@+id/etCustomer"
+            android:hint="Full name"
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_secondary"
+            android:background="@drawable/edit_field_bg"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <!-- Address -->
+        <TextView
+            android:text="Address"
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp"
+            android:layout_marginTop="10dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <EditText
+            android:id="@+id/etAddress"
+            android:hint="Street, Building, Flat"
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_secondary"
+            android:background="@drawable/edit_field_bg"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <!-- Phone -->
+        <TextView
+            android:text="Phone"
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp"
+            android:layout_marginTop="10dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <EditText
+            android:id="@+id/etPhone"
+            android:hint="+20..."
+            android:inputType="phone"
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_secondary"
+            android:background="@drawable/edit_field_bg"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <!-- Note -->
+        <TextView
+            android:text="Note (optional)"
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp"
+            android:layout_marginTop="10dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <EditText
+            android:id="@+id/etNote"
+            android:hint="Any details..."
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_secondary"
+            android:background="@drawable/edit_field_bg"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <!-- الأزرار -->
+        <Button
+            android:id="@+id/btnCreateLocal"
+            android:text="Create Order (local)"
+            android:textAllCaps="false"
+            android:textColor="@color/text_primary"
+            android:background="@drawable/btn_lavender"
+            android:layout_marginTop="18dp"
+            android:layout_width="match_parent"
+            android:layout_height="50dp" />
+
+        <Button
+            android:id="@+id/btnRequestQr"
+            android:text="Request QR from Robot"
+            android:textAllCaps="false"
+            android:textColor="@color/text_primary"
+            android:background="@drawable/btn_lavender"
+            android:layout_marginTop="14dp"
+            android:layout_width="match_parent"
+            android:layout_height="50dp" />
+
+        <Button
+            android:id="@+id/btnShare"
+            android:text="Share via WhatsApp"
+            android:textAllCaps="false"
+            android:textColor="@color/text_primary"
+            android:background="@drawable/btn_lavender"
+            android:layout_marginTop="14dp"
+            android:layout_width="match_parent"
+            android:layout_height="50dp" />
+    </LinearLayout>
+</ScrollView>

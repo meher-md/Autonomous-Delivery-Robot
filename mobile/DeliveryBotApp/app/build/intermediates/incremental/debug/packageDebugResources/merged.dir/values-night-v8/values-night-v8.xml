@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="pb_bg">#121212</color>
+    <color name="pb_text_primary">#FFFFFF</color>
+    <color name="pb_text_secondary">#CCCCCC</color>
+    <style name="DeliveryCard" parent="Widget.MaterialComponents.CardView">
+        <item name="cardCornerRadius">16dp</item>
+        <item name="cardUseCompatPadding">true</item>
+        <item name="cardElevation">3dp</item>
+    </style>
+    <style name="Theme.DeliveryBot" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">#0E0E0E</item>
+        <item name="colorPrimaryVariant">#171717</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="materialCardViewStyle">@style/DeliveryCard</item>
+    </style>
+</resources>

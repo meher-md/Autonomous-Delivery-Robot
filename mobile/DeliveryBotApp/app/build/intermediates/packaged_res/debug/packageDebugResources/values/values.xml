@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg_dark">#16141A</color>
+    <color name="btn_gray">#33303A</color>
+    <color name="divider">#6E56CF</color>
+    <color name="field_bg">#2A2730</color>
+    <color name="ic_launcher_background">#000000</color>
+    <color name="ic_launcher_bg">#FFFFFF</color>
+    <color name="lavender">#C9B2FF</color>
+    <color name="text_primary">#FFFFFFFF</color>
+    <color name="text_secondary">#B6B3BD</color>
+    <string name="app_name">DeliveryBotApp</string>
+    <string name="hello_world">Hello World!</string>
+    <string name="map_view">Map View</string>
+    <string name="qr_image">QR image</string>
+    <style name="Theme.DeliveryBotApp" parent="Theme.AppCompat.Light.NoActionBar"/>
+</resources>
