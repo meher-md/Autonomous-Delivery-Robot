@@ -41,11 +41,16 @@ class QrScanner(Node):
     def __init__(self):
         super().__init__('qr_scanner')
         self.scan_pub = self.create_publisher(String, '/robot/qr/scanned', 10)
+        # Publisher to request app-style named-goal navigation (e.g. "Lobby")
+        self.app_goal_pub = self.create_publisher(String, '/app/goal_name', 10)
         self.status_sub = self.create_subscription(String, '/robot/status', self.on_status, 10)
         self.scanning = False
         self.scan_thread = None
         self._last_scan_time = 0.0
         self._scan_cooldown = 5.0  # seconds to avoid duplicate publishes
+        # Timer used to schedule return-to-lobby after a successful scan
+        self._return_timer = None
+        self._return_delay = 30.0  # seconds to wait before sending robot back to Lobby
 
         self.get_logger().info(f'qr_scanner ready (picamera={PICAMERA_AVAILABLE} opencv={OPENCV_AVAILABLE} pyzbar={PYZBAR_AVAILABLE})')
 
@@ -196,8 +201,44 @@ class QrScanner(Node):
             self.scan_pub.publish(out)
             self.get_logger().info(f'Scanned QR data: {payload_str}')
             self._last_scan_time = now
+            # After a successful scan, schedule (or reset) a 30s timer to send robot to Lobby
+            try:
+                self._schedule_return_to_lobby(self._return_delay)
+            except Exception as e:
+                self.get_logger().error(f'Failed scheduling return to Lobby: {e}')
         except Exception as e:
             self.get_logger().error(f'Publishing scan failed: {e}')
+
+    def _schedule_return_to_lobby(self, delay: float = 30.0):
+        """Schedule publishing the named goal 'Lobby' to /app/goal_name after `delay` seconds.
+        If a timer is already pending, cancel it and reset the timer so the robot waits `delay`
+        seconds after the most recent successful scan.
+        """
+        # Cancel existing timer if active
+        try:
+            if self._return_timer is not None:
+                try:
+                    self._return_timer.cancel()
+                except Exception:
+                    pass
+                self._return_timer = None
+
+            def _do_return():
+                try:
+                    goal_msg = String()
+                    goal_msg.data = 'Lobby'
+                    self.app_goal_pub.publish(goal_msg)
+                    self.get_logger().info(f'Published return-to-Lobby request to {self.app_goal_pub.topic_name}')
+                except Exception as e:
+                    self.get_logger().error(f'Failed to publish return-to-Lobby: {e}')
+
+            t = threading.Timer(delay, _do_return)
+            t.daemon = True
+            t.start()
+            self._return_timer = t
+            self.get_logger().info(f'Scheduled return to Lobby in {delay} seconds')
+        except Exception as e:
+            self.get_logger().error(f'Error scheduling return to Lobby: {e}')
 
 def main(args=None):
     rclpy.init(args=args)
