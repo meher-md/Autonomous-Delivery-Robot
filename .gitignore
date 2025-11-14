@@ -34,3 +34,4 @@ Thumbs.db
 .history/
 frames_*.pdf
 frames_*.gv
+generated_qr/
