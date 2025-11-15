@@ -33,33 +33,29 @@
 
 namespace andino_base {
 
-/// Represents a wheel on the robot.
-/// TODO(francocipollone): Use better practices
-///    1 - Make it a struct
-///    2 - Move Angle method to DiffDriveAndino class or implementation.
-///
-class Wheel {
- public:
+struct Imu {
   /// @brief Default constructor for the Wheel class
-  Wheel() = default;
+  Imu() = default;
 
   /// @brief Setup the wheel.
-  /// @param wheel_name name of the wheel.
-  /// @param ticks_per_rev number of encoder ticks per wheel revolution.
-  void Setup(const std::string& wheel_name, int ticks_per_rev);
-
-  /// @brief Calculate the angle of the wheel.
-  /// @return The angle of the wheel in radians.
-  double Angle();
+  /// @param imu_name name of the imu sensor.
+  void Setup(const std::string& imu_name);
 
   std::string name_ = "";
-  unsigned int enc_ = 0;
-  double cmd_ = 0;
-  double pos_ = 0;
-  double vel_ = 0;
-  double eff_ = 0;
-  double vel_set_pt_ = 0;
-  double rads_per_tick_ = 0;
+  
+  double angular_velocity_x_{0.0};
+  double angular_velocity_y_{0.0};
+  double angular_velocity_z_{0.0};
+
+  double linear_acceleration_x_{0.0};
+  double linear_acceleration_y_{0.0};
+  double linear_acceleration_z_{0.0};
+
+  // Fake orientation (imu doesn't provide it, but broadcaster requires it)
+  double orientation_x_{0.0};
+  double orientation_y_{0.0};
+  double orientation_z_{0.0};
+  double orientation_w_{1.0};  // identity quaternion
 };
 
 }  // namespace andino_base

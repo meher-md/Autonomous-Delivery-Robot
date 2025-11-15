@@ -7,6 +7,10 @@ controller_manager:
 
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
+    imu_sensor_broadcaster:
+      type: imu_sensor_broadcaster/IMUSensorBroadcaster
+
+
 
 diff_controller:
   ros__parameters:
@@ -14,12 +18,12 @@ diff_controller:
     publish_rate: 50.0
     left_wheel_names: ['left_wheel_joint']
     right_wheel_names: ['right_wheel_joint']
-    wheels_per_side: 1
-    wheel_separation: 0.137
-    wheel_radius: 0.035
+    wheels_per_side: 2
+    wheel_separation: 0.26
+    wheel_radius: 0.06
     odom_frame_id: odom
     base_frame_id: base_link
-    enable_odom_tf: true
+    enable_odom_tf: false
     use_stamped_vel: false
 
     linear.x.has_velocity_limits: false
@@ -31,7 +35,6 @@ diff_controller:
     linear.x.min_acceleration: 0.0
     linear.x.max_jerk: 0.0
     linear.x.min_jerk: 0.0
-
     angular.z.has_velocity_limits: false
     angular.z.has_acceleration_limits: false
     angular.z.has_jerk_limits: false
@@ -41,7 +44,12 @@ diff_controller:
     angular.z.min_acceleration: 0.0
     angular.z.max_jerk: 0.0
     angular.z.min_jerk: 0.0
-
+imu_sensor_broadcaster:
+  ros__parameters:
+    type: imu_sensor_broadcaster/IMUSensorBroadcaster
+    sensor_name: imu_sensor   # must match the <sensor name="imu_sensor"> in URDF
+    frame_id: imu_link
+    publish_rate: 30.0  
 # Commented out as no parameters are passed to this controller:
 #
 # joint_state_broadcaster:

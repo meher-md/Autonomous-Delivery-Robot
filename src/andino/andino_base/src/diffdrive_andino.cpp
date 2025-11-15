@@ -41,6 +41,7 @@ hardware_interface::CallbackReturn DiffDriveAndino::on_init(const hardware_inter
 
   RCLCPP_INFO(logger_, "On init...");
 
+  config_.imu_sensor_name = info_.hardware_parameters[kImuSensorName];
   config_.left_wheel_name = info_.hardware_parameters[kLeftWheelNameParam];
   RCLCPP_DEBUG(logger_, (kLeftWheelNameParam + static_cast<std::string>(": ") + config_.left_wheel_name).c_str());
   config_.right_wheel_name = info_.hardware_parameters[kRightWheelNameParam];
@@ -106,6 +107,26 @@ std::vector<hardware_interface::StateInterface> DiffDriveAndino::export_state_in
       hardware_interface::StateInterface(right_wheel_.name_, hardware_interface::HW_IF_VELOCITY, &right_wheel_.vel_));
   state_interfaces.emplace_back(
       hardware_interface::StateInterface(right_wheel_.name_, hardware_interface::HW_IF_POSITION, &right_wheel_.pos_));
+  state_interfaces.emplace_back(
+    hardware_interface::StateInterface(config_.imu_sensor_name, "orientation.x", &imu_.orientation_x_));
+state_interfaces.emplace_back(
+    hardware_interface::StateInterface(config_.imu_sensor_name, "orientation.y", &imu_.orientation_y_));
+state_interfaces.emplace_back(
+    hardware_interface::StateInterface(config_.imu_sensor_name, "orientation.z", &imu_.orientation_z_));
+state_interfaces.emplace_back(
+    hardware_interface::StateInterface(config_.imu_sensor_name, "orientation.w", &imu_.orientation_w_));
+  state_interfaces.emplace_back(
+        hardware_interface::StateInterface(config_.imu_sensor_name, "angular_velocity.x", &imu_.angular_velocity_x_));
+  state_interfaces.emplace_back(
+        hardware_interface::StateInterface(config_.imu_sensor_name, "angular_velocity.y", &imu_.angular_velocity_y_));
+  state_interfaces.emplace_back(
+        hardware_interface::StateInterface(config_.imu_sensor_name, "angular_velocity.z", &imu_.angular_velocity_z_));
+  state_interfaces.emplace_back(
+        hardware_interface::StateInterface(config_.imu_sensor_name, "linear_acceleration.x", &imu_.linear_acceleration_x_));
+  state_interfaces.emplace_back(
+        hardware_interface::StateInterface(config_.imu_sensor_name, "linear_acceleration.y", &imu_.linear_acceleration_y_));
+  state_interfaces.emplace_back(
+        hardware_interface::StateInterface(config_.imu_sensor_name, "linear_acceleration.z", &imu_.linear_acceleration_z_));
 
   return state_interfaces;
 }
@@ -145,10 +166,21 @@ hardware_interface::return_type DiffDriveAndino::read(const rclcpp::Time& /* tim
     return hardware_interface::return_type::ERROR;
   }
 
-  const MotorDriver::Encoders encoders = motor_driver_.ReadEncoderValues();
-
-  left_wheel_.enc_ = encoders[0];
-  right_wheel_.enc_ = encoders[1];
+  if (motor_driver_.HasImu()) {
+    const MotorDriver::EncodersAndImu eai = motor_driver_.ReadEncoderAndImuValues();
+    left_wheel_.enc_ = -eai.encoders[0];
+    right_wheel_.enc_ = -eai.encoders[1];
+    imu_.angular_velocity_x_ = eai.imu[3];
+    imu_.angular_velocity_y_ = eai.imu[4];
+    imu_.angular_velocity_z_ = eai.imu[5];
+    imu_.linear_acceleration_x_ = eai.imu[0];
+    imu_.linear_acceleration_y_ = eai.imu[1];
+    imu_.linear_acceleration_z_ = eai.imu[2];
+  } else {
+    const MotorDriver::Encoders encoders = motor_driver_.ReadEncoderValues();
+    left_wheel_.enc_ = -encoders[0];
+    right_wheel_.enc_ = -encoders[1];
+  }
 
   const double left_pos_prev = left_wheel_.pos_;
   left_wheel_.pos_ = left_wheel_.Angle();
@@ -171,6 +203,9 @@ hardware_interface::return_type DiffDriveAndino::write(const rclcpp::Time& /* ti
   // The command is in rad/sec (rps), we need to convert it to ticks/sec (tps)
   // Using the rads per tick(rpt) of the motor information
   // Formula: ticks/sec = rads/sec / rads/tick
+  using namespace std::this_thread;     // sleep_for, sleep_until
+  using namespace std::chrono_literals; // ns, us, ms, s, h, etc.
+  using std::chrono::system_clock;
 
   const int left_value_target = static_cast<int>(left_wheel_.cmd_ / left_wheel_.rads_per_tick_);
   const int right_value_target = static_cast<int>(right_wheel_.cmd_ / right_wheel_.rads_per_tick_);

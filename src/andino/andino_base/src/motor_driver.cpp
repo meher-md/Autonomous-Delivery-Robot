@@ -28,7 +28,8 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "andino_base/motor_driver.h"
-
+#include <thread>
+#include <chrono>
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
@@ -42,6 +43,11 @@ void MotorDriver::Setup(const std::string& serial_device, int32_t baud_rate, int
   } catch (std::exception& e) {
     std::cout << e.what() << std::endl;
   }
+  
+  std::cout << "Waiting 20 seconds for the Microcontroller to be ready..." << std::endl;
+  // // When the Microcontroller is reset, it takes a few seconds to be ready.
+  // // And tipically when the serial port is opened, the Microcontroller is reset.
+  std::this_thread::sleep_for(std::chrono::seconds(2));
   // TODO: Use baud_rate from parameter.
   if (baud_rate != 57600) {
     std::cerr << "A baudrate different than 57600 is not supported yet." << std::endl;
@@ -56,20 +62,40 @@ void MotorDriver::Setup(const std::string& serial_device, int32_t baud_rate, int
   serial_port_.SetRTS(false);
   // Flush buffers.
   serial_port_.FlushIOBuffers();
+  std::this_thread::sleep_for(std::chrono::seconds(5));
 }
 
 bool MotorDriver::is_connected() const { return serial_port_.IsOpen(); }
 
 void MotorDriver::SendEmptyMsg() { std::string response = SendMsg(""); }
 
-MotorDriver::Encoders MotorDriver::ReadEncoderValues() {
-  static const std::string delimiter = " ";
+bool MotorDriver::HasImu() {
+  const std::string response = SendMsg("h");
+  return response != "0";
+}
 
-  const std::string response = SendMsg("e");
-  const size_t del_pos = response.find(delimiter);
-  const std::string token_1 = response.substr(0, del_pos).c_str();
-  const std::string token_2 = response.substr(del_pos + delimiter.length()).c_str();
-  return {std::atoi(token_1.c_str()), std::atoi(token_2.c_str())};
+MotorDriver::EncodersAndImu MotorDriver::ReadEncoderAndImuValues() {
+  std::istringstream is(SendMsg("i"));
+
+  MotorDriver::EncodersAndImu eai;
+  for(int &val : eai.encoders) {
+    is >> val;
+  }
+  for(double &val : eai.imu) {
+    is >> val;
+  }
+
+  return eai;
+}
+
+MotorDriver::Encoders MotorDriver::ReadEncoderValues() {
+  std::istringstream is(SendMsg("e"));
+
+  MotorDriver::Encoders enc;
+  for(int &val : enc) {
+    is >> val;
+  }
+  return enc;
 }
 
 void MotorDriver::SetMotorValues(int val_1, int val_2) {

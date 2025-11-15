@@ -40,6 +40,7 @@
 #include <rclcpp_lifecycle/node_interfaces/lifecycle_node_interface.hpp>
 #include <rclcpp_lifecycle/state.hpp>
 
+#include "andino_base/imu.h"
 #include "andino_base/motor_driver.h"
 #include "andino_base/wheel.h"
 
@@ -70,6 +71,7 @@ class DiffDriveAndino : public hardware_interface::SystemInterface {
   hardware_interface::return_type write(const rclcpp::Time& time, const rclcpp::Duration& period) override;
 
  private:
+  const std::string kImuSensorName{"imu_sensor_name"};
   const std::string kLeftWheelNameParam{"left_wheel_name"};
   const std::string kRightWheelNameParam{"right_wheel_name"};
   const std::string kSerialDeviceParam{"serial_device"};
@@ -80,10 +82,11 @@ class DiffDriveAndino : public hardware_interface::SystemInterface {
   // Configuration parameters for the DiffDriveAndino class.
   struct Config {
     // Name of the left and right wheels.
-    std::string left_wheel_name = "left_wheel";
-    std::string right_wheel_name = "right_wheel";
+    std::string imu_sensor_name = "imu_sensor";
+    std::string left_wheel_name = "left_wheel_joint";
+    std::string right_wheel_name = "right_wheel_joint";
     // Encoder parameters.
-    int enc_ticks_per_rev = 700;
+    int enc_ticks_per_rev = 1975;
     // Communication parameters.
     std::string serial_device = "/dev/ttyUSB0";
     int baud_rate = 57600;
@@ -98,6 +101,7 @@ class DiffDriveAndino : public hardware_interface::SystemInterface {
   Wheel left_wheel_;
   // Right wheel of the robot.
   Wheel right_wheel_;
+  Imu imu_;
   // Logger.
   rclcpp::Logger logger_{rclcpp::get_logger("DiffDriveAndino")};
 };
