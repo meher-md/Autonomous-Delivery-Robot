@@ -94,50 +94,7 @@ def generate_launch_description():
         }.items(),
                 condition=IfCondition(camera)
     )
-    config_file = os.path.join(
-        get_package_share_directory('andino_bringup'),  # change this!
-        'config',
-        'ekf.yaml'
-    )
-    imu_config_file = os.path.join(
-        get_package_share_directory('andino_bringup'),  # change this!
-        'config',
-        'magwick.yaml'
-    )
-     
-    imu_broadcaster = Node(
-    package="controller_manager",
-    executable="spawner",
-    arguments=["imu_sensor_broadcaster", "--controller-manager", "/controller_manager"],
-    output="screen"
-	)
-    
-    imu_filter = Node(
-            package="imu_filter_madgwick",
-            executable="imu_filter_madgwick_node",
-            name="madgwick_filter",
-            output="screen",
-            parameters=[{'use_mag': False, 
-                         'world_frame':'enu', 
-                         'publish_tf':False,
-                         "publish_frequency":50.0,
-                         "gain":0.05,
-                         "zeta":0.0,
-                         "imu_frame": "imu_link",
-                         
-                         }],
-            remappings=[
-                ("/imu/data_raw", "/imu_sensor_broadcaster/imu"),  # input
-                ("/imu/data", "/imu/data")          # output
-            ]
-        )
-    robot_localization = Node(
-            package='robot_localization',
-            executable='ekf_node',
-            name='ekf_filter_node',
-            output='screen',
-            parameters=[config_file]
-        )
+
     # TODO(francocipollone): Improve concatenation of launch files.
     #
     # Waits for andino_description to set up robot_state_publisher.
@@ -153,7 +110,4 @@ def generate_launch_description():
         camera_timer,
         rplidar_arg,
         rplidar_timer,
-        imu_broadcaster,
-        imu_filter,
-        robot_localization,
     ])
