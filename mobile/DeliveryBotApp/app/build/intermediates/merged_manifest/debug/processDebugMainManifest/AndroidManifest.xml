@@ -10,6 +10,7 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <permission
         android:name="com.example.deliverybot.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
@@ -55,6 +56,9 @@
             android:exported="false" />
         <activity
             android:name="com.example.deliverybot.PhoneActivity"
+            android:exported="false" />
+        <activity
+            android:name="com.example.deliverybot.SettingsActivity"
             android:exported="false" />
 
         <provider

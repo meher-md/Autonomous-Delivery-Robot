@@ -91,7 +91,7 @@
         <!-- Split Orders into Address and Phone -->
         <Button
             android:id="@+id/btnAddress"
-            android:text="Address 📍"
+            android:text="Create an Order 📦️"
             android:textAllCaps="false"
             android:textSize="17sp"
             android:textColor="@color/text_primary"
@@ -101,8 +101,8 @@
             android:layout_height="50dp" />
 
         <Button
-            android:id="@+id/btnPhone"
-            android:text="Phone number 📞"
+            android:id="@+id/btnOrderHistory"
+            android:text="Order History 📜"
             android:textAllCaps="false"
             android:textSize="17sp"
             android:textColor="@color/text_primary"
@@ -114,6 +114,17 @@
         <Button
             android:id="@+id/btnChat"
             android:text="Open Chat 💬"
+            android:textAllCaps="false"
+            android:textSize="17sp"
+            android:textColor="@color/text_primary"
+            android:background="@drawable/btn_lavender"
+            android:layout_marginTop="18dp"
+            android:layout_width="match_parent"
+            android:layout_height="50dp" />
+
+        <Button
+            android:id="@+id/btnSettings"
+            android:text="Settings ⚙️"
             android:textAllCaps="false"
             android:textSize="17sp"
             android:textColor="@color/text_primary"

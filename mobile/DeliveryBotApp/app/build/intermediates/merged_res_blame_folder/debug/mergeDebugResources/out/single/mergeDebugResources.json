@@ -40,6 +40,10 @@
         "source": "com.example.deliverybot.app-main-36:/mipmap-xxhdpi/va_launcher.png"
     },
     {
+        "merged": "com.example.deliverybot.app-debug-34:/drawable-night_bg_card_dark.xml.flat",
+        "source": "com.example.deliverybot.app-main-36:/drawable-night/bg_card_dark.xml"
+    },
+    {
         "merged": "com.example.deliverybot.app-debug-34:/mipmap-xhdpi_ic_launcher.png.flat",
         "source": "com.example.deliverybot.app-main-36:/mipmap-xhdpi/ic_launcher.png"
     },
@@ -140,16 +144,20 @@
         "source": "com.example.deliverybot.app-main-36:/mipmap-mdpi/va_launcher.png"
     },
     {
+        "merged": "com.example.deliverybot.app-debug-34:/layout_activity_settings.xml.flat",
+        "source": "com.example.deliverybot.app-main-36:/layout/activity_settings.xml"
+    },
+    {
         "merged": "com.example.deliverybot.app-debug-34:/layout_item_chat_message.xml.flat",
         "source": "com.example.deliverybot.app-main-36:/layout/item_chat_message.xml"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/mipmap-xxhdpi_ic_launcher_foreground.png.flat",
-        "source": "com.example.deliverybot.app-main-36:/mipmap-xxhdpi/ic_launcher_foreground.png"
-    },
-    {
         "merged": "com.example.deliverybot.app-debug-34:/layout_activity_main.xml.flat",
         "source": "com.example.deliverybot.app-main-36:/layout/activity_main.xml"
+    },
+    {
+        "merged": "com.example.deliverybot.app-debug-34:/mipmap-xxhdpi_ic_launcher_foreground.png.flat",
+        "source": "com.example.deliverybot.app-main-36:/mipmap-xxhdpi/ic_launcher_foreground.png"
     },
     {
         "merged": "com.example.deliverybot.app-debug-34:/drawable_btn_primary.xml.flat",

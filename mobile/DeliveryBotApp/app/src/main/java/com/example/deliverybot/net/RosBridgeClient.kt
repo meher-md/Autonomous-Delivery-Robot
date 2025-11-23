@@ -27,6 +27,21 @@ object RosBridgeClient {
         .retryOnConnectionFailure(true)
         .build()
 
+    // Connection listeners
+    private val connectionListeners = CopyOnWriteArrayList<(Boolean) -> Unit>()
+
+    fun addConnectionListener(listener: (Boolean) -> Unit) {
+        connectionListeners.add(listener)
+    }
+
+    fun removeConnectionListener(listener: (Boolean) -> Unit) {
+        connectionListeners.remove(listener)
+    }
+
+    private fun notifyConnectionListeners(isConnected: Boolean) {
+        connectionListeners.forEach { it(isConnected) }
+    }
+
     // ----------------------------------------------------------------------------
     // Public API
     // ----------------------------------------------------------------------------
@@ -44,6 +59,7 @@ object RosBridgeClient {
                 override fun onOpen(webSocket: WebSocket, response: Response) {
                     connected = true
                     Log.i(TAG, "WS OPEN: $baseUrl  code=${response.code}")
+                    notifyConnectionListeners(true)
                     // Re-subscribe any previously requested topics after reconnect
                     resubscribeAll()
                 }
@@ -78,11 +94,13 @@ object RosBridgeClient {
                 override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
                     connected = false
                     Log.e(TAG, "WS FAIL: ${t.message}", t)
+                    notifyConnectionListeners(false)
                 }
 
                 override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
                     connected = false
                     Log.i(TAG, "WS CLOSED: $code $reason")
+                    notifyConnectionListeners(false)
                 }
             })
         } catch (t: Throwable) {

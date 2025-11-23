@@ -22,33 +22,41 @@ class AddressActivity : AppCompatActivity() {
     private var generatedQrPath: String? = null
     // map to lock QR per destination
     private val generatedQrByAddress: MutableMap<String, String> = mutableMapOf()
-    // UI (QR)
+    
+    // UI
+    private lateinit var rgLocations: RadioGroup
+    private lateinit var btnPlaceOrder: Button
+    private lateinit var btnOrderHistory: Button
+    private lateinit var btnEditDestinations: ImageButton
     private lateinit var qrImageView: ImageView
     private lateinit var qrPlaceholder: TextView
-    private lateinit var btnGenerateQR: Button
     private lateinit var btnShareWhatsApp: Button
     private lateinit var tvStatus: TextView
+
+    private val defaultDestinations = listOf("Lobby", "Library", "Cafeteria", "Lab")
+    private val customDestinations = mutableListOf<String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_address)
 
-        val rg = findViewById<RadioGroup>(R.id.rgLocations)
-        val etOther = findViewById<EditText>(R.id.etOther)
-        val btnConfirm = findViewById<Button>(R.id.btnConfirmAddress)
+        rgLocations = findViewById(R.id.rgLocations)
+        btnPlaceOrder = findViewById(R.id.btnPlaceOrder)
+        btnOrderHistory = findViewById(R.id.btnOrderHistory)
+        btnEditDestinations = findViewById(R.id.btnEditDestinations)
         tvStatus = findViewById(R.id.tvStatus)
 
         // QR UI
         qrImageView = findViewById(R.id.qrImage)
         qrPlaceholder = findViewById(R.id.qrPlaceholder)
-        btnGenerateQR = findViewById(R.id.btnGenerateQR)
         btnShareWhatsApp = findViewById(R.id.btnShareWhatsApp)
-        // start disabled until appropriate
-        btnGenerateQR.isEnabled = false
         btnShareWhatsApp.isEnabled = false
 
-        rg.setOnCheckedChangeListener { _, checkedId ->
-            etOther.visibility = if (checkedId == R.id.rbOther) View.VISIBLE else View.GONE
+        loadCustomDestinations()
+        refreshDestinations()
+
+        btnEditDestinations.setOnClickListener {
+            showEditDestinationsDialog()
         }
 
         // Subscribe to robot feedback (optional)
@@ -60,98 +68,167 @@ class AddressActivity : AppCompatActivity() {
             Log.e(TAG, "subscribe failed", t)
         }
 
-        btnConfirm.setOnClickListener {
-            val selectedText = when (rg.checkedRadioButtonId) {
-                R.id.rbLibrary -> "Library"
-                R.id.rbLab -> "Lab"
-                R.id.rbLobby -> "Lobby"
-                R.id.rbCafeteria -> "Cafeteria"
-                R.id.rbOther -> etOther.text.toString().ifBlank { "Other" }
-                else -> ""
-            }
-
-            if (selectedText.isBlank()) {
-                Toast.makeText(this, "Please select a valid location", Toast.LENGTH_SHORT).show()
+        btnPlaceOrder.setOnClickListener {
+            val checkedId = rgLocations.checkedRadioButtonId
+            if (checkedId == -1) {
+                Toast.makeText(this, "Please select a destination", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            // store selected for QR generation request
-            selectedAddress = selectedText
-            btnGenerateQR.isEnabled = true
-
-            // If we already have a generated QR for this destination, display it immediately
-            val existing = generatedQrByAddress[selectedText]
-            if (existing != null) {
-                generatedQrPath = existing
-                try {
-                    val bmp = BitmapFactory.decodeFile(existing)
-                    if (bmp != null) {
-                        runOnUiThread {
-                            qrPlaceholder.visibility = View.GONE
-                            qrImageView.setImageBitmap(bmp)
-                            btnShareWhatsApp.isEnabled = true
-                            Toast.makeText(this, "Using previously generated QR for $selectedText", Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                } catch (_: Exception) { /* ignore - will request again if needed */ }
-            }
+            val rb = findViewById<RadioButton>(checkedId)
+            val destination = rb.text.toString()
+            selectedAddress = destination
 
             if (!RosBridgeClient.isConnected()) {
                 showAlert("Not connected", "Not connected to robot. Press Save / Connect first.")
                 return@setOnClickListener
             }
 
+            // 1. Publish Goal
             try {
-                RosBridgeClient.publish("/app/goal_name", selectedText)
-                tvStatus.text = "Sent: $selectedText"
-                Toast.makeText(this, "Sent to robot: $selectedText", Toast.LENGTH_SHORT).show()
+                RosBridgeClient.publish("/app/goal_name", destination)
+                tvStatus.text = "Sent: $destination"
+                Toast.makeText(this, "Order placed for $destination", Toast.LENGTH_SHORT).show()
+                saveOrderToHistory(destination)
             } catch (t: Throwable) {
                 Log.e(TAG, "publish failed", t)
                 showAlert("Send failed", "Failed to send goal to robot.")
-            }
-        }
-
-        // Generate QR button -> request ROS node to create and publish /app/qr/image
-        btnGenerateQR.setOnClickListener {
-            val addr = selectedAddress
-            if (addr.isNullOrBlank()) {
-                showAlert("No address", "Please confirm an address before generating a QR code.")
                 return@setOnClickListener
             }
 
-            // If QR already generated for this destination, reuse it (do not request new)
-            generatedQrByAddress[addr]?.let { existingPath ->
-                // reload and display
-                val bmp = try { BitmapFactory.decodeFile(existingPath) } catch (_: Exception) { null }
-                if (bmp != null) {
-                    runOnUiThread {
-                        qrPlaceholder.visibility = View.GONE
-                        qrImageView.setImageBitmap(bmp)
-                        btnShareWhatsApp.isEnabled = true
-                        Toast.makeText(this, "QR already generated for $addr (locked).", Toast.LENGTH_SHORT).show()
-                    }
-                    return@setOnClickListener
+            // 2. Generate QR (or reuse)
+            generateQrFor(destination)
+        }
+
+        btnOrderHistory.setOnClickListener {
+            startActivity(Intent(this, OrdersActivity::class.java))
+        }
+
+        setupQrSubscription()
+        setupShareButton()
+    }
+
+    private fun loadCustomDestinations() {
+        val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
+        val set = prefs.getStringSet("custom_destinations", emptySet()) ?: emptySet()
+        customDestinations.clear()
+        customDestinations.addAll(set)
+    }
+
+    private fun saveCustomDestinations() {
+        val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
+        prefs.edit().putStringSet("custom_destinations", customDestinations.toSet()).apply()
+    }
+
+    private fun refreshDestinations() {
+        rgLocations.removeAllViews()
+        val allDestinations = defaultDestinations + customDestinations
+        
+        for (dest in allDestinations) {
+            val rb = RadioButton(this)
+            rb.text = dest
+            rb.textSize = 18f
+            rb.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.text_primary))
+            rb.buttonTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#C9B6FF"))
+            val params = RadioGroup.LayoutParams(RadioGroup.LayoutParams.WRAP_CONTENT, RadioGroup.LayoutParams.WRAP_CONTENT)
+            params.setMargins(0, 0, 0, 20)
+            rb.layoutParams = params
+            rgLocations.addView(rb)
+        }
+    }
+
+    private fun showEditDestinationsDialog() {
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Edit Destinations")
+
+        val layout = LinearLayout(this)
+        layout.orientation = LinearLayout.VERTICAL
+        layout.setPadding(50, 50, 50, 50)
+
+        val input = EditText(this)
+        input.hint = "Add new destination"
+        layout.addView(input)
+
+        // List of custom destinations to remove
+        val scrollView = ScrollView(this)
+        val listLayout = LinearLayout(this)
+        listLayout.orientation = LinearLayout.VERTICAL
+        
+        for (dest in customDestinations) {
+            val row = LinearLayout(this)
+            row.orientation = LinearLayout.HORIZONTAL
+            
+            val tv = TextView(this)
+            tv.text = dest
+            tv.textSize = 16f
+            tv.setPadding(0, 20, 20, 20)
+            
+            val btnRemove = Button(this)
+            btnRemove.text = "Remove"
+            btnRemove.setOnClickListener {
+                customDestinations.remove(dest)
+                saveCustomDestinations()
+                refreshDestinations()
+                // Re-open dialog to refresh list (hacky but works)
+                // Or just close it. Let's close it to keep it simple.
+                Toast.makeText(this, "Removed $dest", Toast.LENGTH_SHORT).show()
+            }
+            
+            row.addView(tv)
+            row.addView(btnRemove)
+            listLayout.addView(row)
+        }
+        scrollView.addView(listLayout)
+        layout.addView(scrollView)
+
+        builder.setView(layout)
+
+        builder.setPositiveButton("Add") { _, _ ->
+            val newDest = input.text.toString().trim()
+            if (newDest.isNotBlank()) {
+                if (defaultDestinations.contains(newDest) || customDestinations.contains(newDest)) {
+                    Toast.makeText(this, "Destination already exists", Toast.LENGTH_SHORT).show()
+                } else {
+                    customDestinations.add(newDest)
+                    saveCustomDestinations()
+                    refreshDestinations()
+                    Toast.makeText(this, "Added $newDest", Toast.LENGTH_SHORT).show()
                 }
-                // if file missing/failing to decode, fallthrough and request generation
             }
+        }
+        builder.setNegativeButton("Close", null)
+        builder.show()
+    }
 
-            if (!RosBridgeClient.isConnected()) {
-                showAlert("Not connected", "Press Save / Connect first to connect to the robot.")
-                return@setOnClickListener
-            }
-            // request generation
-            try {
-                val req = org.json.JSONObject()
-                req.put("address", addr)
-                req.put("timestamp", System.currentTimeMillis())
-                RosBridgeClient.publish("/app/qr/generate", req.toString())
-                Toast.makeText(this, "QR generation requested...", Toast.LENGTH_SHORT).show()
-            } catch (ex: Throwable) {
-                Log.e(TAG, "QR request failed", ex)
-                showAlert("Error", "Failed to request QR generation.")
+    private fun generateQrFor(addr: String) {
+        // If QR already generated for this destination, reuse it (do not request new)
+        generatedQrByAddress[addr]?.let { existingPath ->
+            val bmp = try { BitmapFactory.decodeFile(existingPath) } catch (_: Exception) { null }
+            if (bmp != null) {
+                runOnUiThread {
+                    qrPlaceholder.visibility = View.GONE
+                    qrImageView.setImageBitmap(bmp)
+                    btnShareWhatsApp.isEnabled = true
+                    Toast.makeText(this, "Using cached QR for $addr", Toast.LENGTH_SHORT).show()
+                }
+                return
             }
         }
 
+        // request generation
+        try {
+            val req = org.json.JSONObject()
+            req.put("address", addr)
+            req.put("timestamp", System.currentTimeMillis())
+            RosBridgeClient.publish("/app/qr/generate", req.toString())
+            Toast.makeText(this, "QR generation requested...", Toast.LENGTH_SHORT).show()
+        } catch (ex: Throwable) {
+            Log.e(TAG, "QR request failed", ex)
+            showAlert("Error", "Failed to request QR generation.")
+        }
+    }
+
+    private fun setupQrSubscription() {
         // Subscribe to receive generated QR (robust parsing of rosbridge wrapper or direct JSON)
         try {
             RosBridgeClient.subscribe("/app/qr/image") { raw ->
@@ -188,7 +265,6 @@ class AddressActivity : AppCompatActivity() {
 
                     if (b64.isBlank()) {
                         Log.w(TAG, "No qr_b64_png found in message: $raw")
-                        runOnUiThread { Toast.makeText(this, "Received QR response but no image found", Toast.LENGTH_SHORT).show() }
                         return@subscribe
                     }
 
@@ -223,6 +299,8 @@ class AddressActivity : AppCompatActivity() {
                     val key = payloadAddress ?: selectedAddress
                     if (key != null) {
                         generatedQrByAddress[key] = qrFile.absolutePath
+                        // Update history with this QR path
+                        updateOrderHistoryWithQr(key, qrFile.absolutePath)
                     }
 
                     runOnUiThread {
@@ -239,7 +317,9 @@ class AddressActivity : AppCompatActivity() {
         } catch (t: Throwable) {
             Log.e(TAG, "subscribe /app/qr/image failed", t)
         }
+    }
 
+    private fun setupShareButton() {
         // Share button: generic chooser (replaces WhatsApp-only logic)
         btnShareWhatsApp.setOnClickListener {
             val path = generatedQrPath
@@ -276,27 +356,8 @@ class AddressActivity : AppCompatActivity() {
                 }
             }
 
-            // collect authorities actually declared (for diagnostic message)
-            try {
-                val pi = packageManager.getPackageInfo(packageName, PackageManager.GET_PROVIDERS)
-                val providers = pi.providers
-                if (providers != null) {
-                    for (p in providers) {
-                        p.authority?.let { availableAuthorities.add(it) }
-                    }
-                }
-            } catch (e: Exception) {
-                Log.w(TAG, "Could not query installed providers: ${e.message}")
-            }
-
             if (uri == null) {
-                val diag = if (availableAuthorities.isNotEmpty()) {
-                    "Available authorities: ${availableAuthorities.joinToString(", ")}"
-                } else {
-                    "No provider authorities detected in package."
-                }
-                Log.e(TAG, "FileProvider failed, lastEx=${lastEx?.message}", lastEx)
-                showAlert("Share failed", "Failed to get file URI: ${lastEx?.message ?: "unknown"}\n\n$diag")
+                showAlert("Share failed", "Failed to get file URI: ${lastEx?.message ?: "unknown"}")
                 return@setOnClickListener
             }
 
@@ -325,15 +386,59 @@ class AddressActivity : AppCompatActivity() {
             } catch (ex: Exception) {
                 Log.e(TAG, "Share failed", ex)
                 showAlert("Share failed", "Failed to open share chooser: ${ex.message}")
-            } finally {
-                // Revoke permissions after longer delay (give chosen app time to access the file)
-                try {
-                    window.decorView.postDelayed({
-                        try { revokeUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) } catch (_: Exception) {}
-                    }, 60000) // 60s
-                } catch (_: Exception) {}
             }
         }
+    }
+
+    private fun saveOrderToHistory(destination: String) {
+        val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
+        val history = prefs.getString("order_history", "") ?: ""
+        val timestamp = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault()).format(java.util.Date())
+        // Store QR path if available (it might be null if not generated yet, but usually we generate it right after)
+        // Actually, we generate it asynchronously. So at this point it might be null.
+        // However, we can try to find it in our map or just use empty string.
+        // Better: We should probably save it when we generate it? 
+        // But simpler: just save what we have. If we generate it later, we can't easily update the history string without parsing it all.
+        // Let's just save the path if we have it. If not, we might miss it for this order.
+        // Wait, the user flow is: Select Dest -> Place Order -> (Publish Goal & Save History & Request QR).
+        // So at this exact moment, we don't have the QR path yet (it comes from callback).
+        // But we do have logic to reuse existing QR.
+        // Let's try to get it from the map.
+        val qrPath = generatedQrByAddress[destination] ?: ""
+        
+        val newEntry = "$timestamp|$destination|$qrPath"
+        val newHistory = if (history.isBlank()) newEntry else "$history;$newEntry"
+        prefs.edit().putString("order_history", newHistory).apply()
+    }
+
+    private fun updateOrderHistoryWithQr(destination: String, path: String) {
+        val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
+        val history = prefs.getString("order_history", "") ?: ""
+        if (history.isBlank()) return
+
+        // Split, find most recent entry for this destination that doesn't have a path yet (or just update the most recent one)
+        // Format: time|dest|path
+        val items = history.split(";").toMutableList()
+        
+        // Iterate backwards to find the latest order for this destination
+        for (i in items.indices.reversed()) {
+            val parts = items[i].split("|")
+            if (parts.size >= 2) {
+                val dest = parts[1]
+                if (dest == destination) {
+                    // Update this entry
+                    val timestamp = parts[0]
+                    // Reconstruct
+                    val newEntry = "$timestamp|$dest|$path"
+                    items[i] = newEntry
+                    break // Only update the most recent one
+                }
+            }
+        }
+        
+        // Save back
+        val newHistory = items.joinToString(";")
+        prefs.edit().putString("order_history", newHistory).apply()
     }
 
     // Helper: show a simple alert dialog

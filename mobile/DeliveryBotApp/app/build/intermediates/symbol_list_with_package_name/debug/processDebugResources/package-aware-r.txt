@@ -3213,19 +3213,17 @@ id bounceStart
 id btnAddress
 id btnCamera
 id btnChat
-id btnConfirmAddress
 id btnConfirmPhone
-id btnCreateLocal
 id btnDown
-id btnGenerateQR
+id btnEditDestinations
 id btnLeft
 id btnMap
-id btnPhone
-id btnRequestQr
+id btnOrderHistory
+id btnPlaceOrder
 id btnRight
 id btnSave
 id btnSend
-id btnShare
+id btnSettings
 id btnShareWhatsApp
 id btnSpeedMinus
 id btnSpeedPlus
@@ -3317,12 +3315,6 @@ id endToStart
 id enterAlways
 id enterAlwaysCollapsed
 id escape
-id etAddress
-id etCustomer
-id etNote
-id etOrderId
-id etOther
-id etPhone
 id etPhoneInput
 id exitUntilCollapsed
 id expand_activities_button
@@ -3355,6 +3347,7 @@ id groups
 id header_title
 id hide_ime_id
 id hideable
+id historyContainer
 id home
 id homeAsUp
 id honorRequest
@@ -3517,7 +3510,6 @@ id rbCafeteria
 id rbLab
 id rbLibrary
 id rbLobby
-id rbOther
 id rectangles
 id report_drawn
 id reverseSawtooth
@@ -3590,6 +3582,8 @@ id stretch
 id submenuarrow
 id submit_area
 id supportScrollUp
+id switchDarkMode
+id switchNotifications
 id tabMode
 id tag_accessibility_actions
 id tag_accessibility_clickable_spans
@@ -3641,6 +3635,7 @@ id transition_scene_layoutid_cache
 id transition_transform
 id triangle
 id tvBody
+id tvNoHistory
 id tvSender
 id tvStatus
 id tvTitle
@@ -3789,6 +3784,7 @@ layout activity_main
 layout activity_map
 layout activity_orders
 layout activity_phone
+layout activity_settings
 layout custom_dialog
 layout design_bottom_navigation_item
 layout design_bottom_sheet_dialog

@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#121212"
+    android:background="@color/bg_dark"
     tools:context=".AddressActivity">
 
     <LinearLayout
@@ -12,15 +12,32 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <TextView
-            android:id="@+id/tvTitle"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Select destination or enter manually"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:textColor="#FFFFFF"
-            android:layout_marginBottom="16dp"/>
+            android:gravity="center_vertical"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:id="@+id/tvTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Select destination"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"/>
+
+            <ImageButton
+                android:id="@+id/btnEditDestinations"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@android:drawable/ic_menu_edit"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Edit Destinations"
+                android:tint="@color/text_primary" />
+        </LinearLayout>
 
         <!-- Card container for the options -->
         <LinearLayout
@@ -44,7 +61,7 @@
                     android:layout_height="wrap_content"
                     android:text="Lobby"
                     android:textSize="18sp"
-                    android:textColor="#FFFFFF"
+                    android:textColor="@color/text_primary"
                     android:buttonTint="#C9B6FF"
                     android:layout_marginBottom="10dp"/>
 
@@ -54,7 +71,7 @@
                     android:layout_height="wrap_content"
                     android:text="Library"
                     android:textSize="18sp"
-                    android:textColor="#FFFFFF"
+                    android:textColor="@color/text_primary"
                     android:buttonTint="#C9B6FF"
                     android:layout_marginBottom="10dp"/>
 
@@ -64,7 +81,7 @@
                     android:layout_height="wrap_content"
                     android:text="Cafeteria"
                     android:textSize="18sp"
-                    android:textColor="#FFFFFF"
+                    android:textColor="@color/text_primary"
                     android:buttonTint="#C9B6FF"
                     android:layout_marginBottom="10dp"/>
 
@@ -74,31 +91,11 @@
                     android:layout_height="wrap_content"
                     android:text="Lab"
                     android:textSize="18sp"
-                    android:textColor="#FFFFFF"
+                    android:textColor="@color/text_primary"
                     android:buttonTint="#C9B6FF"
                     android:layout_marginBottom="10dp"/>
 
-                <RadioButton
-                    android:id="@+id/rbOther"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Other"
-                    android:textSize="18sp"
-                    android:textColor="#FFFFFF"
-                    android:buttonTint="#C9B6FF"/>
             </RadioGroup>
-
-            <EditText
-                android:id="@+id/etOther"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Enter custom address (optional)"
-                android:textSize="16sp"
-                android:textColor="#FFFFFF"
-                android:textColorHint="#9AA0A6"
-                android:backgroundTint="#9AA0A6"
-                android:layout_marginTop="8dp"
-                android:visibility="gone"/>
         </LinearLayout>
 
         <TextView
@@ -106,14 +103,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Robot status..."
-            android:textColor="#FFFFFF"
+            android:textColor="@color/text_primary"
             android:textSize="16sp"
             android:layout_marginBottom="12dp"/>
 
-        <!-- Confirm Address button (existing) -->
+        <!-- Merged Button: Place Order -->
         <Button
-            android:id="@+id/btnConfirmAddress"
-            android:text="Confirm Address"
+            android:id="@+id/btnPlaceOrder"
+            android:text="Place an order"
             android:textAllCaps="false"
             android:layout_marginTop="18dp"
             android:layout_width="match_parent"
@@ -121,12 +118,10 @@
             android:background="@drawable/btn_lavender"
             android:textColor="@color/text_primary"/>
 
-        <!-- NEW: Generate QR Code button -->
         <Button
-            android:id="@+id/btnGenerateQR"
-            android:text="Generate the QR Code"
+            android:id="@+id/btnOrderHistory"
+            android:text="Order History 📜"
             android:textAllCaps="false"
-            android:enabled="true"
             android:layout_marginTop="12dp"
             android:layout_width="match_parent"
             android:layout_height="56dp"
