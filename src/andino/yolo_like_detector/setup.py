@@ -24,7 +24,7 @@ setup(
         
         # --- END OF FIX ---
     ],
-    install_requires=['rclpy', 'inference-sdk'], # Added inference-sdk dependency for robustness
+    install_requires=['rclpy', 'inference-sdk', 'onnxruntime'], # Added inference-sdk dependency for robustness
     zip_safe=True,
     maintainer='Your Name', 
     maintainer_email='your.email@example.com', 
