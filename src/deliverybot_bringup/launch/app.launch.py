@@ -83,7 +83,7 @@ def generate_launch_description():
         output='screen'
     )
 
-    # Start QR Verification
+    # Start QR generator + scanner (generate QR PNGs and scan via Pi camera)
     qr_generator = Node(package='qr_verification', executable='qr_generator', name='qr_generator')
     qr_scanner = Node(package='qr_verification', executable='qr_scanner', name='qr_scanner')
 

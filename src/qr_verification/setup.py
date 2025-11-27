@@ -26,6 +26,7 @@ setup(
         'console_scripts': [
             'qr_generator = qr_verification.qr_generator:main',
             'qr_scanner = qr_verification.qr_scanner:main',
+            'monitor_qr_scanner = qr_verification.monitor_qr_scanner:main',
         ],
     },
 )
