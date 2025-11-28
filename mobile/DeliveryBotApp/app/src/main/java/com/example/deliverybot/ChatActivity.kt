@@ -7,6 +7,12 @@ import android.widget.ScrollView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.example.deliverybot.teleop.CmdVelClient
+import android.content.Intent
+import android.speech.RecognizerIntent
+import android.widget.EditText
+import android.widget.ImageButton
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 
 class ChatActivity : AppCompatActivity() {
 
@@ -14,6 +20,17 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var logText: TextView
     private lateinit var logScroll: ScrollView
     private lateinit var cmd: CmdVelClient
+
+    private val voiceLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == RESULT_OK) {
+            val data = result.data
+            val matches = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+            if (!matches.isNullOrEmpty()) {
+                val spokenText = matches[0]
+                findViewById<EditText>(R.id.messageInput).setText(spokenText)
+            }
+        }
+    }
 
     private fun log(msg: String) {
         logText.append("Command: $msg\n")
@@ -57,6 +74,18 @@ class ChatActivity : AppCompatActivity() {
         findViewById<Button?>(R.id.btnSpeedMinus)?.setOnClickListener {
             speed = (speed - 0.1).coerceAtLeast(0.1)
             speedText?.let { updateSpeedUI(it) }
+        }
+
+        findViewById<ImageButton>(R.id.btnVoice).setOnClickListener {
+            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak now...")
+            }
+            try {
+                voiceLauncher.launch(intent)
+            } catch (e: Exception) {
+                Toast.makeText(this, "Voice input not supported", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 

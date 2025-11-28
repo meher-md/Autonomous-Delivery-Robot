@@ -17,6 +17,7 @@ drawable btn_lavender
 drawable btn_primary
 drawable edit_field_bg
 drawable et_dark
+drawable ic_mic
 drawable ic_robot_foreground
 drawable qr_section_bg
 drawable virtual_assistant
@@ -40,6 +41,7 @@ id btnSpeedPlus
 id btnStop
 id btnTogglePanel
 id btnUp
+id btnVoice
 id cameraPreview
 id cameraRoot
 id controlPanel

@@ -4,7 +4,7 @@
   <name>qr_verification</name>
   <version>0.0.0</version>
   <description>QR Verification Package that generates and scans a QR Code</description>
-  <maintainer email="you@you.com">Jack</maintainer>
+  <maintainer email="jack@you.com">Jack</maintainer>
   <license>TODO: License declaration</license>
 
   <test_depend>ament_copyright</test_depend>
