@@ -14,7 +14,7 @@ setup(
     install_requires=['setuptools'],
     zip_safe=True,
     maintainer='Jack',
-    maintainer_email='jack@you.com',
+    maintainer_email='you@you.com',
     description='QR Verification Package that generates and scans a QR Code',
     license='TODO: License declaration',
     extras_require={

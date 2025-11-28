@@ -59,17 +59,6 @@
             android:layout_weight="1"
             android:layout_width="0dp"
             android:layout_height="48dp" />
-
-        <ImageButton
-            android:id="@+id/btnVoice"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginStart="8dp"
-            android:background="@drawable/btn_lavender"
-            android:src="@drawable/ic_mic"
-            android:padding="10dp"
-            android:scaleType="fitCenter"
-            android:contentDescription="Voice Input" />
     </LinearLayout>
 
     <!-- زر إظهار/إخفاء الكنترول -->
