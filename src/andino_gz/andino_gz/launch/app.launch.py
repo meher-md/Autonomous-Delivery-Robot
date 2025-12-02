@@ -8,7 +8,7 @@ def generate_launch_description():
     address = LaunchConfiguration('address')
 
     return LaunchDescription([
-        # باراميترز الاتصال
+        
         DeclareLaunchArgument('port', default_value='9090'),
         DeclareLaunchArgument('address', default_value='127.0.0.1'),
 
@@ -21,7 +21,6 @@ def generate_launch_description():
             parameters=[{'port': port, 'address': address}],
         ),
 
-        # rosapi (مفيد لاستكشاف التوبيكس/الـ types من الموبايل)
         Node(
             package='rosapi',
             executable='rosapi_node',
