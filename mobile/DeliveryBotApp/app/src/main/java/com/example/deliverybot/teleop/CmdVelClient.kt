@@ -5,6 +5,7 @@ import android.util.Log
 import okhttp3.*
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit
+import com.example.deliverybot.ConnectionConfig
 
 class CmdVelClient(private val ctx: Context) : WebSocketListener() {
 
@@ -22,15 +23,9 @@ class CmdVelClient(private val ctx: Context) : WebSocketListener() {
     private var id = 0
     private fun nextId() = "id_${System.currentTimeMillis()}_${id++}"
 
+
     private fun wsUrl(): String {
-        // استخدم ConnectionConfig.rosbridgeWs(ctx)
-        return try {
-            val klass = Class.forName("com.example.deliverybot.ConnectionConfig")
-            val m = klass.methods.first { it.name == "rosbridgeWs" }
-            (m.invoke(null, ctx) as String?)?.takeIf { it.isNotBlank() } ?: "ws://10.42.0.1:9090"
-        } catch (t: Throwable) {
-            "ws://10.42.0.1:9090"
-        }
+        return ConnectionConfig.rosbridgeWs(ctx)
     }
 
     fun connect() {

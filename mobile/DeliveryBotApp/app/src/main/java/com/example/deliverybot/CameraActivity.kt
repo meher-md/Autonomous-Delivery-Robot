@@ -59,8 +59,7 @@ class CameraActivity : AppCompatActivity() {
             }
         }
 
-        val ip = "10.42.0.1"
-        val url = "http://$ip/camera/stream?topic=/image_raw"   // نفس الصفحة اللي بتشتغل عندك
+        val url = ConnectionConfig.cameraUrl(this)
         web.loadUrl(url)
     }
 
