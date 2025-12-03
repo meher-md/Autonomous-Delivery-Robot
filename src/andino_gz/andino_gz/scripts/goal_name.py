@@ -10,7 +10,7 @@ from visualization_msgs.msg import Marker, MarkerArray
 from std_srvs.srv import Trigger
 from math import sin, cos
 
-DEFAULT_YAML_PATH = os.path.expanduser('~/ws/src/andino_gz/config/named_poses.yaml')
+DEFAULT_YAML_PATH = os.path.expanduser('~/ws/src/App/named_poses.yaml')
 
 
 def yaw_to_quat(yaw: float):
