@@ -17,11 +17,13 @@ drawable btn_lavender
 drawable btn_primary
 drawable edit_field_bg
 drawable et_dark
+drawable ic_mic
 drawable ic_robot_foreground
 drawable qr_section_bg
 drawable virtual_assistant
 id btnAddress
 id btnCamera
+id btnCancel
 id btnChat
 id btnConfirmPhone
 id btnDown
@@ -40,6 +42,7 @@ id btnSpeedPlus
 id btnStop
 id btnTogglePanel
 id btnUp
+id btnVoice
 id cameraPreview
 id cameraRoot
 id controlPanel
@@ -53,6 +56,7 @@ id mapRoot
 id mapView
 id messageInput
 id panelInclude
+id progressBar
 id qrImage
 id qrPlaceholder
 id qrSection
@@ -60,6 +64,7 @@ id rbCafeteria
 id rbLab
 id rbLibrary
 id rbLobby
+id recyclerDevices
 id rgLocations
 id speedText
 id switchDarkMode
@@ -78,6 +83,7 @@ layout activity_main
 layout activity_map
 layout activity_orders
 layout activity_phone
+layout activity_scan
 layout activity_settings
 layout include_control_panel
 layout item_chat_message

@@ -91,20 +91,60 @@ class MainActivity : AppCompatActivity() {
 
         btnSave.setOnClickListener {
             val ipRaw = ipEdit.text.toString().trim().ifBlank { "10.42.0.1" }
-            // Save IP
             Prefs.saveIp(this, ipRaw)
 
-            // build websocket URL; use ws://host:port (no /rosbridge)
             val url = when {
                 ipRaw.startsWith("ws://") || ipRaw.startsWith("wss://") -> {
-                    // if user provided scheme and port, keep it; if they omitted port add :9090
                     if (ipRaw.contains(":")) ipRaw else "$ipRaw:9090"
                 }
-                ipRaw.contains(":") -> "ws://$ipRaw" // user provided ip:port
+                ipRaw.contains(":") -> "ws://$ipRaw"
                 else -> "ws://$ipRaw:9090"
             }
+
+            val progress = android.app.ProgressDialog(this).apply {
+                setMessage("Connecting...")
+                setCancelable(false)
+                show()
+            }
+
+            val wasConnected = RosBridgeClient.isConnected()
+            var ignoreDisconnect = wasConnected
+
+            var isHandled = false
+            val listener = object : (Boolean) -> Unit {
+                override fun invoke(connected: Boolean) {
+                    if (isHandled) return
+                    
+                    if (!connected && ignoreDisconnect) {
+                        ignoreDisconnect = false
+                        return
+                    }
+
+                    isHandled = true
+                    runOnUiThread {
+                        try { progress.dismiss() } catch(_: Throwable){}
+                        RosBridgeClient.removeConnectionListener(this)
+                        if (connected) {
+                            Toast.makeText(this@MainActivity, "Connected to $url", Toast.LENGTH_SHORT).show()
+                        } else {
+                            Toast.makeText(this@MainActivity, "Connection failed. Scanning...", Toast.LENGTH_SHORT).show()
+                            startActivity(Intent(this@MainActivity, ScanActivity::class.java))
+                        }
+                    }
+                }
+            }
+            RosBridgeClient.addConnectionListener(listener)
             RosBridgeClient.connect(url)
-            Toast.makeText(this, "Connecting to $url", Toast.LENGTH_SHORT).show()
+
+            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                if (!isHandled) {
+                    isHandled = true
+                    try { progress.dismiss() } catch(_: Throwable){}
+                    RosBridgeClient.removeConnectionListener(listener)
+                    Toast.makeText(this, "Connection timed out. Scanning...", Toast.LENGTH_SHORT).show()
+                    startActivity(Intent(this, ScanActivity::class.java))
+                }
+            }, 3000)
         }
 
         // bind new buttons (and existing ones if not already bound)
@@ -142,6 +182,13 @@ class MainActivity : AppCompatActivity() {
             if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
                 requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 101)
             }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (::ipEdit.isInitialized) {
+            ipEdit.setText(Prefs.getIp(this))
         }
     }
 

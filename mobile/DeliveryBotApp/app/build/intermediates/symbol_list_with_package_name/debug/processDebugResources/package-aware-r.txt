@@ -3028,6 +3028,7 @@ drawable ic_keyboard_black_24dp
 drawable ic_m3_chip_check
 drawable ic_m3_chip_checked_circle
 drawable ic_m3_chip_close
+drawable ic_mic
 drawable ic_mtrl_checked_circle
 drawable ic_mtrl_chip_checked_black
 drawable ic_mtrl_chip_checked_circle
@@ -3212,6 +3213,7 @@ id bounceEnd
 id bounceStart
 id btnAddress
 id btnCamera
+id btnCancel
 id btnChat
 id btnConfirmPhone
 id btnDown
@@ -3230,6 +3232,7 @@ id btnSpeedPlus
 id btnStop
 id btnTogglePanel
 id btnUp
+id btnVoice
 id buttonPanel
 id cache_measures
 id callMeasure
@@ -3499,6 +3502,7 @@ id pin
 id position
 id postLayout
 id pressed
+id progressBar
 id progress_circular
 id progress_horizontal
 id qrImage
@@ -3511,6 +3515,7 @@ id rbLab
 id rbLibrary
 id rbLobby
 id rectangles
+id recyclerDevices
 id report_drawn
 id reverseSawtooth
 id rgLocations
@@ -3784,6 +3789,7 @@ layout activity_main
 layout activity_map
 layout activity_orders
 layout activity_phone
+layout activity_scan
 layout activity_settings
 layout custom_dialog
 layout design_bottom_navigation_item

@@ -33,8 +33,7 @@ class AddressActivity : AppCompatActivity() {
     private lateinit var btnShareWhatsApp: Button
     private lateinit var tvStatus: TextView
 
-    private val defaultDestinations = listOf("Lobby", "Library", "Cafeteria", "Lab")
-    private val customDestinations = mutableListOf<String>()
+    private val destinations = mutableListOf<String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,7 +51,7 @@ class AddressActivity : AppCompatActivity() {
         btnShareWhatsApp = findViewById(R.id.btnShareWhatsApp)
         btnShareWhatsApp.isEnabled = false
 
-        loadCustomDestinations()
+        loadDestinations()
         refreshDestinations()
 
         btnEditDestinations.setOnClickListener {
@@ -108,23 +107,33 @@ class AddressActivity : AppCompatActivity() {
         setupShareButton()
     }
 
-    private fun loadCustomDestinations() {
+    private fun loadDestinations() {
         val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
-        val set = prefs.getStringSet("custom_destinations", emptySet()) ?: emptySet()
-        customDestinations.clear()
-        customDestinations.addAll(set)
+        if (prefs.contains("saved_destinations")) {
+            val set = prefs.getStringSet("saved_destinations", emptySet()) ?: emptySet()
+            destinations.clear()
+            destinations.addAll(set.sorted())
+        } else {
+            val oldCustom = prefs.getStringSet("custom_destinations", emptySet()) ?: emptySet()
+            destinations.clear()
+            destinations.addAll(listOf("Lobby", "Library", "Cafeteria", "Lab"))
+            destinations.addAll(oldCustom)
+            val unique = destinations.toSet().toList().sorted()
+            destinations.clear()
+            destinations.addAll(unique)
+            saveDestinations()
+        }
     }
 
-    private fun saveCustomDestinations() {
+    private fun saveDestinations() {
         val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
-        prefs.edit().putStringSet("custom_destinations", customDestinations.toSet()).apply()
+        prefs.edit().putStringSet("saved_destinations", destinations.toSet()).apply()
     }
 
     private fun refreshDestinations() {
         rgLocations.removeAllViews()
-        val allDestinations = defaultDestinations + customDestinations
         
-        for (dest in allDestinations) {
+        for (dest in destinations) {
             val rb = RadioButton(this)
             rb.text = dest
             rb.textSize = 18f
@@ -149,12 +158,12 @@ class AddressActivity : AppCompatActivity() {
         input.hint = "Add new destination"
         layout.addView(input)
 
-        // List of custom destinations to remove
+        // List of destinations to remove
         val scrollView = ScrollView(this)
         val listLayout = LinearLayout(this)
         listLayout.orientation = LinearLayout.VERTICAL
         
-        for (dest in customDestinations) {
+        for (dest in destinations) {
             val row = LinearLayout(this)
             row.orientation = LinearLayout.HORIZONTAL
             
@@ -166,11 +175,9 @@ class AddressActivity : AppCompatActivity() {
             val btnRemove = Button(this)
             btnRemove.text = "Remove"
             btnRemove.setOnClickListener {
-                customDestinations.remove(dest)
-                saveCustomDestinations()
+                destinations.remove(dest)
+                saveDestinations()
                 refreshDestinations()
-                // Re-open dialog to refresh list (hacky but works)
-                // Or just close it. Let's close it to keep it simple.
                 Toast.makeText(this, "Removed $dest", Toast.LENGTH_SHORT).show()
             }
             
@@ -186,11 +193,11 @@ class AddressActivity : AppCompatActivity() {
         builder.setPositiveButton("Add") { _, _ ->
             val newDest = input.text.toString().trim()
             if (newDest.isNotBlank()) {
-                if (defaultDestinations.contains(newDest) || customDestinations.contains(newDest)) {
+                if (destinations.contains(newDest)) {
                     Toast.makeText(this, "Destination already exists", Toast.LENGTH_SHORT).show()
                 } else {
-                    customDestinations.add(newDest)
-                    saveCustomDestinations()
+                    destinations.add(newDest)
+                    saveDestinations()
                     refreshDestinations()
                     Toast.makeText(this, "Added $newDest", Toast.LENGTH_SHORT).show()
                 }

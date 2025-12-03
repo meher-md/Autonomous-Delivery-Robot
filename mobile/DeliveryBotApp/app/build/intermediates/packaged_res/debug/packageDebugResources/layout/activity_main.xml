@@ -10,7 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <!-- العنوان -->
+        <!-- The title -->
         <TextView
             android:id="@+id/titleText"
             android:text="DeliveryBot Control"
@@ -23,7 +23,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
-        <!-- Label للـ IP -->
+        <!-- Label for IP -->
         <TextView
             android:text="Robot IP"
             android:textColor="@color/text_secondary"
@@ -32,7 +32,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 
-        <!-- إدخال الـ IP -->
+        <!-- Enter the IP -->
         <EditText
             android:id="@+id/ipEdit"
             android:text="10.42.0.1"
@@ -46,7 +46,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
-        <!-- الخط تحت الـ IP -->
+        <!-- The line under the IP -->
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
@@ -54,10 +54,10 @@
             android:layout_marginTop="4dp"
             android:layout_marginBottom="12dp"/>
 
-        <!-- الأزرار -->
+        <!-- The buttons -->
         <Button
             android:id="@+id/btnSave"
-            android:text="Save / Connect 🔌"
+            android:text="Connect / Scan 🔌"
             android:textAllCaps="false"
             android:textSize="17sp"
             android:textColor="@color/text_primary"
@@ -106,7 +106,7 @@
             android:textSize="17sp"
             android:textColor="@color/text_primary"
             android:background="@drawable/btn_lavender"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="18dp"
             android:layout_width="match_parent"
             android:layout_height="50dp" />
 

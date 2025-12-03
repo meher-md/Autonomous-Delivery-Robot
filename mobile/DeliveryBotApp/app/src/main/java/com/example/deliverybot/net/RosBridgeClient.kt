@@ -48,11 +48,18 @@ object RosBridgeClient {
 
     @JvmStatic
     fun connect(baseUrl: String = lastUrl) {
-        lastUrl = baseUrl
         if (connected && ws != null) {
-            Log.i(TAG, "Already connected to $baseUrl")
-            return
+            if (baseUrl == lastUrl) {
+                Log.i(TAG, "Already connected to $baseUrl")
+                notifyConnectionListeners(true) // Notify listeners that we are connected
+                return
+            }
+            // URL changed, close existing
+            try { ws?.close(1000, "Reconnecting") } catch(_: Throwable){}
+            ws = null
+            connected = false
         }
+        lastUrl = baseUrl
         try {
             val req = Request.Builder().url(baseUrl).build()
             ws = client.newWebSocket(req, object : WebSocketListener() {

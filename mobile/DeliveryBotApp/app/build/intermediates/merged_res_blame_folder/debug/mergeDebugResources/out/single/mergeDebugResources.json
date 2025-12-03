@@ -16,12 +16,20 @@
         "source": "com.example.deliverybot.app-main-36:/mipmap-anydpi-v26/ic_launcher.xml"
     },
     {
+        "merged": "com.example.deliverybot.app-debug-34:/drawable_ic_mic.xml.flat",
+        "source": "com.example.deliverybot.app-main-36:/drawable/ic_mic.xml"
+    },
+    {
         "merged": "com.example.deliverybot.app-debug-34:/drawable_edit_field_bg.xml.flat",
         "source": "com.example.deliverybot.app-main-36:/drawable/edit_field_bg.xml"
     },
     {
         "merged": "com.example.deliverybot.app-debug-34:/mipmap-xhdpi_ic_launcher_round.png.flat",
         "source": "com.example.deliverybot.app-main-36:/mipmap-xhdpi/ic_launcher_round.png"
+    },
+    {
+        "merged": "com.example.deliverybot.app-debug-34:/layout_activity_scan.xml.flat",
+        "source": "com.example.deliverybot.app-main-36:/layout/activity_scan.xml"
     },
     {
         "merged": "com.example.deliverybot.app-debug-34:/mipmap-xxhdpi_va_launcher_round.png.flat",
