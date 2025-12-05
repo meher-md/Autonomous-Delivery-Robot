@@ -64,11 +64,12 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "app.h"
 
-#include <Adafruit_BNO055.h>
-#include <Adafruit_Sensor.h>
+
+#include "I2Cdev.h"
+#include "MPU6050_6Axis_MotionApps20.h"
 #include <Arduino.h>
 #include <Wire.h>
-#include <utility/imumaths.h>
+
 
 #include "commands.h"
 #include "constants.h"
@@ -121,8 +122,34 @@ unsigned long App::last_set_motors_speed_cmd_{0};
 
 bool App::is_imu_connected{false};
 
-Adafruit_BNO055 App::bno055_imu_{/*sensorID=*/55, BNO055_ADDRESS_A, &Wire};
+MPU6050 App::mpu6050_;
 
+/*Conversion variables*/
+#define EARTH_GRAVITY_MS2 9.80665  //m/s2
+#define DEG_TO_RAD        0.017453292519943295769236907684886
+#define RAD_TO_DEG        57.295779513082320876798154814105
+
+/*---MPU6050 Control/Status Variables---*/
+bool DMPReady = false;  // Set true if DMP init was successful
+int const INTERRUPT_PIN = 2;
+volatile bool MPUInterrupt = false;
+uint8_t MPUIntStatus;   // Holds actual interrupt status byte from MPU
+uint8_t devStatus;      // Return status after each device operation (0 = success, !0 = error)
+uint16_t packetSize;    // Expected DMP packet size (default is 42 bytes)
+uint8_t FIFOBuffer[64]; // FIFO storage buffer
+
+/*---MPU6050 Control/Status Variables---*/
+Quaternion q;           // [w, x, y, z]         Quaternion container
+VectorInt16 aa;         // [x, y, z]            Accel sensor measurements
+VectorInt16 gg;         // [x, y, z]            Gyro sensor measurements
+VectorInt16 aaWorld;    // [x, y, z]            World-frame accel sensor measurements
+VectorInt16 ggWorld;    // [x, y, z]            World-frame gyro sensor measurements
+VectorFloat gravity;    // [x, y, z]            Gravity vector
+float euler[3];         // [psi, theta, phi]    Euler angle container
+float ypr[3];           // [yaw, pitch, roll]   Yaw/Pitch/Roll container and gravity vector
+void DMPDataReady() {
+  MPUInterrupt = true;
+}
 void App::setup() {
   // Required by Arduino libraries to work.
   init();
@@ -154,10 +181,52 @@ void App::setup() {
   shell_.register_command(Commands::kReadEncodersAndImu, cmd_read_encoders_and_imu_cb);
 
   // Initialize IMU sensor.
-  if (bno055_imu_.begin()) {
-    bno055_imu_.setExtCrystalUse(true);
-    is_imu_connected = true;
+  Wire.begin();
+  Wire.setClock(400000); // 400kHz I2C clock. Comment on this line if having compilation difficulties
+  //mpu6050_.initialize();
+  // if(mpu6050_.testConnection() == false){
+  //   Serial.println("MPU6050 connection failed");
+  //   while(true);
+  // }
+  //   else {
+  //     is_imu_connected = true;
+  //   Serial.println("MPU6050 connection successful");
+  // }
+ mpu6050_.initialize();
+  if(mpu6050_.testConnection() == false){
+    Serial.println("MPU6050 connection failed");
+    while(true);
   }
+  else {
+    Serial.println("MPU6050 connection successful");
+  }
+  pinMode(INTERRUPT_PIN, INPUT);
+attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), DMPDataReady, RISING);
+	Serial.println(F("Initializing DMP..."));
+  devStatus = mpu6050_.dmpInitialize();
+  mpu6050_.setXGyroOffset(0);
+  mpu6050_.setYGyroOffset(0);
+  mpu6050_.setZGyroOffset(0);
+  mpu6050_.setXAccelOffset(0);
+  mpu6050_.setYAccelOffset(0);
+  mpu6050_.setZAccelOffset(0);
+  if (devStatus == 0) {
+    mpu6050_.CalibrateAccel(6);  // Calibration Time: generate offsets and calibrate our MPU6050
+    mpu6050_.CalibrateGyro(6);
+    Serial.println("These are the Active offsets: ");
+    mpu6050_.PrintActiveOffsets();
+    Serial.println(F("Enabling DMP..."));   //Turning ON DMP
+    mpu6050_.setDMPEnabled(true);
+
+    MPUIntStatus = mpu6050_.getIntStatus();
+
+    /* Set the DMP Ready flag so the main loop() function knows it is okay to use it */
+    Serial.println(F("DMP ready! Waiting for first interrupt..."));
+    DMPReady = true;
+    packetSize = mpu6050_.dmpGetFIFOPacketSize(); //Get expected DMP packet size for later comparison
+  }
+  mpu6050_.setFullScaleAccelRange(MPU6050_ACCEL_FS_2);
+  mpu6050_.setFullScaleGyroRange(MPU6050_GYRO_FS_250);
 }
 
 void App::loop() {
@@ -293,13 +362,13 @@ void App::cmd_set_pid_tuning_gains_cb(int argc, char** argv) {
   int i = 0;
   char arg[20];
   char* str;
-  int pid_args[kSizePidArgs]{0, 0, 0, 0};
+  double pid_args[kSizePidArgs]{0.0, 0.0, 0.0, 0.0};
 
   // Example: "u 30:20:10:50".
   strcpy(arg, argv[1]);
   char* p = arg;
   while ((str = strtok_r(p, ":", &p)) != NULL && i < kSizePidArgs) {
-    pid_args[i] = atoi(str);
+    pid_args[i] = atof(str);
     i++;
   }
   left_pid_controller_.set_tunings(pid_args[0], pid_args[1], pid_args[2], pid_args[3]);
@@ -322,40 +391,47 @@ void App::cmd_read_encoders_and_imu_cb(int, char**) {
   Serial.print(" ");
   Serial.print(right_encoder_.read());
   Serial.print(" ");
+  
 
-  // Retrieve absolute orientation (quaternion). See
-  // https://learn.adafruit.com/adafruit-bno055-absolute-orientation-sensor/overview for further
-  // information.
-  imu::Quaternion orientation = bno055_imu_.getQuat();
-  Serial.print(orientation.x(), 4);
-  Serial.print(" ");
-  Serial.print(orientation.y(), 4);
-  Serial.print(" ");
-  Serial.print(orientation.z(), 4);
-  Serial.print(" ");
-  Serial.print(orientation.w(), 4);
-  Serial.print(" ");
+  if (!DMPReady) return;
 
-  // Retrieve angular velocity (rad/s). See
-  // https://learn.adafruit.com/adafruit-bno055-absolute-orientation-sensor/overview for further
-  // information.
-  imu::Vector<3> angular_velocity = bno055_imu_.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
-  Serial.print(angular_velocity.x());
-  Serial.print(" ");
-  Serial.print(angular_velocity.y());
-  Serial.print(" ");
-  Serial.print(angular_velocity.z());
-  Serial.print(" ");
+  /* Read a packet from FIFO */
+  if (mpu6050_.dmpGetCurrentFIFOPacket(FIFOBuffer)) { // Get the Latest packet 
+    /*Display quaternion values in easy matrix form: w x y z */
+    mpu6050_.dmpGetQuaternion(&q, FIFOBuffer);
+    Serial.print(q.w);
+    Serial.print(" ");
+    Serial.print(q.x);
+    Serial.print(" ");
+    Serial.print(q.y);
+    Serial.print(" ");
+    Serial.print(q.z);
 
-  // Retrieve linear acceleration (m/s^2). See
-  // https://learn.adafruit.com/adafruit-bno055-absolute-orientation-sensor/overview for further
-  // information.
-  imu::Vector<3> linear_acceleration = bno055_imu_.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
-  Serial.print(linear_acceleration.x());
-  Serial.print(" ");
-  Serial.print(linear_acceleration.y());
-  Serial.print(" ");
-  Serial.print(linear_acceleration.z());
+    mpu6050_.dmpGetGravity(&gravity, &q);
+
+    /* Display initial world-frame acceleration, adjusted to remove gravity
+    and rotated based on known orientation from Quaternion */
+    mpu6050_.dmpGetAccel(&aaWorld, FIFOBuffer);
+
+    
+    Serial.print(" ");
+    Serial.print(aaWorld.x * mpu6050_.get_acce_resolution() * EARTH_GRAVITY_MS2);
+    Serial.print(" ");
+    Serial.print(aaWorld.y * mpu6050_.get_acce_resolution() * EARTH_GRAVITY_MS2);
+    Serial.print(" ");
+    Serial.print(aaWorld.z * mpu6050_.get_acce_resolution() * EARTH_GRAVITY_MS2);
+
+    /* Display initial world-frame acceleration, adjusted to remove gravity
+    and rotated based on known orientation from Quaternion */
+    mpu6050_.dmpGetGyro(&ggWorld, FIFOBuffer);
+    Serial.print(" ");
+    Serial.print(ggWorld.x * mpu6050_.get_gyro_resolution() * DEG_TO_RAD);
+    Serial.print(" ");
+    Serial.print(ggWorld.y * mpu6050_.get_gyro_resolution() * DEG_TO_RAD);
+    Serial.print(" ");
+    Serial.println(ggWorld.z * mpu6050_.get_gyro_resolution() * DEG_TO_RAD);
+    }
+
 }
 
 }  // namespace andino

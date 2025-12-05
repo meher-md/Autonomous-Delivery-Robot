@@ -28,9 +28,8 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
-
-#include <Adafruit_BNO055.h>
-
+#include "I2Cdev.h"
+#include "MPU6050_6Axis_MotionApps20.h"
 #include "digital_out_arduino.h"
 #include "encoder.h"
 #include "interrupt_in_arduino.h"
@@ -124,7 +123,7 @@ class App {
   static Pid right_pid_controller_;
 
   /// Adafruit BNO055 IMU sensor.
-  static Adafruit_BNO055 bno055_imu_;
+  static MPU6050 mpu6050_;
 
   /// Tracks the last time the PID computation was made.
   static unsigned long last_pid_computation_;
@@ -134,6 +133,7 @@ class App {
 
   /// Tracks whether there is an IMU sensor connected.
   static bool is_imu_connected;
+
 };
 
 }  // namespace andino
