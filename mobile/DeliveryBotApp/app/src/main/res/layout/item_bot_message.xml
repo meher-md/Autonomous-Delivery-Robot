@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="start"
+    android:padding="8dp">
+
+    <!-- Bot Icon -->
+    <TextView
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:text="🤖"
+        android:textSize="24sp"
+        android:gravity="center"
+        android:background="@android:drawable/presence_online"
+        android:backgroundTint="#1a1a1a"
+        android:elevation="1dp"
+        android:layout_marginEnd="8dp" />
+
+    <!-- Bot Message Bubble -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="48dp"
+        android:background="@android:drawable/editbox_background"
+        android:backgroundTint="#2a2a2a"
+        android:orientation="vertical"
+        android:padding="12dp"
+        android:elevation="2dp">
+
+        <!-- Bot Message Text -->
+        <TextView
+            android:id="@+id/textBotMessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Bot message here"
+            android:textColor="#FFFFFF"
+            android:textSize="15sp"
+            android:lineSpacingExtra="2dp"
+            android:maxWidth="280dp" />
+
+        <!-- Timestamp -->
+        <TextView
+            android:id="@+id/textBotTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="12:30 PM"
+            android:textColor="#B39DDB"
+            android:textSize="10sp"
+            android:layout_marginTop="4dp"
+            android:gravity="start" />
+
+    </LinearLayout>
+
+</LinearLayout>

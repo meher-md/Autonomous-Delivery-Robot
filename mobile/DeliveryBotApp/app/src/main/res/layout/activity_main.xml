@@ -10,7 +10,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <!-- The title -->
         <TextView
             android:id="@+id/titleText"
             android:text="DeliveryBot Control"
@@ -23,7 +22,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
-        <!-- Label for IP -->
         <TextView
             android:text="Robot IP"
             android:textColor="@color/text_secondary"
@@ -32,7 +30,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 
-        <!-- Enter the IP -->
         <EditText
             android:id="@+id/ipEdit"
             android:text="10.42.0.1"
@@ -46,7 +43,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
-        <!-- The line under the IP -->
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
@@ -54,7 +50,6 @@
             android:layout_marginTop="4dp"
             android:layout_marginBottom="12dp"/>
 
-        <!-- The buttons -->
         <Button
             android:id="@+id/btnSave"
             android:text="Connect / Scan 🔌"
@@ -129,8 +124,18 @@
             android:textColor="@color/text_primary"
             android:background="@drawable/btn_lavender"
             android:layout_marginTop="18dp"
-            android:layout_width="match_parent"
-            android:layout_height="50dp" />
+            android:layout_width="match_parent" android:layout_height="50dp" />
 
+        <Button
+            android:id="@+id/btnChatbot"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🤖 Chatbot Assistant"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:backgroundTint="#B39DDB"
+            android:padding="16dp"
+            android:layout_marginTop="16dp"
+            />
     </LinearLayout>
 </ScrollView>

@@ -33,6 +33,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnAddress: Button
     private lateinit var btnOrderHistory: Button
     private lateinit var btnSettings: Button
+
+    private lateinit var btnChatbot: Button
     // RTSP default (can be overridden when launching camera)
     private var rtspUrl: String = "rtsp://127.0.0.1:8554/stream"
 
@@ -43,7 +45,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
         // Apply Dark Mode
         val prefs = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
         val isDarkMode = prefs.getBoolean("dark_mode", true)
@@ -114,7 +116,7 @@ class MainActivity : AppCompatActivity() {
             val listener = object : (Boolean) -> Unit {
                 override fun invoke(connected: Boolean) {
                     if (isHandled) return
-                    
+
                     if (!connected && ignoreDisconnect) {
                         ignoreDisconnect = false
                         return
@@ -155,6 +157,8 @@ class MainActivity : AppCompatActivity() {
         btnOrderHistory = findViewById(R.id.btnOrderHistory)
         btnSettings = findViewById(R.id.btnSettings)
 
+        btnChatbot = findViewById(R.id.btnChatbot)
+
         // click handlers
         btnOpenMap.setOnClickListener {
             startActivity(Intent(this, MapActivity::class.java))
@@ -173,6 +177,10 @@ class MainActivity : AppCompatActivity() {
         }
         btnSettings.setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
+        }
+
+        btnChatbot.setOnClickListener {
+            startActivity(Intent(this, ChatbotActivity::class.java))
         }
 
         // Setup Notifications
@@ -207,11 +215,11 @@ class MainActivity : AppCompatActivity() {
         // ...
 
         // Robot Status listener (e.g. arrival)
-        // We need to subscribe. Note: This might duplicate subscriptions if we are not careful, 
+        // We need to subscribe. Note: This might duplicate subscriptions if we are not careful,
         // but RosBridgeClient handles multiple callbacks for same topic.
         try {
             RosBridgeClient.subscribe("/app/goal_status") { msg ->
-                // Check if message implies arrival. 
+                // Check if message implies arrival.
                 // Assuming msg is a string status. Adjust logic if it's JSON.
                 // Example statuses: "Arrived", "Moving", "Idle"
                 if (shouldNotify()) {
@@ -234,7 +242,7 @@ class MainActivity : AppCompatActivity() {
         runOnUiThread {
             // Use Toast for immediate feedback as well
             Toast.makeText(this, "$title: $content", Toast.LENGTH_SHORT).show()
-            
+
             val builder = androidx.core.app.NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
                 .setSmallIcon(android.R.drawable.ic_dialog_info) // Fallback icon
                 .setContentTitle(title)

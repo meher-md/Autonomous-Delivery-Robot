@@ -9,198 +9,211 @@
 9        android:targetSdkVersion="34" />
 10
 11    <uses-permission android:name="android.permission.INTERNET" />
-11-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:4:5-67
-11-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:4:22-64
+11-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:4:5-67
+11-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:4:22-64
 12    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-12-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:5:5-79
-12-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:5:22-76
+12-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:5:5-79
+12-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:5:22-76
 13    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-13-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:6:5-76
-13-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:6:22-73
+13-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:6:5-76
+13-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:6:22-73
 14    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-14-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:7:5-77
-14-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:7:22-74
+14-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:7:5-77
+14-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:7:22-74
 15
 16    <permission
-16-->[androidx.core:core:1.13.1] /home/jack/.gradle/caches/transforms-4/eecbda8adc5521377f06f41deda43748/transformed/core-1.13.1/AndroidManifest.xml:22:5-24:47
+16-->[androidx.core:core:1.13.1] /home/zbook/.gradle/caches/transforms-4/eecbda8adc5521377f06f41deda43748/transformed/core-1.13.1/AndroidManifest.xml:22:5-24:47
 17        android:name="com.example.deliverybot.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
-17-->[androidx.core:core:1.13.1] /home/jack/.gradle/caches/transforms-4/eecbda8adc5521377f06f41deda43748/transformed/core-1.13.1/AndroidManifest.xml:23:9-81
+17-->[androidx.core:core:1.13.1] /home/zbook/.gradle/caches/transforms-4/eecbda8adc5521377f06f41deda43748/transformed/core-1.13.1/AndroidManifest.xml:23:9-81
 18        android:protectionLevel="signature" />
-18-->[androidx.core:core:1.13.1] /home/jack/.gradle/caches/transforms-4/eecbda8adc5521377f06f41deda43748/transformed/core-1.13.1/AndroidManifest.xml:24:9-44
+18-->[androidx.core:core:1.13.1] /home/zbook/.gradle/caches/transforms-4/eecbda8adc5521377f06f41deda43748/transformed/core-1.13.1/AndroidManifest.xml:24:9-44
 19
 20    <uses-permission android:name="com.example.deliverybot.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
-20-->[androidx.core:core:1.13.1] /home/jack/.gradle/caches/transforms-4/eecbda8adc5521377f06f41deda43748/transformed/core-1.13.1/AndroidManifest.xml:26:5-97
-20-->[androidx.core:core:1.13.1] /home/jack/.gradle/caches/transforms-4/eecbda8adc5521377f06f41deda43748/transformed/core-1.13.1/AndroidManifest.xml:26:22-94
+20-->[androidx.core:core:1.13.1] /home/zbook/.gradle/caches/transforms-4/eecbda8adc5521377f06f41deda43748/transformed/core-1.13.1/AndroidManifest.xml:26:5-97
+20-->[androidx.core:core:1.13.1] /home/zbook/.gradle/caches/transforms-4/eecbda8adc5521377f06f41deda43748/transformed/core-1.13.1/AndroidManifest.xml:26:22-94
 21
 22    <application
-22-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:9:5-38:19
+22-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:9:5-43:19
 23        android:allowBackup="true"
-23-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:9:18-44
+23-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:9:18-44
 24        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
-24-->[androidx.core:core:1.13.1] /home/jack/.gradle/caches/transforms-4/eecbda8adc5521377f06f41deda43748/transformed/core-1.13.1/AndroidManifest.xml:28:18-86
+24-->[androidx.core:core:1.13.1] /home/zbook/.gradle/caches/transforms-4/eecbda8adc5521377f06f41deda43748/transformed/core-1.13.1/AndroidManifest.xml:28:18-86
 25        android:debuggable="true"
 26        android:extractNativeLibs="false"
 27        android:icon="@mipmap/va_launcher"
-27-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:9:78-112
+27-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:9:78-112
 28        android:label="@string/app_name"
-28-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:9:45-77
+28-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:9:45-77
 29        android:networkSecurityConfig="@xml/network_security_config"
-29-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:9:195-255
+29-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:9:195-255
 30        android:roundIcon="@mipmap/va_launcher_round"
-30-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:9:113-158
-31        android:theme="@style/Theme.DeliveryBotApp"
-31-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:9:256-299
-32        android:usesCleartextTraffic="true" >
-32-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:9:159-194
-33        <activity
-33-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:11:9-73
-34            android:name="com.example.deliverybot.MapActivity"
-34-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:11:19-46
-35            android:exported="true" />
-35-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:11:47-70
-36        <activity
-36-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:13:9-18:20
-37            android:name="com.example.deliverybot.MainActivity"
-37-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:13:19-47
-38            android:exported="true" >
-38-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:13:48-71
-39            <intent-filter>
-39-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:14:13-17:29
-40                <action android:name="android.intent.action.MAIN" />
-40-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:15:17-69
-40-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:15:25-66
-41
-42                <category android:name="android.intent.category.LAUNCHER" />
-42-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:16:17-77
-42-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:16:27-74
-43            </intent-filter>
-44        </activity>
-45        <activity
-45-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:21:9-97
-46            android:name="com.example.deliverybot.ChatActivity"
-46-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:21:19-70
-47            android:exported="true" />
-47-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:21:71-94
-48        <activity
-48-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:21:97-187
-49            android:name="com.example.deliverybot.OrdersActivity"
-49-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:21:107-160
-50            android:exported="true" />
-50-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:21:161-184
-51        <activity
-51-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:21:187-312
-52            android:name="com.example.deliverybot.CameraActivity"
-52-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:21:197-250
-53            android:exported="true"
-53-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:21:251-274
-54            android:hardwareAccelerated="true" />
-54-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:21:275-309
-55        <activity
-55-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:23:9-78
-56            android:name="com.example.deliverybot.AddressActivity"
-56-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:23:19-50
-57            android:exported="false" />
-57-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:23:51-75
-58        <activity
-58-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:24:9-76
-59            android:name="com.example.deliverybot.PhoneActivity"
-59-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:24:19-48
-60            android:exported="false" />
-60-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:24:49-73
-61        <activity
-61-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:25:9-75
-62            android:name="com.example.deliverybot.ScanActivity"
-62-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:25:19-47
-63            android:exported="false" />
-63-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:25:48-72
-64        <activity
-64-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:26:9-79
-65            android:name="com.example.deliverybot.SettingsActivity"
-65-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:26:19-51
-66            android:exported="false" />
-66-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:26:52-76
-67
-68        <provider
-69            android:name="androidx.core.content.FileProvider"
-69-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:29:13-62
-70            android:authorities="com.example.deliverybot.provider"
-70-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:30:13-60
-71            android:exported="false"
-71-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:31:13-37
-72            android:grantUriPermissions="true" >
-72-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:32:13-47
-73            <meta-data
-73-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:33:13-35:54
-74                android:name="android.support.FILE_PROVIDER_PATHS"
-74-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:34:17-67
-75                android:resource="@xml/file_paths" />
-75-->/home/jack/ws/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:35:17-51
-76        </provider>
-77        <provider
-77-->[androidx.emoji2:emoji2:1.3.0] /home/jack/.gradle/caches/transforms-4/d75d53ef087d83607bf9c73ca6a19bf6/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:24:9-32:20
-78            android:name="androidx.startup.InitializationProvider"
-78-->[androidx.emoji2:emoji2:1.3.0] /home/jack/.gradle/caches/transforms-4/d75d53ef087d83607bf9c73ca6a19bf6/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:25:13-67
-79            android:authorities="com.example.deliverybot.androidx-startup"
-79-->[androidx.emoji2:emoji2:1.3.0] /home/jack/.gradle/caches/transforms-4/d75d53ef087d83607bf9c73ca6a19bf6/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:26:13-68
-80            android:exported="false" >
-80-->[androidx.emoji2:emoji2:1.3.0] /home/jack/.gradle/caches/transforms-4/d75d53ef087d83607bf9c73ca6a19bf6/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:27:13-37
-81            <meta-data
-81-->[androidx.emoji2:emoji2:1.3.0] /home/jack/.gradle/caches/transforms-4/d75d53ef087d83607bf9c73ca6a19bf6/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:29:13-31:52
-82                android:name="androidx.emoji2.text.EmojiCompatInitializer"
-82-->[androidx.emoji2:emoji2:1.3.0] /home/jack/.gradle/caches/transforms-4/d75d53ef087d83607bf9c73ca6a19bf6/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:30:17-75
-83                android:value="androidx.startup" />
-83-->[androidx.emoji2:emoji2:1.3.0] /home/jack/.gradle/caches/transforms-4/d75d53ef087d83607bf9c73ca6a19bf6/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:31:17-49
-84            <meta-data
-84-->[androidx.lifecycle:lifecycle-process:2.6.2] /home/jack/.gradle/caches/transforms-4/bf5c336b75f5e7749f341a3021751381/transformed/jetified-lifecycle-process-2.6.2/AndroidManifest.xml:29:13-31:52
-85                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
-85-->[androidx.lifecycle:lifecycle-process:2.6.2] /home/jack/.gradle/caches/transforms-4/bf5c336b75f5e7749f341a3021751381/transformed/jetified-lifecycle-process-2.6.2/AndroidManifest.xml:30:17-78
-86                android:value="androidx.startup" />
-86-->[androidx.lifecycle:lifecycle-process:2.6.2] /home/jack/.gradle/caches/transforms-4/bf5c336b75f5e7749f341a3021751381/transformed/jetified-lifecycle-process-2.6.2/AndroidManifest.xml:31:17-49
-87            <meta-data
-87-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/jack/.gradle/caches/transforms-4/e3cc90b53475d400e96ed2e369466046/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:29:13-31:52
-88                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
-88-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/jack/.gradle/caches/transforms-4/e3cc90b53475d400e96ed2e369466046/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:30:17-85
-89                android:value="androidx.startup" />
-89-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/jack/.gradle/caches/transforms-4/e3cc90b53475d400e96ed2e369466046/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:31:17-49
-90        </provider>
-91
-92        <receiver
-92-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/jack/.gradle/caches/transforms-4/e3cc90b53475d400e96ed2e369466046/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:34:9-52:20
-93            android:name="androidx.profileinstaller.ProfileInstallReceiver"
-93-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/jack/.gradle/caches/transforms-4/e3cc90b53475d400e96ed2e369466046/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:35:13-76
-94            android:directBootAware="false"
-94-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/jack/.gradle/caches/transforms-4/e3cc90b53475d400e96ed2e369466046/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:36:13-44
-95            android:enabled="true"
-95-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/jack/.gradle/caches/transforms-4/e3cc90b53475d400e96ed2e369466046/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:37:13-35
-96            android:exported="true"
-96-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/jack/.gradle/caches/transforms-4/e3cc90b53475d400e96ed2e369466046/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:38:13-36
-97            android:permission="android.permission.DUMP" >
-97-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/jack/.gradle/caches/transforms-4/e3cc90b53475d400e96ed2e369466046/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:39:13-57
-98            <intent-filter>
-98-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/jack/.gradle/caches/transforms-4/e3cc90b53475d400e96ed2e369466046/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:40:13-42:29
-99                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
-99-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/jack/.gradle/caches/transforms-4/e3cc90b53475d400e96ed2e369466046/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:41:17-91
-99-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/jack/.gradle/caches/transforms-4/e3cc90b53475d400e96ed2e369466046/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:41:25-88
-100            </intent-filter>
-101            <intent-filter>
-101-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/jack/.gradle/caches/transforms-4/e3cc90b53475d400e96ed2e369466046/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:43:13-45:29
-102                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
-102-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/jack/.gradle/caches/transforms-4/e3cc90b53475d400e96ed2e369466046/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:44:17-85
-102-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/jack/.gradle/caches/transforms-4/e3cc90b53475d400e96ed2e369466046/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:44:25-82
-103            </intent-filter>
-104            <intent-filter>
-104-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/jack/.gradle/caches/transforms-4/e3cc90b53475d400e96ed2e369466046/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:46:13-48:29
-105                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
-105-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/jack/.gradle/caches/transforms-4/e3cc90b53475d400e96ed2e369466046/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:47:17-88
-105-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/jack/.gradle/caches/transforms-4/e3cc90b53475d400e96ed2e369466046/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:47:25-85
-106            </intent-filter>
-107            <intent-filter>
-107-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/jack/.gradle/caches/transforms-4/e3cc90b53475d400e96ed2e369466046/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:49:13-51:29
-108                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
-108-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/jack/.gradle/caches/transforms-4/e3cc90b53475d400e96ed2e369466046/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:50:17-95
-108-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/jack/.gradle/caches/transforms-4/e3cc90b53475d400e96ed2e369466046/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:50:25-92
-109            </intent-filter>
-110        </receiver>
-111    </application>
-112
-113</manifest>
+30-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:9:113-158
+31        android:testOnly="true"
+32        android:theme="@style/Theme.DeliveryBotApp"
+32-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:9:256-299
+33        android:usesCleartextTraffic="true" >
+33-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:9:159-194
+34        <activity
+34-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:11:9-73
+35            android:name="com.example.deliverybot.MapActivity"
+35-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:11:19-46
+36            android:exported="true" />
+36-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:11:47-70
+37        <activity
+37-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:13:9-18:20
+38            android:name="com.example.deliverybot.MainActivity"
+38-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:13:19-47
+39            android:exported="true" >
+39-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:13:48-71
+40            <intent-filter>
+40-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:14:13-17:29
+41                <action android:name="android.intent.action.MAIN" />
+41-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:15:17-69
+41-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:15:25-66
+42
+43                <category android:name="android.intent.category.LAUNCHER" />
+43-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:16:17-77
+43-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:16:27-74
+44            </intent-filter>
+45        </activity>
+46        <activity
+46-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:21:9-97
+47            android:name="com.example.deliverybot.ChatActivity"
+47-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:21:19-70
+48            android:exported="true" />
+48-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:21:71-94
+49        <activity
+49-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:21:97-187
+50            android:name="com.example.deliverybot.OrdersActivity"
+50-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:21:107-160
+51            android:exported="true" />
+51-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:21:161-184
+52        <activity
+52-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:21:187-312
+53            android:name="com.example.deliverybot.CameraActivity"
+53-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:21:197-250
+54            android:exported="true"
+54-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:21:251-274
+55            android:hardwareAccelerated="true" />
+55-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:21:275-309
+56        <activity
+56-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:23:9-78
+57            android:name="com.example.deliverybot.AddressActivity"
+57-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:23:19-50
+58            android:exported="false" />
+58-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:23:51-75
+59        <activity
+59-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:24:9-76
+60            android:name="com.example.deliverybot.PhoneActivity"
+60-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:24:19-48
+61            android:exported="false" />
+61-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:24:49-73
+62        <activity
+62-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:25:9-75
+63            android:name="com.example.deliverybot.ScanActivity"
+63-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:25:19-47
+64            android:exported="false" />
+64-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:25:48-72
+65        <activity
+65-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:26:9-79
+66            android:name="com.example.deliverybot.SettingsActivity"
+66-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:26:19-51
+67            android:exported="false" />
+67-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:26:52-76
+68
+69        <provider
+70            android:name="androidx.core.content.FileProvider"
+70-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:29:13-62
+71            android:authorities="com.example.deliverybot.provider"
+71-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:30:13-60
+72            android:exported="false"
+72-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:31:13-37
+73            android:grantUriPermissions="true" >
+73-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:32:13-47
+74            <meta-data
+74-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:33:13-35:54
+75                android:name="android.support.FILE_PROVIDER_PATHS"
+75-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:34:17-67
+76                android:resource="@xml/file_paths" />
+76-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:35:17-51
+77        </provider>
+78        <!-- Chatbot Activity -->
+79        <activity
+79-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:38:9-42:52
+80            android:name="com.example.deliverybot.ChatbotActivity"
+80-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:39:13-44
+81            android:label="Robot Assistant"
+81-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:40:13-44
+82            android:screenOrientation="portrait"
+82-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:42:13-49
+83            android:theme="@style/Theme.AppCompat.DayNight.NoActionBar" />
+83-->/home/zbook/Autonomous-Delivery-Robot/mobile/DeliveryBotApp/app/src/main/AndroidManifest.xml:41:13-72
+84
+85        <provider
+85-->[androidx.emoji2:emoji2:1.3.0] /home/zbook/.gradle/caches/transforms-4/d75d53ef087d83607bf9c73ca6a19bf6/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:24:9-32:20
+86            android:name="androidx.startup.InitializationProvider"
+86-->[androidx.emoji2:emoji2:1.3.0] /home/zbook/.gradle/caches/transforms-4/d75d53ef087d83607bf9c73ca6a19bf6/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:25:13-67
+87            android:authorities="com.example.deliverybot.androidx-startup"
+87-->[androidx.emoji2:emoji2:1.3.0] /home/zbook/.gradle/caches/transforms-4/d75d53ef087d83607bf9c73ca6a19bf6/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:26:13-68
+88            android:exported="false" >
+88-->[androidx.emoji2:emoji2:1.3.0] /home/zbook/.gradle/caches/transforms-4/d75d53ef087d83607bf9c73ca6a19bf6/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:27:13-37
+89            <meta-data
+89-->[androidx.emoji2:emoji2:1.3.0] /home/zbook/.gradle/caches/transforms-4/d75d53ef087d83607bf9c73ca6a19bf6/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:29:13-31:52
+90                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+90-->[androidx.emoji2:emoji2:1.3.0] /home/zbook/.gradle/caches/transforms-4/d75d53ef087d83607bf9c73ca6a19bf6/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:30:17-75
+91                android:value="androidx.startup" />
+91-->[androidx.emoji2:emoji2:1.3.0] /home/zbook/.gradle/caches/transforms-4/d75d53ef087d83607bf9c73ca6a19bf6/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:31:17-49
+92            <meta-data
+92-->[androidx.lifecycle:lifecycle-process:2.6.2] /home/zbook/.gradle/caches/transforms-4/bf5c336b75f5e7749f341a3021751381/transformed/jetified-lifecycle-process-2.6.2/AndroidManifest.xml:29:13-31:52
+93                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+93-->[androidx.lifecycle:lifecycle-process:2.6.2] /home/zbook/.gradle/caches/transforms-4/bf5c336b75f5e7749f341a3021751381/transformed/jetified-lifecycle-process-2.6.2/AndroidManifest.xml:30:17-78
+94                android:value="androidx.startup" />
+94-->[androidx.lifecycle:lifecycle-process:2.6.2] /home/zbook/.gradle/caches/transforms-4/bf5c336b75f5e7749f341a3021751381/transformed/jetified-lifecycle-process-2.6.2/AndroidManifest.xml:31:17-49
+95            <meta-data
+95-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/zbook/.gradle/caches/transforms-4/e3cc90b53475d400e96ed2e369466046/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:29:13-31:52
+96                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+96-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/zbook/.gradle/caches/transforms-4/e3cc90b53475d400e96ed2e369466046/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:30:17-85
+97                android:value="androidx.startup" />
+97-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/zbook/.gradle/caches/transforms-4/e3cc90b53475d400e96ed2e369466046/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:31:17-49
+98        </provider>
+99
+100        <receiver
+100-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/zbook/.gradle/caches/transforms-4/e3cc90b53475d400e96ed2e369466046/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:34:9-52:20
+101            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+101-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/zbook/.gradle/caches/transforms-4/e3cc90b53475d400e96ed2e369466046/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:35:13-76
+102            android:directBootAware="false"
+102-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/zbook/.gradle/caches/transforms-4/e3cc90b53475d400e96ed2e369466046/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:36:13-44
+103            android:enabled="true"
+103-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/zbook/.gradle/caches/transforms-4/e3cc90b53475d400e96ed2e369466046/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:37:13-35
+104            android:exported="true"
+104-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/zbook/.gradle/caches/transforms-4/e3cc90b53475d400e96ed2e369466046/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:38:13-36
+105            android:permission="android.permission.DUMP" >
+105-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/zbook/.gradle/caches/transforms-4/e3cc90b53475d400e96ed2e369466046/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:39:13-57
+106            <intent-filter>
+106-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/zbook/.gradle/caches/transforms-4/e3cc90b53475d400e96ed2e369466046/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:40:13-42:29
+107                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+107-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/zbook/.gradle/caches/transforms-4/e3cc90b53475d400e96ed2e369466046/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:41:17-91
+107-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/zbook/.gradle/caches/transforms-4/e3cc90b53475d400e96ed2e369466046/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:41:25-88
+108            </intent-filter>
+109            <intent-filter>
+109-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/zbook/.gradle/caches/transforms-4/e3cc90b53475d400e96ed2e369466046/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:43:13-45:29
+110                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+110-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/zbook/.gradle/caches/transforms-4/e3cc90b53475d400e96ed2e369466046/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:44:17-85
+110-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/zbook/.gradle/caches/transforms-4/e3cc90b53475d400e96ed2e369466046/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:44:25-82
+111            </intent-filter>
+112            <intent-filter>
+112-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/zbook/.gradle/caches/transforms-4/e3cc90b53475d400e96ed2e369466046/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:46:13-48:29
+113                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+113-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/zbook/.gradle/caches/transforms-4/e3cc90b53475d400e96ed2e369466046/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:47:17-88
+113-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/zbook/.gradle/caches/transforms-4/e3cc90b53475d400e96ed2e369466046/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:47:25-85
+114            </intent-filter>
+115            <intent-filter>
+115-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/zbook/.gradle/caches/transforms-4/e3cc90b53475d400e96ed2e369466046/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:49:13-51:29
+116                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+116-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/zbook/.gradle/caches/transforms-4/e3cc90b53475d400e96ed2e369466046/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:50:17-95
+116-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/zbook/.gradle/caches/transforms-4/e3cc90b53475d400e96ed2e369466046/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:50:25-92
+117            </intent-filter>
+118        </receiver>
+119    </application>
+120
+121</manifest>

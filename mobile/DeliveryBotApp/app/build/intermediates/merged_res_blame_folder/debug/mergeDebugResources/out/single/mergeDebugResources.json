@@ -1,214 +1,230 @@
 [
     {
-        "merged": "com.example.deliverybot.app-debug-34:/layout_activity_chat.xml.flat",
-        "source": "com.example.deliverybot.app-main-36:/layout/activity_chat.xml"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/layout_item_msg_image.xml.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/layout/item_msg_image.xml"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/xml_file_paths.xml.flat",
-        "source": "com.example.deliverybot.app-main-36:/xml/file_paths.xml"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/drawable_qr_section_bg.xml.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/drawable/qr_section_bg.xml"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/mipmap-mdpi_ic_launcher.png.flat",
-        "source": "com.example.deliverybot.app-main-36:/mipmap-mdpi/ic_launcher.png"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/layout_item_chat_message.xml.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/layout/item_chat_message.xml"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/mipmap-anydpi-v26_ic_launcher.xml.flat",
-        "source": "com.example.deliverybot.app-main-36:/mipmap-anydpi-v26/ic_launcher.xml"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/layout_item_user_message.xml.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/layout/item_user_message.xml"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/drawable_ic_mic.xml.flat",
-        "source": "com.example.deliverybot.app-main-36:/drawable/ic_mic.xml"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/layout_activity_chatbot.xml.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/layout/activity_chatbot.xml"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/drawable_edit_field_bg.xml.flat",
-        "source": "com.example.deliverybot.app-main-36:/drawable/edit_field_bg.xml"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/drawable_btn_primary.xml.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/drawable/btn_primary.xml"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/mipmap-xhdpi_ic_launcher_round.png.flat",
-        "source": "com.example.deliverybot.app-main-36:/mipmap-xhdpi/ic_launcher_round.png"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/layout_activity_orders.xml.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/layout/activity_orders.xml"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/layout_activity_scan.xml.flat",
-        "source": "com.example.deliverybot.app-main-36:/layout/activity_scan.xml"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/drawable_bg_card_dark.xml.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/drawable/bg_card_dark.xml"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/mipmap-xxhdpi_va_launcher_round.png.flat",
-        "source": "com.example.deliverybot.app-main-36:/mipmap-xxhdpi/va_launcher_round.png"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/mipmap-xxxhdpi_va_launcher_round.png.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/mipmap-xxxhdpi/va_launcher_round.png"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/layout_activity_orders.xml.flat",
-        "source": "com.example.deliverybot.app-main-36:/layout/activity_orders.xml"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/mipmap-xhdpi_va_launcher_round.png.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/mipmap-xhdpi/va_launcher_round.png"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/layout_item_msg_user.xml.flat",
-        "source": "com.example.deliverybot.app-main-36:/layout/item_msg_user.xml"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/mipmap-xxhdpi_ic_launcher_round.png.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/mipmap-xxhdpi/ic_launcher_round.png"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/mipmap-xxhdpi_va_launcher.png.flat",
-        "source": "com.example.deliverybot.app-main-36:/mipmap-xxhdpi/va_launcher.png"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/layout_activity_main.xml.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/layout/activity_main.xml"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/drawable-night_bg_card_dark.xml.flat",
-        "source": "com.example.deliverybot.app-main-36:/drawable-night/bg_card_dark.xml"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/mipmap-xxhdpi_va_launcher_round.png.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/mipmap-xxhdpi/va_launcher_round.png"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/mipmap-xhdpi_ic_launcher.png.flat",
-        "source": "com.example.deliverybot.app-main-36:/mipmap-xhdpi/ic_launcher.png"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/layout_item_msg_user.xml.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/layout/item_msg_user.xml"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/layout_item_msg_image.xml.flat",
-        "source": "com.example.deliverybot.app-main-36:/layout/item_msg_image.xml"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/drawable_virtual_assistant.png.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/drawable/virtual_assistant.png"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/layout_item_msg_bot.xml.flat",
-        "source": "com.example.deliverybot.app-main-36:/layout/item_msg_bot.xml"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/layout_activity_scan.xml.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/layout/activity_scan.xml"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/drawable_qr_section_bg.xml.flat",
-        "source": "com.example.deliverybot.app-main-36:/drawable/qr_section_bg.xml"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/drawable_edit_field_bg.xml.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/drawable/edit_field_bg.xml"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/mipmap-xxxhdpi_ic_launcher.png.flat",
-        "source": "com.example.deliverybot.app-main-36:/mipmap-xxxhdpi/ic_launcher.png"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/layout_activity_phone.xml.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/layout/activity_phone.xml"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/mipmap-hdpi_va_launcher_round.png.flat",
-        "source": "com.example.deliverybot.app-main-36:/mipmap-hdpi/va_launcher_round.png"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/mipmap-xhdpi_ic_launcher_round.png.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/mipmap-xhdpi/ic_launcher_round.png"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/mipmap-hdpi_ic_launcher.png.flat",
-        "source": "com.example.deliverybot.app-main-36:/mipmap-hdpi/ic_launcher.png"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/xml_network_security_config.xml.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/xml/network_security_config.xml"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/mipmap-xxxhdpi_va_launcher_round.png.flat",
-        "source": "com.example.deliverybot.app-main-36:/mipmap-xxxhdpi/va_launcher_round.png"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/mipmap-xxxhdpi_ic_launcher_round.png.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/mipmap-xxxhdpi/ic_launcher_round.png"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/layout_activity_address.xml.flat",
-        "source": "com.example.deliverybot.app-main-36:/layout/activity_address.xml"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/mipmap-anydpi-v26/ic_launcher.xml"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/mipmap-xhdpi_ic_launcher_foreground.png.flat",
-        "source": "com.example.deliverybot.app-main-36:/mipmap-xhdpi/ic_launcher_foreground.png"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/mipmap-xxhdpi_ic_launcher_foreground.png.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/mipmap-xxhdpi/ic_launcher_foreground.png"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/mipmap-xxxhdpi_ic_launcher_round.png.flat",
-        "source": "com.example.deliverybot.app-main-36:/mipmap-xxxhdpi/ic_launcher_round.png"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/mipmap-mdpi_ic_launcher_foreground.png.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/mipmap-mdpi/ic_launcher_foreground.png"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/mipmap-hdpi_ic_launcher_foreground.png.flat",
-        "source": "com.example.deliverybot.app-main-36:/mipmap-hdpi/ic_launcher_foreground.png"
+        "merged": "com.example.deliverybot.app-debug-34:/layout_activity_chatbot.xml.flat",
+        "source": "com.example.deliverybot.app-main-36:/layout/activity_chatbot.xml"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/mipmap-hdpi_ic_launcher_round.png.flat",
-        "source": "com.example.deliverybot.app-main-36:/mipmap-hdpi/ic_launcher_round.png"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/xml_file_paths.xml.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/xml/file_paths.xml"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/mipmap-xxxhdpi_ic_launcher_foreground.png.flat",
-        "source": "com.example.deliverybot.app-main-36:/mipmap-xxxhdpi/ic_launcher_foreground.png"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/mipmap-xhdpi_ic_launcher_foreground.png.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/mipmap-xhdpi/ic_launcher_foreground.png"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/layout_activity_phone.xml.flat",
-        "source": "com.example.deliverybot.app-main-36:/layout/activity_phone.xml"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/layout_activity_settings.xml.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/layout/activity_settings.xml"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/mipmap-xxhdpi_ic_launcher.png.flat",
-        "source": "com.example.deliverybot.app-main-36:/mipmap-xxhdpi/ic_launcher.png"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/mipmap-mdpi_ic_launcher_round.png.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/mipmap-mdpi/ic_launcher_round.png"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/xml_network_security_config.xml.flat",
-        "source": "com.example.deliverybot.app-main-36:/xml/network_security_config.xml"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/mipmap-xxxhdpi_ic_launcher_foreground.png.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/mipmap-xxxhdpi/ic_launcher_foreground.png"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/mipmap-mdpi_ic_launcher_foreground.png.flat",
-        "source": "com.example.deliverybot.app-main-36:/mipmap-mdpi/ic_launcher_foreground.png"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/layout_activity_camera.xml.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/layout/activity_camera.xml"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/drawable_ic_robot_foreground.xml.flat",
-        "source": "com.example.deliverybot.app-main-36:/drawable/ic_robot_foreground.xml"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/mipmap-mdpi_va_launcher.png.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/mipmap-mdpi/va_launcher.png"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/mipmap-xhdpi_va_launcher.png.flat",
-        "source": "com.example.deliverybot.app-main-36:/mipmap-xhdpi/va_launcher.png"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/mipmap-mdpi_va_launcher_round.png.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/mipmap-mdpi/va_launcher_round.png"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/drawable_btn_lavender.xml.flat",
-        "source": "com.example.deliverybot.app-main-36:/drawable/btn_lavender.xml"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/mipmap-hdpi_va_launcher_round.png.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/mipmap-hdpi/va_launcher_round.png"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/mipmap-xxhdpi_ic_launcher_round.png.flat",
-        "source": "com.example.deliverybot.app-main-36:/mipmap-xxhdpi/ic_launcher_round.png"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/drawable_ic_mic.xml.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/drawable/ic_mic.xml"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/layout_include_control_panel.xml.flat",
-        "source": "com.example.deliverybot.app-main-36:/layout/include_control_panel.xml"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/mipmap-xxxhdpi_va_launcher.png.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/mipmap-xxxhdpi/va_launcher.png"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/mipmap-xhdpi_va_launcher_round.png.flat",
-        "source": "com.example.deliverybot.app-main-36:/mipmap-xhdpi/va_launcher_round.png"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/mipmap-xhdpi_ic_launcher.png.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/mipmap-xhdpi/ic_launcher.png"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/mipmap-mdpi_va_launcher.png.flat",
-        "source": "com.example.deliverybot.app-main-36:/mipmap-mdpi/va_launcher.png"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/mipmap-mdpi_ic_launcher.png.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/mipmap-mdpi/ic_launcher.png"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/layout_activity_settings.xml.flat",
-        "source": "com.example.deliverybot.app-main-36:/layout/activity_settings.xml"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/mipmap-anydpi-v26/ic_launcher_round.xml"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/layout_item_chat_message.xml.flat",
-        "source": "com.example.deliverybot.app-main-36:/layout/item_chat_message.xml"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/layout_item_msg_bot.xml.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/layout/item_msg_bot.xml"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/layout_activity_main.xml.flat",
-        "source": "com.example.deliverybot.app-main-36:/layout/activity_main.xml"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/mipmap-hdpi_ic_launcher_foreground.png.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/mipmap-hdpi/ic_launcher_foreground.png"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/mipmap-xxhdpi_ic_launcher_foreground.png.flat",
-        "source": "com.example.deliverybot.app-main-36:/mipmap-xxhdpi/ic_launcher_foreground.png"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/layout_include_control_panel.xml.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/layout/include_control_panel.xml"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/drawable_btn_primary.xml.flat",
-        "source": "com.example.deliverybot.app-main-36:/drawable/btn_primary.xml"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/drawable_btn_lavender.xml.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/drawable/btn_lavender.xml"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/mipmap-mdpi_ic_launcher_round.png.flat",
-        "source": "com.example.deliverybot.app-main-36:/mipmap-mdpi/ic_launcher_round.png"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/mipmap-hdpi_va_launcher.png.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/mipmap-hdpi/va_launcher.png"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/drawable_et_dark.xml.flat",
-        "source": "com.example.deliverybot.app-main-36:/drawable/et_dark.xml"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/mipmap-xxhdpi_va_launcher.png.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/mipmap-xxhdpi/va_launcher.png"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/layout_activity_camera.xml.flat",
-        "source": "com.example.deliverybot.app-main-36:/layout/activity_camera.xml"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/drawable-night_bg_card_dark.xml.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/drawable-night/bg_card_dark.xml"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/drawable_bg_card_dark.xml.flat",
-        "source": "com.example.deliverybot.app-main-36:/drawable/bg_card_dark.xml"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/layout_activity_address.xml.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/layout/activity_address.xml"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/layout_activity_map.xml.flat",
-        "source": "com.example.deliverybot.app-main-36:/layout/activity_map.xml"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/layout_item_bot_message.xml.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/layout/item_bot_message.xml"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/drawable_virtual_assistant.png.flat",
-        "source": "com.example.deliverybot.app-main-36:/drawable/virtual_assistant.png"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/mipmap-hdpi_ic_launcher.png.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/mipmap-hdpi/ic_launcher.png"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/mipmap-anydpi-v26_ic_launcher_round.xml.flat",
-        "source": "com.example.deliverybot.app-main-36:/mipmap-anydpi-v26/ic_launcher_round.xml"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/mipmap-hdpi_ic_launcher_round.png.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/mipmap-hdpi/ic_launcher_round.png"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/mipmap-xxxhdpi_va_launcher.png.flat",
-        "source": "com.example.deliverybot.app-main-36:/mipmap-xxxhdpi/va_launcher.png"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/drawable_et_dark.xml.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/drawable/et_dark.xml"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/mipmap-mdpi_va_launcher_round.png.flat",
-        "source": "com.example.deliverybot.app-main-36:/mipmap-mdpi/va_launcher_round.png"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/drawable_ic_robot_foreground.xml.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/drawable/ic_robot_foreground.xml"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-34:/mipmap-hdpi_va_launcher.png.flat",
-        "source": "com.example.deliverybot.app-main-36:/mipmap-hdpi/va_launcher.png"
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/mipmap-xxhdpi_ic_launcher.png.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/mipmap-xxhdpi/ic_launcher.png"
+    },
+    {
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/layout_activity_chat.xml.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/layout/activity_chat.xml"
+    },
+    {
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/mipmap-xxxhdpi_ic_launcher.png.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/mipmap-xxxhdpi/ic_launcher.png"
+    },
+    {
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/mipmap-xhdpi_va_launcher.png.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/mipmap-xhdpi/va_launcher.png"
+    },
+    {
+        "merged": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-debug-34:/layout_activity_map.xml.flat",
+        "source": "/home/zbook/.gradle/daemon/8.7/com.example.deliverybot.app-main-36:/layout/activity_map.xml"
     }
 ]
