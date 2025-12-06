@@ -17,9 +17,11 @@ def generate_launch_description():
     map_http_port  = LaunchConfiguration('map_http_port', default='8070')
     camera_topic   = LaunchConfiguration('camera_topic', default='/image_raw')
 
-    # app_goal_gateway params
-    pkg_share    = get_package_share_directory('andino_gz')
-    default_yaml = os.path.join(pkg_share, 'config', 'named_poses.yaml')
+    # ---------- app_goal_gateway params ----------
+    # Use map_info package instead of andino_gz
+    pkg_share    = get_package_share_directory('map_info')
+    # YAML is installed into the share/map_info directory
+    default_yaml = os.path.join(pkg_share, 'named_poses.yaml')
     yaml_path    = LaunchConfiguration('yaml_path', default=default_yaml)
     frame_id     = LaunchConfiguration('frame_id', default='map')
     topic_goal_name   = LaunchConfiguration('topic_goal_name', default='/app/goal_name')
@@ -29,6 +31,7 @@ def generate_launch_description():
     fuzzy_cutoff      = LaunchConfiguration('fuzzy_cutoff', default='0.7')
 
     # ---------- Nodes ----------
+    # WebSocket bridge for external apps (e.g. phone / web UI)
     rosbridge = Node(
         package='rosbridge_server',
         executable='rosbridge_websocket',
@@ -37,6 +40,7 @@ def generate_launch_description():
         output='screen'
     )
 
+    # Web video server for streaming camera images
     web_video = Node(
         package='web_video_server',
         executable='web_video_server',
@@ -45,7 +49,7 @@ def generate_launch_description():
         output='screen'
     )
 
-    #  SLAM Toolbox
+    # SLAM Toolbox (optional)
     slam = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(
@@ -56,7 +60,7 @@ def generate_launch_description():
         condition=IfCondition(start_slam)
     )
 
-    # Map HTTP Bridge
+    # Map HTTP Bridge (optional): exposes /map over HTTP
     map_http = Node(
         package='map_http_bridge',
         executable='map_http_bridge',
@@ -68,8 +72,8 @@ def generate_launch_description():
 
     # app_goal_gateway: listens to /app/goal_name and sends Nav2 NavigateToPose
     app_goal_gateway = Node(
-        package='andino_gz',
-        executable='app_goal_gateway.py',
+        package='map_info',              # new package
+        executable='app_goal_gateway',   # console_script name (no .py)
         name='app_goal_gateway',
         parameters=[{
             'yaml_path': yaml_path,
@@ -84,8 +88,17 @@ def generate_launch_description():
     )
 
     # Start QR generator + scanner (generate QR PNGs and scan via Pi camera)
-    qr_generator = Node(package='qr_verification', executable='qr_generator', name='qr_generator')
-    qr_scanner = Node(package='qr_verification', executable='qr_scanner', name='qr_scanner')
+    qr_generator = Node(
+        package='qr_verification',
+        executable='qr_generator',
+        name='qr_generator'
+    )
+
+    qr_scanner = Node(
+        package='qr_verification',
+        executable='qr_scanner',
+        name='qr_scanner'
+    )
 
     # ---------- LaunchDescription ----------
     return LaunchDescription([

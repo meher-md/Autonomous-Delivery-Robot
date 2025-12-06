@@ -13,7 +13,8 @@ from geometry_msgs.msg import PoseStamped, Quaternion
 from nav2_msgs.action import NavigateToPose
 from action_msgs.msg import GoalStatus
 
-DEFAULT_YAML = os.path.expanduser('~/ws/src/andino_gz/config/named_poses.yaml')
+# Default YAML path for named poses (updated to map_info package)
+DEFAULT_YAML = os.path.expanduser('~/ws/src/App/map_info/named_poses.yaml')
 
 
 def yaw_to_quat(yaw: float) -> Quaternion:
@@ -41,7 +42,7 @@ def load_named_poses(path: str):
         p = (pose.get('position') or {}) if isinstance(pose.get('position'), dict) else {}
         o = pose.get('orientation')
         if not isinstance(o, dict):
-            # fallback from yaw or default 0
+            # Fallback from yaw or default 0
             if 'yaw' in pose:
                 q = yaw_to_quat(float(pose['yaw']))
             else:
@@ -136,7 +137,7 @@ class AppGoalGateway(Node):
     def _resolve_name(self, name: str):
         if name in self.named_poses:
             return name
-        # case-insensitive fuzzy match
+        # Case-insensitive fuzzy match
         names = list(self.named_poses.keys())
         lower_map = {n.lower(): n for n in names}
         if name.lower() in lower_map:

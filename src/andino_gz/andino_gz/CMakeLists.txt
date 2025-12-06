@@ -25,17 +25,5 @@ install(
     share/${PROJECT_NAME}/
 )
 
-# Environment hooks
-ament_environment_hooks("${CMAKE_CURRENT_SOURCE_DIR}/env-hooks/${PROJECT_NAME}.dsv.in")
-ament_environment_hooks("${CMAKE_CURRENT_SOURCE_DIR}/env-hooks/${PROJECT_NAME}.sh.in")
-
-# Install Python executables (usable via `ros2 run andino_gz <file>.py`)
-install(PROGRAMS
-  scripts/goal_name.py
-  scripts/go_menu.py
-  scripts/app_goal_gateway.py
-  DESTINATION lib/${PROJECT_NAME}
-)
-
 ament_package()
 

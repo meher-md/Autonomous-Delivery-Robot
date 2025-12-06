@@ -8,10 +8,12 @@ from geometry_msgs.msg import PoseStamped, Quaternion
 from nav2_msgs.action import NavigateToPose
 from math import sin, cos
 
-DEFAULT_YAML_PATH = os.path.expanduser('~/ws/src/andino_gz/config/named_poses.yaml')
+# Default YAML path for named poses (updated to map_info)
+DEFAULT_YAML_PATH = os.path.expanduser('~/ws/src/App/map_info/named_poses.yaml')
 
 
 def yaw_to_quat(yaw: float) -> Quaternion:
+    """Convert yaw (in radians) to a Quaternion (2D rotation around Z)."""
     q = Quaternion()
     q.x = 0.0
     q.y = 0.0
@@ -21,28 +23,46 @@ def yaw_to_quat(yaw: float) -> Quaternion:
 
 
 def load_named_poses(yaml_path: str):
-    """Return dict{name: {'position':{x,y,z}, 'orientation':{x,y,z,w}}}."""
+    """
+    Load named poses from YAML.
+
+    Returns:
+        dict[name] = {
+            'position': {x, y, z},
+            'orientation': {x, y, z, w}
+        }
+    """
     if not os.path.exists(yaml_path):
         return {}
+
     with open(yaml_path, 'r') as f:
         data = yaml.safe_load(f) or {}
 
+    # Support two schemas:
+    # 1) { waypoints: { name: {position, orientation/yaw} } }
+    # 2) { name: {position, orientation/yaw} }
     items = data.get('waypoints', data) if isinstance(data, dict) else {}
     poses = {}
+
     for name, pose in items.items():
         if not isinstance(pose, dict):
             continue
+
         p = pose.get('position', {}) or {}
         o = pose.get('orientation', None)
+
         pos = {
             'x': float(p.get('x', 0.0)),
             'y': float(p.get('y', 0.0)),
             'z': float(p.get('z', 0.0)),
         }
+
         if o is None and 'yaw' in pose:
+            # Build orientation from yaw only
             q = yaw_to_quat(float(pose['yaw']))
             ori = {'x': q.x, 'y': q.y, 'z': q.z, 'w': q.w}
         elif o is None:
+            # Default yaw = 0
             q = yaw_to_quat(0.0)
             ori = {'x': q.x, 'y': q.y, 'z': q.z, 'w': q.w}
         else:
@@ -52,11 +72,18 @@ def load_named_poses(yaml_path: str):
                 'z': float(o.get('z', 0.0)),
                 'w': float(o.get('w', 1.0)),
             }
+
         poses[str(name)] = {'position': pos, 'orientation': ori}
+
     return poses
 
 
 class GoMenu(Node):
+    """
+    Simple terminal-based menu to send Nav2 goals
+    based on named poses loaded from a YAML file.
+    """
+
     def __init__(self):
         super().__init__('go_menu')
 
@@ -69,13 +96,15 @@ class GoMenu(Node):
         self.frame_id = self.get_parameter('frame_id').get_parameter_value().string_value
         self.timeout = self.get_parameter('timeout_sec').get_parameter_value().double_value
 
+        # Action client for Nav2
         self.client = ActionClient(self, NavigateToPose, 'navigate_to_pose')
 
-        self.get_logger().info('Interactive menu started.')
+        self.get_logger().info(f'Interactive menu started. YAML="{self.yaml_path}"')
         self.menu_loop()
 
     # ---------- main loop ----------
     def menu_loop(self):
+        """Main interactive loop: list waypoints and ask the user to pick one."""
         try:
             while rclpy.ok():
                 poses = load_named_poses(self.yaml_path)
@@ -114,10 +143,12 @@ class GoMenu(Node):
                 self.navigate_to(poses[name], name)
 
         except (KeyboardInterrupt, EOFError):
+            # Graceful exit on Ctrl+C or EOF
             pass
 
     # ---------- navigation ----------
     def navigate_to(self, item: dict, name: str):
+        """Send NavigateToPose goal for a given waypoint."""
         if not self.client.wait_for_server(timeout_sec=5.0):
             self.get_logger().error('navigate_to_pose action server not available.')
             return
@@ -132,26 +163,35 @@ class GoMenu(Node):
         goal.pose.pose.position.x = p['x']
         goal.pose.pose.position.y = p['y']
         goal.pose.pose.position.z = p.get('z', 0.0)
-        goal.pose.pose.orientation = Quaternion(x=o['x'], y=o['y'], z=o['z'], w=o['w'])
+        goal.pose.pose.orientation = Quaternion(
+            x=o['x'], y=o['y'], z=o['z'], w=o['w']
+        )
 
         self.get_logger().info(f'Navigating to "{name}" ...')
-        send_future = self.client.send_goal_async(goal, feedback_callback=self.on_feedback)
+        send_future = self.client.send_goal_async(
+            goal, feedback_callback=self.on_feedback
+        )
+
+        # Wait until goal is accepted
         rclpy.spin_until_future_complete(self, send_future)
         handle = send_future.result()
         if not handle or not handle.accepted:
             self.get_logger().error('Goal rejected.')
             return
 
+        # Wait for result
         result_future = handle.get_result_async()
-        # Wait until done
         rclpy.spin_until_future_complete(self, result_future)
-        if result_future.result() and result_future.result().status == 4:
+
+        result = result_future.result()
+        if result and result.status == 4:
             self.get_logger().info(f'Goal "{name}" reached.')
         else:
-            status = None if not result_future.result() else result_future.result().status
+            status = None if not result else result.status
             self.get_logger().warn(f'Goal "{name}" finished with status={status}.')
 
     def on_feedback(self, fb_msg):
+        """Print distance remaining if available."""
         fb = fb_msg.feedback
         try:
             print(f'  remaining: {fb.distance_remaining:.2f} m')
@@ -160,6 +200,7 @@ class GoMenu(Node):
 
 
 def main():
+    """Entry point for the console_script `go_menu`."""
     rclpy.init()
     node = GoMenu()
     node.destroy_node()

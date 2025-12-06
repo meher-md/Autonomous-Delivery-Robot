@@ -10,7 +10,8 @@ from visualization_msgs.msg import Marker, MarkerArray
 from std_srvs.srv import Trigger
 from math import sin, cos
 
-DEFAULT_YAML_PATH = os.path.expanduser('~/ws/src/App/named_poses.yaml')
+# Default YAML path for named poses (updated to map_info package)
+DEFAULT_YAML_PATH = os.path.expanduser('~/ws/src/App/map_info/named_poses.yaml')
 
 
 def yaw_to_quat(yaw: float):
@@ -106,7 +107,7 @@ class GoalNameNode(Node):
         latched_qos.durability = QoSDurabilityPolicy.TRANSIENT_LOCAL
 
         self.marker_pub = self.create_publisher(MarkerArray, '/named_poses/markers', latched_qos)
-        self.single_text_pub = self.create_publisher(Marker, '/place_labels', latched_qos)  # optional compatibility
+        self.single_text_pub = self.create_publisher(Marker, '/place_labels', latched_qos)  # Optional compatibility
 
         if self.enable_click_input:
             self.click_sub = self.create_subscription(PointStamped, '/clicked_point', self.on_click, 10)

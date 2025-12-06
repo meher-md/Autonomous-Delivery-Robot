@@ -66,7 +66,7 @@ ros2 launch "${PKG}" app.launch.py \
   start_slam:="${START_SLAM}" \
   start_map_http:="${START_MAP_HTTP}" \
   map_http_port:="${MAP_HTTP_PORT}" \
-  yaml_path:="${WS_ROOT}/src/andino_gz/config/named_poses.yaml"
+  yaml_path:="${WS_ROOT}/src/App/map_info/named_poses.yaml"
 RC=$?
 set -e
 popd >/dev/null
