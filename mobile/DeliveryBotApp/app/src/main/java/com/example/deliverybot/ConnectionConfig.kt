@@ -23,12 +23,15 @@ object ConnectionConfig {
     // Get the full WS URL. If user entered port, use it. Else default to 9090.
     fun rosbridgeWs(ctx: Context): String {
         var s = getRaw(ctx)
-        // If user didn't provide scheme, add ws://
-        if (!s.contains("://")) {
-            s = "ws://$s"
+        // Check scheme
+        if (s.startsWith("ws://")) {
+            s = s.replace("ws://", "wss://")
+        } else if (!s.startsWith("wss://")) {
+             // connection missing scheme entirely
+             s = "wss://$s"
         }
-        // If user didn't provide port, add :9090 (unless it's wss/ws and they rely on default ports, but usually 9090 is needed)
-        // Simple check: if after removing scheme, there is no colon, add :9090
+        
+        // Check port
         val noScheme = s.substringAfter("://")
         if (!noScheme.contains(":")) {
             s = "$s:9090"

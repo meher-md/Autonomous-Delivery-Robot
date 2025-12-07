@@ -96,11 +96,15 @@ class MainActivity : AppCompatActivity() {
             Prefs.saveIp(this, ipRaw)
 
             val url = when {
-                ipRaw.startsWith("ws://") || ipRaw.startsWith("wss://") -> {
+                ipRaw.startsWith("ws://") -> {
+                   val s = ipRaw.replace("ws://", "wss://")
+                   if (s.contains(":")) s else "$s:9090"
+                }
+                ipRaw.startsWith("wss://") -> {
                     if (ipRaw.contains(":")) ipRaw else "$ipRaw:9090"
                 }
-                ipRaw.contains(":") -> "ws://$ipRaw"
-                else -> "ws://$ipRaw:9090"
+                ipRaw.contains(":") -> "wss://$ipRaw"
+                else -> "wss://$ipRaw:9090"
             }
 
             val progress = android.app.ProgressDialog(this).apply {

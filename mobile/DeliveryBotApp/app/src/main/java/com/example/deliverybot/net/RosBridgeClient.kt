@@ -14,7 +14,7 @@ object RosBridgeClient {
     // WebSocket state
     private var ws: WebSocket? = null
     @Volatile private var connected: Boolean = false
-    private var lastUrl: String = "ws://10.42.0.1:9090"
+    private var lastUrl: String = "wss://10.42.0.1:9090"
 
     // Caches
     private val advertisedTopics = mutableSetOf<String>() // topics we advertised
@@ -22,10 +22,35 @@ object RosBridgeClient {
         ConcurrentHashMap<String, CopyOnWriteArrayList<(String) -> Unit>>() // topic -> callbacks
 
     // OkHttp client
-    private val client = OkHttpClient.Builder()
-        .pingInterval(15, TimeUnit.SECONDS)
-        .retryOnConnectionFailure(true)
-        .build()
+    // OkHttp client with self-signed cert support
+    private val client = getUnsafeOkHttpClient()
+
+    private fun getUnsafeOkHttpClient(): OkHttpClient {
+        try {
+            // Create a trust manager that does not validate certificate chains
+            val trustAllCerts = arrayOf<javax.net.ssl.TrustManager>(object : javax.net.ssl.X509TrustManager {
+                override fun checkClientTrusted(chain: Array<java.security.cert.X509Certificate>, authType: String) {}
+                override fun checkServerTrusted(chain: Array<java.security.cert.X509Certificate>, authType: String) {}
+                override fun getAcceptedIssuers(): Array<java.security.cert.X509Certificate> = arrayOf()
+            })
+
+            // Install the all-trusting trust manager
+            val sslContext = javax.net.ssl.SSLContext.getInstance("SSL")
+            sslContext.init(null, trustAllCerts, java.security.SecureRandom())
+            
+            // Create an ssl socket factory with our all-trusting manager
+            val sslSocketFactory = sslContext.socketFactory
+
+            return OkHttpClient.Builder()
+                .sslSocketFactory(sslSocketFactory, trustAllCerts[0] as javax.net.ssl.X509TrustManager)
+                .hostnameVerifier { _, _ -> true }
+                .pingInterval(15, TimeUnit.SECONDS)
+                .retryOnConnectionFailure(true)
+                .build()
+        } catch (e: Exception) {
+            throw RuntimeException(e)
+        }
+    }
 
     // Connection listeners
     private val connectionListeners = CopyOnWriteArrayList<(Boolean) -> Unit>()

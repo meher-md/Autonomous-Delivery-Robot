@@ -23,32 +23,35 @@
             android:layout_height="wrap_content" />
 
         <TextView
-            android:text="Robot IP"
+            android:text="Robot IP Address"
             android:textColor="@color/text_secondary"
             android:textSize="14sp"
             android:layout_marginTop="6dp"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            />
 
         <EditText
             android:id="@+id/ipEdit"
             android:text="10.42.0.1"
             android:textColor="@color/text_primary"
             android:textColorHint="@color/text_secondary"
-            android:hint="10.42.0.1"
+            android:hint="Input IP Address ..."
             android:inputType="textUri"
             android:singleLine="true"
             android:background="@android:color/transparent"
             android:gravity="end"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            />
 
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:background="@color/divider"
             android:layout_marginTop="4dp"
-            android:layout_marginBottom="12dp"/>
+            android:layout_marginBottom="12dp"
+            />
 
         <Button
             android:id="@+id/btnSave"
@@ -59,7 +62,8 @@
             android:background="@drawable/btn_lavender"
             android:layout_marginTop="18dp"
             android:layout_width="match_parent"
-            android:layout_height="50dp" />
+            android:layout_height="50dp"
+            />
 
         <Button
             android:id="@+id/btnCamera"
@@ -70,7 +74,8 @@
             android:background="@drawable/btn_lavender"
             android:layout_marginTop="18dp"
             android:layout_width="match_parent"
-            android:layout_height="50dp" />
+            android:layout_height="50dp"
+            />
 
         <Button
             android:id="@+id/btnMap"
@@ -81,7 +86,8 @@
             android:background="@drawable/btn_lavender"
             android:layout_marginTop="18dp"
             android:layout_width="match_parent"
-            android:layout_height="50dp" />
+            android:layout_height="50dp"
+            />
 
         <Button
             android:id="@+id/btnAddress"
@@ -92,7 +98,8 @@
             android:background="@drawable/btn_lavender"
             android:layout_marginTop="18dp"
             android:layout_width="match_parent"
-            android:layout_height="50dp" />
+            android:layout_height="50dp"
+            />
 
         <Button
             android:id="@+id/btnOrderHistory"
@@ -103,7 +110,8 @@
             android:background="@drawable/btn_lavender"
             android:layout_marginTop="18dp"
             android:layout_width="match_parent"
-            android:layout_height="50dp" />
+            android:layout_height="50dp"
+            />
 
         <Button
             android:id="@+id/btnChat"
@@ -114,7 +122,20 @@
             android:background="@drawable/btn_lavender"
             android:layout_marginTop="18dp"
             android:layout_width="match_parent"
-            android:layout_height="50dp" />
+            android:layout_height="50dp"
+            />
+
+        <Button
+            android:id="@+id/btnChatbot"
+            android:text="Chatbot Assistant 🤖"
+            android:textAllCaps="false"
+            android:textSize="17sp"
+            android:textColor="@color/text_primary"
+            android:background="@drawable/btn_lavender"
+            android:layout_marginTop="18dp"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            />
 
         <Button
             android:id="@+id/btnSettings"
@@ -124,18 +145,8 @@
             android:textColor="@color/text_primary"
             android:background="@drawable/btn_lavender"
             android:layout_marginTop="18dp"
-            android:layout_width="match_parent" android:layout_height="50dp" />
-
-        <Button
-            android:id="@+id/btnChatbot"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="🤖 Chatbot Assistant"
-            android:textColor="#FFFFFF"
-            android:textSize="16sp"
-            android:backgroundTint="#B39DDB"
-            android:padding="16dp"
-            android:layout_marginTop="16dp"
+            android:layout_height="50dp"
             />
     </LinearLayout>
 </ScrollView>

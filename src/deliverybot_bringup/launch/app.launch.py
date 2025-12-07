@@ -17,6 +17,11 @@ def generate_launch_description():
     map_http_port  = LaunchConfiguration('map_http_port', default='8070')
     camera_topic   = LaunchConfiguration('camera_topic', default='/image_raw')
 
+    # SSL Params
+    rosbridge_ssl      = LaunchConfiguration('rosbridge_ssl', default='true')
+    rosbridge_certfile = LaunchConfiguration('rosbridge_certfile', default='/home/jack/ws/mobile/DeliveryBotApp/certs/cert.pem')
+    rosbridge_keyfile  = LaunchConfiguration('rosbridge_keyfile', default='/home/jack/ws/mobile/DeliveryBotApp/certs/key.pem')
+
     # ---------- app_goal_gateway params ----------
     # Use map_info package instead of andino_gz
     pkg_share    = get_package_share_directory('map_info')
@@ -36,7 +41,12 @@ def generate_launch_description():
         package='rosbridge_server',
         executable='rosbridge_websocket',
         name='rosbridge_websocket',
-        parameters=[{'port': rosbridge_port}],
+        parameters=[{
+            'port': rosbridge_port,
+            'ssl': rosbridge_ssl,
+            'certfile': rosbridge_certfile,
+            'keyfile': rosbridge_keyfile
+        }],
         output='screen'
     )
 
@@ -109,6 +119,10 @@ def generate_launch_description():
         DeclareLaunchArgument('start_map_http', default_value='false'),
         DeclareLaunchArgument('map_http_port', default_value='8070'),
         DeclareLaunchArgument('camera_topic', default_value='/image_raw'),
+        
+        DeclareLaunchArgument('rosbridge_ssl', default_value='true'),
+        DeclareLaunchArgument('rosbridge_certfile', default_value='/home/jack/ws/mobile/DeliveryBotApp/certs/cert.pem'),
+        DeclareLaunchArgument('rosbridge_keyfile', default_value='/home/jack/ws/mobile/DeliveryBotApp/certs/key.pem'),
 
         # gateway args
         DeclareLaunchArgument('yaml_path', default_value=default_yaml),
