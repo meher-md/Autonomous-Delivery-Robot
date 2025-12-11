@@ -1,52 +1,77 @@
 package com.example.deliverybot
-import com.example.deliverybot.OrdersActivity
-import com.example.deliverybot.ChatActivity
-import android.view.View
-import com.example.deliverybot.CameraActivity
 
+// Imports for core Android components
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+
+// Imports for permission handling
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+
+// Imports for other activities and RosBridge client
+import com.example.deliverybot.OrdersActivity
+import com.example.deliverybot.ChatActivity
+import com.example.deliverybot.CameraActivity
 import com.example.deliverybot.net.RosBridgeClient
 
+
+/**
+ * Helper object for saving and retrieving IP configuration.
+ */
 object Prefs {
+    private const val PREFS_FILE = "app"
+    private const val IP_KEY = "ip"
+    // REVERTED: Changed default IP back to the standard team IP (10.42.0.1).
+    // This IP must be used for sharing the code to avoid issues for other team members.
+    private const val DEFAULT_IP = "ws://10.42.0.1:9090"
+
     fun saveIp(ctx: Context, ip: String) {
-        ctx.getSharedPreferences("app", Context.MODE_PRIVATE).edit()
-            .putString("ip", ip).apply()
+        ctx.getSharedPreferences(PREFS_FILE, Context.MODE_PRIVATE).edit()
+            .putString(IP_KEY, ip).apply()
     }
+
     fun getIp(ctx: Context): String =
-        ctx.getSharedPreferences("app", Context.MODE_PRIVATE)
-            .getString("ip", "10.42.0.1") ?: "10.42.0.1"
+        ctx.getSharedPreferences(PREFS_FILE, Context.MODE_PRIVATE)
+            .getString(IP_KEY, DEFAULT_IP) ?: DEFAULT_IP
 }
 
+/**
+ * The main activity of the application, serving as the dashboard for navigation
+ * and connection setup.
+ */
 class MainActivity : AppCompatActivity() {
 
-    // UI buttons added/declared here
+    // UI buttons declared here
     private lateinit var btnOpenMap: Button
     private lateinit var btnOpenCamera: Button
     private lateinit var btnOpenChat: Button
     private lateinit var btnAddress: Button
     private lateinit var btnOrderHistory: Button
     private lateinit var btnSettings: Button
-
     private lateinit var btnChatbot: Button
-    // RTSP default (can be overridden when launching camera)
+
+    // RTSP default URL for camera streaming (can be overridden)
     private var rtspUrl: String = "rtsp://127.0.0.1:8554/stream"
 
     private lateinit var ipEdit: EditText
     private lateinit var btnSave: Button
 
     private val NOTIFICATION_CHANNEL_ID = "delivery_bot_channel"
+    private val CAMERA_PERMISSION_REQUEST_CODE = 100
+    private val POST_NOTIFICATIONS_REQUEST_CODE = 101
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Apply Dark Mode
+        // Apply Dark Mode preference
         val prefs = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
         val isDarkMode = prefs.getBoolean("dark_mode", true)
         if (isDarkMode) {
@@ -59,7 +84,7 @@ class MainActivity : AppCompatActivity() {
 
         createNotificationChannel()
 
-        /* WIRE_CHAT_ORDERS */
+        /* WIRE_CHAT_ORDERS: Programmatically find and set listeners for chat/orders buttons */
         try {
             val chatIds = intArrayOf(
                 resources.getIdentifier("btnOpenChat", "id", packageName),
@@ -84,17 +109,20 @@ class MainActivity : AppCompatActivity() {
         } catch (_: Throwable) {}
         /* /WIRE_CHAT_ORDERS */
 
-        // bind IP input and Save button (activity_main.xml)
+        // Bind IP input and Save button
         ipEdit = findViewById(R.id.ipEdit)
         btnSave = findViewById(R.id.btnSave)
 
-        // Load saved IP
+        // Load saved IP and display it
         ipEdit.setText(Prefs.getIp(this))
 
+        // Save IP and attempt to connect to ROS bridge
         btnSave.setOnClickListener {
-            val ipRaw = ipEdit.text.toString().trim().ifBlank { "10.42.0.1" }
+            // REVERTED: Fallback IP set back to the team standard (10.42.0.1)
+            val ipRaw = ipEdit.text.toString().trim().ifBlank { "10.42.0.1:9090" }
             Prefs.saveIp(this, ipRaw)
 
+            // Construct WebSocket URL
             val url = when {
                 ipRaw.startsWith("ws://") -> {
                    val s = ipRaw.replace("ws://", "wss://")
@@ -107,8 +135,9 @@ class MainActivity : AppCompatActivity() {
                 else -> "wss://$ipRaw:9090"
             }
 
+            // Show connecting progress dialog
             val progress = android.app.ProgressDialog(this).apply {
-                setMessage("Connecting...")
+                setMessage("Connecting to ROS Bridge...")
                 setCancelable(false)
                 show()
             }
@@ -117,6 +146,7 @@ class MainActivity : AppCompatActivity() {
             var ignoreDisconnect = wasConnected
 
             var isHandled = false
+            // Connection listener logic
             val listener = object : (Boolean) -> Unit {
                 override fun invoke(connected: Boolean) {
                     if (isHandled) return
@@ -131,7 +161,7 @@ class MainActivity : AppCompatActivity() {
                         try { progress.dismiss() } catch(_: Throwable){}
                         RosBridgeClient.removeConnectionListener(this)
                         if (connected) {
-                            Toast.makeText(this@MainActivity, "Connected to $url", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this@MainActivity, "Connected to ROS: $url", Toast.LENGTH_SHORT).show()
                         } else {
                             Toast.makeText(this@MainActivity, "Connection failed. Scanning...", Toast.LENGTH_SHORT).show()
                             startActivity(Intent(this@MainActivity, ScanActivity::class.java))
@@ -142,43 +172,58 @@ class MainActivity : AppCompatActivity() {
             RosBridgeClient.addConnectionListener(listener)
             RosBridgeClient.connect(url)
 
+            // Connection timeout handler
             android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
                 if (!isHandled) {
                     isHandled = true
                     try { progress.dismiss() } catch(_: Throwable){}
                     RosBridgeClient.removeConnectionListener(listener)
-                    Toast.makeText(this, "Connection timed out. Scanning...", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Connection timed out. Please check ROS Bridge.", Toast.LENGTH_SHORT).show()
                     startActivity(Intent(this, ScanActivity::class.java))
                 }
-            }, 3000)
+            }, 5000) // Increased timeout to 5 seconds
         }
 
-        // bind new buttons (and existing ones if not already bound)
+        // Bind navigation buttons
         btnOpenMap    = findViewById(R.id.btnMap)
         btnOpenCamera = findViewById(R.id.btnCamera)
         btnOpenChat   = findViewById(R.id.btnChat)
         btnAddress    = findViewById(R.id.btnAddress)
         btnOrderHistory = findViewById(R.id.btnOrderHistory)
         btnSettings = findViewById(R.id.btnSettings)
-
         btnChatbot = findViewById(R.id.btnChatbot)
 
-        // click handlers
+        // CLICK HANDLERS
+
+        // Check for CAMERA permission before opening MapActivity
         btnOpenMap.setOnClickListener {
-            startActivity(Intent(this, MapActivity::class.java))
+            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED) {
+                // Permission not granted, request it
+                ActivityCompat.requestPermissions(this,
+                    arrayOf(android.Manifest.permission.CAMERA), CAMERA_PERMISSION_REQUEST_CODE)
+            } else {
+                // Permission already granted
+                openMapActivity()
+            }
         }
+
         btnOpenCamera.setOnClickListener {
             startActivity(Intent(this, CameraActivity::class.java).putExtra("rtspUrl", rtspUrl))
         }
+
         btnOpenChat.setOnClickListener {
             startActivity(Intent(this, ChatActivity::class.java))
         }
+
         btnAddress.setOnClickListener {
             startActivity(Intent(this, AddressActivity::class.java))
         }
+
         btnOrderHistory.setOnClickListener {
             startActivity(Intent(this, OrdersActivity::class.java))
         }
+
         btnSettings.setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
@@ -190,86 +235,93 @@ class MainActivity : AppCompatActivity() {
         // Setup Notifications
         setupNotifications()
 
+        // Request POST_NOTIFICATIONS permission on Android 13+ (TIRAMISU)
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 101)
+            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)
+                != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(
+                    arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
+                    POST_NOTIFICATIONS_REQUEST_CODE
+                )
             }
         }
     }
 
     override fun onResume() {
         super.onResume()
+        // Reload IP in the text field when activity resumes
         if (::ipEdit.isInitialized) {
             ipEdit.setText(Prefs.getIp(this))
         }
     }
 
+    // Listener to handle ROS bridge connection status updates
     private val connectionListener: (Boolean) -> Unit = { connected ->
         if (shouldNotify()) {
             val msg = if (connected) "Connected to Robot 🤖" else "Disconnected from Robot ❌"
-            showNotification("Connection Status", msg)
+            showNotification("ROS Connection Status", msg)
         }
     }
 
+    // Sets up listeners for robot status notifications
     private fun setupNotifications() {
         // Connection listener
         RosBridgeClient.addConnectionListener(connectionListener)
 
         // Robot Status listener (e.g. arrival)
-        // ...
-
-        // Robot Status listener (e.g. arrival)
-        // We need to subscribe. Note: This might duplicate subscriptions if we are not careful,
-        // but RosBridgeClient handles multiple callbacks for same topic.
         try {
+            // Subscribe to the goal status topic
             RosBridgeClient.subscribe("/app/goal_status") { msg ->
-                // Check if message implies arrival.
-                // Assuming msg is a string status. Adjust logic if it's JSON.
-                // Example statuses: "Arrived", "Moving", "Idle"
                 if (shouldNotify()) {
-                    // Normalize message
+                    // Normalize message for checking
                     val lower = msg.lowercase()
-                    if (lower.contains("arrived") || lower.contains("goal reached") || lower.contains("succeeded")) {
+                    if (lower.contains("arrived") ||
+                        lower.contains("goal reached") ||
+                        lower.contains("succeeded")) {
                         showNotification("Robot Update", "The robot has arrived! 🏁")
                     }
                 }
             }
-        } catch (_: Throwable) {}
+        } catch (_: Throwable) {
+            Log.w("MainActivity", "Failed to subscribe to goal status topic")
+        }
     }
 
+    // Checks user preference for enabling notifications
     private fun shouldNotify(): Boolean {
         val prefs = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
         return prefs.getBoolean("notifications_enabled", true)
     }
 
+    // Displays a notification and a toast message
     private fun showNotification(title: String, content: String) {
         runOnUiThread {
-            // Use Toast for immediate feedback as well
+            // Use Toast for immediate feedback
             Toast.makeText(this, "$title: $content", Toast.LENGTH_SHORT).show()
 
+            // Build and display the notification
             val builder = androidx.core.app.NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
-                .setSmallIcon(android.R.drawable.ic_dialog_info) // Fallback icon
+                .setSmallIcon(android.R.drawable.ic_dialog_info)
                 .setContentTitle(title)
                 .setContentText(content)
                 .setPriority(androidx.core.app.NotificationCompat.PRIORITY_DEFAULT)
                 .setAutoCancel(true)
 
             with(androidx.core.app.NotificationManagerCompat.from(this)) {
-                // notificationId is a unique int for each notification that you must define
                 try {
                     notify(System.currentTimeMillis().toInt(), builder.build())
                 } catch (e: SecurityException) {
-                    // Handle missing permission if needed (Android 13+)
-                    Log.e("MainActivity", "Notification permission missing")
+                    Log.e("MainActivity", "Notification permission missing: ${e.message}")
                 }
             }
         }
     }
 
+    // Creates the notification channel for Android 8.0 (Oreo) and above
     private fun createNotificationChannel() {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             val name = "DeliveryBot Notifications"
-            val descriptionText = "Notifications for robot status"
+            val descriptionText = "Notifications for robot status updates"
             val importance = android.app.NotificationManager.IMPORTANCE_DEFAULT
             val channel = android.app.NotificationChannel(NOTIFICATION_CHANNEL_ID, name, importance).apply {
                 description = descriptionText
@@ -282,6 +334,51 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        // Clean up connection listener on activity destruction
         RosBridgeClient.removeConnectionListener(connectionListener)
+    }
+
+    /**
+     * Handles the result of permission requests (e.g., Camera).
+     */
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        when (requestCode) {
+            CAMERA_PERMISSION_REQUEST_CODE -> {
+                if (grantResults.isNotEmpty() &&
+                    grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // Permission granted, proceed to open the map
+                    openMapActivity()
+                } else {
+                    // Permission denied
+                    Toast.makeText(
+                        this,
+                        "Camera permission is required to use the map.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+            POST_NOTIFICATIONS_REQUEST_CODE -> {
+                if (grantResults.isNotEmpty() &&
+                    grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Log.d("MainActivity", "Notification permission granted")
+                } else {
+                    Log.d("MainActivity", "Notification permission denied")
+                }
+            }
+        }
+    }
+
+    /**
+     * Starts the MapActivity using an explicit intent.
+     */
+    private fun openMapActivity() {
+        val intent = Intent(this, MapActivity::class.java)
+        startActivity(intent)
     }
 }

@@ -46,10 +46,9 @@ def generate_launch_description():
 
     # YAML is installed into the share/map_info directory
     default_yaml = os.path.join(pkg_share_map_info, 'named_poses.yaml')
-
-    yaml_path         = LaunchConfiguration('yaml_path', default=default_yaml)
-    frame_id          = LaunchConfiguration('frame_id', default='map')
-    topic_goal_name   = LaunchConfiguration('topic_goal_name', default='/app/goal_name')
+    yaml_path           = LaunchConfiguration('yaml_path', default=default_yaml)
+    frame_id            = LaunchConfiguration('frame_id', default='map')
+    topic_goal_name     = LaunchConfiguration('topic_goal_name', default='/app/goal_name')
     topic_goal_cancel = LaunchConfiguration('topic_goal_cancel', default='/app/goal_cancel')
     topic_status      = LaunchConfiguration('topic_status', default='/app/goal_status')
     server_timeout    = LaunchConfiguration('server_timeout', default='8.0')
@@ -106,7 +105,7 @@ def generate_launch_description():
     # Uses fuzzy matching on named poses from named_poses.yaml.
     app_goal_gateway = Node(
         package='map_info',              # new package providing the gateway
-        executable='app_goal_gateway',   # console_script entry point (no .py)
+        executable='app_goal_gateway',    # console_script entry point (no .py)
         name='app_goal_gateway',
         parameters=[{
             'yaml_path': yaml_path,
@@ -132,6 +131,14 @@ def generate_launch_description():
         package='qr_verification',
         executable='qr_scanner',
         name='qr_scanner'
+    )
+
+    # NEW: YOLO Like Detector Node
+    like_detector = Node(
+        package='yolo_like_detector',       # اسم حزمة YOLO
+        executable='like_detector_node',    # اسم executable (كما في like_detector.py)
+        name='like_detector_node',
+        output='screen'
     )
 
     # ---------- LaunchDescription ----------
@@ -163,6 +170,7 @@ def generate_launch_description():
         # Gateway / navigation args
         DeclareLaunchArgument('yaml_path', default_value=default_yaml),
         DeclareLaunchArgument('frame_id', default_value='map'),
+
         DeclareLaunchArgument('topic_goal_name', default_value='/app/goal_name'),
         DeclareLaunchArgument('topic_goal_cancel', default_value='/app/goal_cancel'),
         DeclareLaunchArgument('topic_status', default_value='/app/goal_status'),
@@ -177,4 +185,5 @@ def generate_launch_description():
         app_goal_gateway,
         qr_generator,
         qr_scanner,
+        like_detector # تم حل التعارض وإضافة العقدة هنا
     ])

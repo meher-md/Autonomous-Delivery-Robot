@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.Toast // Import for Toast messages
 import androidx.appcompat.app.AppCompatActivity
 
 class MapActivity : AppCompatActivity() {
@@ -14,9 +15,11 @@ class MapActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Get the ROS WebSocket URL from the project's configuration
         val wsUrl = ConnectionConfig.rosbridgeWs(this)
 
         web = WebView(this).apply {
+            // Enable JavaScript for ROS communication and button functionality
             settings.javaScriptEnabled = true
             settings.cacheMode = WebSettings.LOAD_NO_CACHE
             settings.domStorageEnabled = true
@@ -32,43 +35,77 @@ class MapActivity : AppCompatActivity() {
         }
         setContentView(web)
 
+        // The full HTML content for the WebView, including the map and the new button
         val html = """
             <!doctype html>
             <html>
             <head>
               <meta name='viewport' content='width=device-width, initial-scale=1.0'>
               <style>
-                /* ملء الشاشة بالكامل وتوسيط المحتوى */
+                /* Full screen fill and center content */
                 html, body {
                   height: 100vh; width: 100vw;
                   margin: 0; background: #000;
+                  display: flex; flex-direction: column; /* Use column layout */
+                  align-items: center; justify-content: flex-end; /* Align content to the bottom */
+                }
+                /* Container for the map, taking up most of the screen */
+                .map-wrap {
+                  flex-grow: 1; /* Allows map container to take remaining space */
+                  width: 100vw;
                   display: flex; align-items: center; justify-content: center;
                 }
-                /* صندوق يحتفظ بنصف الارتفاع */
-                .wrap {
-                  height: 50vh; width: 100vw;
-                  display: flex; align-items: center; justify-content: center;
-                }
-                /* كانفس الماب */
+                /* Map Canvas */
                 #c {
-                  max-width: 90vw;      /* مسافة جانبية صغيرة */
-                  max-height: 50vh;     /* نصف الشاشة */
+                  max-width: 90vw;
+                  max-height: 80vh; /* Allow more height for the map */
                   width: auto; height: auto;
                   image-rendering: pixelated;
                   background: #111;
                 }
+                /* Style for the new button */
+                #confirm-btn {
+                  background-color: #4CAF50; /* Green color */
+                  color: white;
+                  padding: 15px 32px;
+                  text-align: center;
+                  text-decoration: none;
+                  display: inline-block;
+                  font-size: 16px;
+                  margin: 20px 0; /* Margin above and below the button */
+                  cursor: pointer;
+                  border: none;
+                  border-radius: 8px;
+                  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+                  position: relative; /* Position relative to the flow */
+                  z-index: 10; /* Ensure button is above map if they overlap */
+                }
               </style>
             </head>
             <body>
-              <div class="wrap"><canvas id="c"></canvas></div>
+              <div class="map-wrap"><canvas id="c"></canvas></div>
+              
+              <button id="confirm-btn">CONFIRM DELIVERY (LIKE GESTURE)</button>
+              
               <script>
                 const wsUrl = ${'"'}$wsUrl${'"'};
-                const topic = "/map";
+                const mapTopic = "/map";
+                const controlTopic = "/delivery_commands"; // ROS topic to send the command to
+                const commandPayload = "START_LIKE_DETECTION"; // The specific command to start the Python script
+
                 const ws = new WebSocket(wsUrl.replace(/^http/i, "ws"));
-                ws.onopen = () => ws.send(JSON.stringify({op:"subscribe", topic, type:"nav_msgs/OccupancyGrid"}));
+                
+                // ---------------- ROS MAP HANDLING LOGIC (Your existing code) ----------------
+                ws.onopen = () => {
+                    // Subscribe to the map topic
+                    ws.send(JSON.stringify({op:"subscribe", topic: mapTopic, type:"nav_msgs/OccupancyGrid"}));
+                    // Optional: Log connection status
+                    console.log("ROS WebSocket connected and subscribed to map.");
+                };
+                
                 ws.onmessage = (ev) => {
                   const m = JSON.parse(ev.data);
-                  if (m.op !== "publish" || m.topic !== topic) return;
+                  if (m.op !== "publish" || m.topic !== mapTopic) return;
                   const msg = m.msg, w = msg.info.width|0, h = msg.info.height|0;
                   const data = msg.data;
                   const c = document.getElementById("c");
@@ -83,6 +120,30 @@ class MapActivity : AppCompatActivity() {
                   }
                   ctx.putImageData(img, 0, 0);
                 };
+                // ---------------- END OF ROS MAP HANDLING LOGIC ----------------
+
+                
+                // ---------------- NEW BUTTON LOGIC ----------------
+                document.getElementById('confirm-btn').addEventListener('click', () => {
+                    // Create the ROS message to publish
+                    const cmdMsg = {
+                        op: "publish",
+                        topic: controlTopic,
+                        type: "std_msgs/String", // Assuming the command topic uses the standard String message type
+                        msg: { data: commandPayload }
+                    };
+
+                    if (ws.readyState === WebSocket.OPEN) {
+                        ws.send(JSON.stringify(cmdMsg));
+                        console.log('Command Sent:', commandPayload, 'to', controlTopic);
+                        alert("Gesture detection started. Please show the 'Like' sign to the robot's camera.");
+                    } else {
+                        console.error('WebSocket is not open. Cannot send command.');
+                        alert("Error: Robot connection is not ready.");
+                    }
+                });
+                // ---------------- END OF NEW BUTTON LOGIC ----------------
+
               </script>
             </body>
             </html>
