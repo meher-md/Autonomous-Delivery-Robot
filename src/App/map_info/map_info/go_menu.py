@@ -78,6 +78,27 @@ def load_named_poses(yaml_path: str):
     return poses
 
 
+def remove_named_pose(yaml_path: str, name_to_remove: str) -> bool:
+    if not os.path.exists(yaml_path):
+        return False
+
+    with open(yaml_path, 'r') as f:
+        data = yaml.safe_load(f) or {}
+
+    if 'waypoints' in data and isinstance(data['waypoints'], dict):
+        container = data['waypoints']
+    else:
+        container = data
+
+    if name_to_remove in container:
+        del container[name_to_remove]
+        with open(yaml_path, 'w') as f:
+            yaml.dump(data, f, default_flow_style=False)
+        return True
+    
+    return False
+
+
 class GoMenu(Node):
     """
     Simple terminal-based menu to send Nav2 goals
@@ -122,19 +143,48 @@ class GoMenu(Node):
                 for i, n in enumerate(names, start=1):
                     p = poses[n]['position']
                     print(f'{i}) {n}  (x={p["x"]:.2f}, y={p["y"]:.2f})')
+                print('d) Delete a destination')
                 print('r) Reload from YAML')
                 print('q) Quit')
 
-                choice = input('Enter number: ').strip().lower()
-                if choice == 'q':
-                    break
-                if choice == 'r':
+                raw_input = input('Enter choice: ').strip().lower()
+                if not raw_input:
                     continue
 
-                if not choice.isdigit():
+                if raw_input == 'q':
+                    break
+                if raw_input == 'r':
+                    continue
+                if raw_input == 'd':
+                    rest = raw_input[1:].strip()
+                    target_idx = -1
+                    if rest.isdigit():
+                        target_idx = int(rest)
+                    else:
+                        sub = input('Enter number to delete: ').strip()
+                        if sub.isdigit():
+                            target_idx = int(sub)
+                    
+                    if 1 <= target_idx <= len(names):
+                        to_delete = names[target_idx - 1]
+                        confirm = input(f'Delete "{to_delete}"? [y/N] ').lower()
+                        if confirm == 'y':
+                            success = remove_named_pose(self.yaml_path, to_delete)
+                            if success:
+                                print(f'Successfully deleted "{to_delete}".')
+                            else:
+                                print(f'Failed to delete "{to_delete}".')
+                        else:
+                            print('Cancelled.')
+                    else:
+                        print('Invalid number for deletion.')
+                    # Loop again to refresh list
+                    continue
+
+                if not raw_input.isdigit():
                     print('Invalid input.')
                     continue
-                idx = int(choice)
+                idx = int(raw_input)
                 if idx < 1 or idx > len(names):
                     print('Out of range.')
                     continue
