@@ -3,4 +3,4 @@ right_wheel_name: right_wheel_joint
 serial_device: /dev/ttyUSB_ARDUINO
 baud_rate: 57600
 timeout: 1000
-enc_ticks_per_rev: 585
+enc_ticks_per_rev: 1980

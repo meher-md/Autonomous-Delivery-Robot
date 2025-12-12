@@ -64,9 +64,8 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "app.h"
 
-
 #include "I2Cdev.h"
-#include "MPU6050_6Axis_MotionApps20.h"
+#include "MPU6050.h"
 #include <Arduino.h>
 #include <Wire.h>
 
@@ -122,34 +121,17 @@ unsigned long App::last_set_motors_speed_cmd_{0};
 
 bool App::is_imu_connected{false};
 
-MPU6050 App::mpu6050_;
+MPU6050 App::mpu;
 
-/*Conversion variables*/
+int16_t ax, ay, az;
+int16_t gx, gy, gz;
+bool blinkState;
 #define EARTH_GRAVITY_MS2 9.80665  //m/s2
 #define DEG_TO_RAD        0.017453292519943295769236907684886
 #define RAD_TO_DEG        57.295779513082320876798154814105
 
-/*---MPU6050 Control/Status Variables---*/
-bool DMPReady = false;  // Set true if DMP init was successful
-int const INTERRUPT_PIN = 2;
-volatile bool MPUInterrupt = false;
-uint8_t MPUIntStatus;   // Holds actual interrupt status byte from MPU
-uint8_t devStatus;      // Return status after each device operation (0 = success, !0 = error)
-uint16_t packetSize;    // Expected DMP packet size (default is 42 bytes)
-uint8_t FIFOBuffer[64]; // FIFO storage buffer
 
-/*---MPU6050 Control/Status Variables---*/
-Quaternion q;           // [w, x, y, z]         Quaternion container
-VectorInt16 aa;         // [x, y, z]            Accel sensor measurements
-VectorInt16 gg;         // [x, y, z]            Gyro sensor measurements
-VectorInt16 aaWorld;    // [x, y, z]            World-frame accel sensor measurements
-VectorInt16 ggWorld;    // [x, y, z]            World-frame gyro sensor measurements
-VectorFloat gravity;    // [x, y, z]            Gravity vector
-float euler[3];         // [psi, theta, phi]    Euler angle container
-float ypr[3];           // [yaw, pitch, roll]   Yaw/Pitch/Roll container and gravity vector
-void DMPDataReady() {
-  MPUInterrupt = true;
-}
+
 void App::setup() {
   // Required by Arduino libraries to work.
   init();
@@ -181,52 +163,30 @@ void App::setup() {
   shell_.register_command(Commands::kReadEncodersAndImu, cmd_read_encoders_and_imu_cb);
 
   // Initialize IMU sensor.
-  Wire.begin();
-  Wire.setClock(400000); // 400kHz I2C clock. Comment on this line if having compilation difficulties
-  //mpu6050_.initialize();
-  // if(mpu6050_.testConnection() == false){
-  //   Serial.println("MPU6050 connection failed");
-  //   while(true);
-  // }
-  //   else {
-  //     is_imu_connected = true;
-  //   Serial.println("MPU6050 connection successful");
-  // }
- mpu6050_.initialize();
-  if(mpu6050_.testConnection() == false){
+
+  /*Initialize device and check connection*/ 
+  mpu.initialize();
+
+  if(mpu.testConnection() ==  false){
     Serial.println("MPU6050 connection failed");
-    while(true);
+    is_imu_connected = false;
   }
-  else {
-    Serial.println("MPU6050 connection successful");
+  else{
+    is_imu_connected = true;
   }
-  pinMode(INTERRUPT_PIN, INPUT);
-attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), DMPDataReady, RISING);
-	Serial.println(F("Initializing DMP..."));
-  devStatus = mpu6050_.dmpInitialize();
-  mpu6050_.setXGyroOffset(0);
-  mpu6050_.setYGyroOffset(0);
-  mpu6050_.setZGyroOffset(0);
-  mpu6050_.setXAccelOffset(0);
-  mpu6050_.setYAccelOffset(0);
-  mpu6050_.setZAccelOffset(0);
-  if (devStatus == 0) {
-    mpu6050_.CalibrateAccel(6);  // Calibration Time: generate offsets and calibrate our MPU6050
-    mpu6050_.CalibrateGyro(6);
-    Serial.println("These are the Active offsets: ");
-    mpu6050_.PrintActiveOffsets();
-    Serial.println(F("Enabling DMP..."));   //Turning ON DMP
-    mpu6050_.setDMPEnabled(true);
+  mpu.CalibrateAccel(10);  // Calibration Time: generate offsets and calibrate our MPU6050
+  mpu.CalibrateGyro(10);
+  /* Use the code below to change accel/gyro offset values. Use MPU6050_Zero to obtain the recommended offsets */ 
 
-    MPUIntStatus = mpu6050_.getIntStatus();
+  /*Print the defined offsets*/
+Serial.print("Accel FS = ");
+Serial.println(mpu.getFullScaleAccelRange());
 
-    /* Set the DMP Ready flag so the main loop() function knows it is okay to use it */
-    Serial.println(F("DMP ready! Waiting for first interrupt..."));
-    DMPReady = true;
-    packetSize = mpu6050_.dmpGetFIFOPacketSize(); //Get expected DMP packet size for later comparison
-  }
-  mpu6050_.setFullScaleAccelRange(MPU6050_ACCEL_FS_2);
-  mpu6050_.setFullScaleGyroRange(MPU6050_GYRO_FS_250);
+Serial.print("Gyro FS = ");
+Serial.println(mpu.getFullScaleGyroRange());
+
+  /*Configure board LED pin for output*/ 
+  pinMode(LED_BUILTIN, OUTPUT);
 }
 
 void App::loop() {
@@ -362,13 +322,13 @@ void App::cmd_set_pid_tuning_gains_cb(int argc, char** argv) {
   int i = 0;
   char arg[20];
   char* str;
-  double pid_args[kSizePidArgs]{0.0, 0.0, 0.0, 0.0};
+  int pid_args[kSizePidArgs]{0, 0, 0, 0};
 
   // Example: "u 30:20:10:50".
   strcpy(arg, argv[1]);
   char* p = arg;
   while ((str = strtok_r(p, ":", &p)) != NULL && i < kSizePidArgs) {
-    pid_args[i] = atof(str);
+    pid_args[i] = atoi(str);
     i++;
   }
   left_pid_controller_.set_tunings(pid_args[0], pid_args[1], pid_args[2], pid_args[3]);
@@ -391,47 +351,35 @@ void App::cmd_read_encoders_and_imu_cb(int, char**) {
   Serial.print(" ");
   Serial.print(right_encoder_.read());
   Serial.print(" ");
+
+  // Retrieve absolute orientation (quaternion). See
+  // https://learn.adafruit.com/adafruit-bno055-absolute-orientation-sensor/overview for further
+  // information.
+  mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
   
 
-  if (!DMPReady) return;
+  //Serial.print(((ax/((mpu.getFullScaleAccelRange()+1)*16384.0))/2.0)*EARTH_GRAVITY_MS2); Serial.print(" ");
+  //Serial.print(((ay/((mpu.getFullScaleAccelRange()+1)*16384.0))/2.0)*EARTH_GRAVITY_MS2); Serial.print(" ");
+  //Serial.print(((az/((mpu.getFullScaleAccelRange()+1)*16384.0))/2.0)*EARTH_GRAVITY_MS2); Serial.print(" ");
+  //Serial.print(((gx/((mpu.getFullScaleGyroRange()+1)*131.0))/250.0)*DEG_TO_RAD); Serial.print(" ");
+  //Serial.print(((gy/((mpu.getFullScaleGyroRange()+1)*131.0))/250.0)*DEG_TO_RAD); Serial.print(" ");
+  //Serial.println(((gz/((mpu.getFullScaleGyroRange()+1)*132.0))/250.0)*DEG_TO_RAD);
+  float ax_ms2 = (float)ax / 16384.0 * EARTH_GRAVITY_MS2;
+	float ay_ms2 = (float)ay / 16384.0 * EARTH_GRAVITY_MS2;
+	float az_ms2 = (float)az / 16384.0 * EARTH_GRAVITY_MS2;
+	
+	float gx_rads = (float)gx / 131.0 * DEG_TO_RAD;
+float gy_rads = (float)gy / 131.0 * DEG_TO_RAD;
+float gz_rads = (float)gz / 131.0 * DEG_TO_RAD;
 
-  /* Read a packet from FIFO */
-  if (mpu6050_.dmpGetCurrentFIFOPacket(FIFOBuffer)) { // Get the Latest packet 
-    /*Display quaternion values in easy matrix form: w x y z */
-    mpu6050_.dmpGetQuaternion(&q, FIFOBuffer);
-    Serial.print(q.w);
-    Serial.print(" ");
-    Serial.print(q.x);
-    Serial.print(" ");
-    Serial.print(q.y);
-    Serial.print(" ");
-    Serial.print(q.z);
+Serial.print(ax_ms2); Serial.print(" ");
+Serial.print(ay_ms2); Serial.print(" ");
+Serial.print(az_ms2); Serial.print(" ");
 
-    mpu6050_.dmpGetGravity(&gravity, &q);
-
-    /* Display initial world-frame acceleration, adjusted to remove gravity
-    and rotated based on known orientation from Quaternion */
-    mpu6050_.dmpGetAccel(&aaWorld, FIFOBuffer);
-
-    
-    Serial.print(" ");
-    Serial.print(aaWorld.x * mpu6050_.get_acce_resolution() * EARTH_GRAVITY_MS2);
-    Serial.print(" ");
-    Serial.print(aaWorld.y * mpu6050_.get_acce_resolution() * EARTH_GRAVITY_MS2);
-    Serial.print(" ");
-    Serial.print(aaWorld.z * mpu6050_.get_acce_resolution() * EARTH_GRAVITY_MS2);
-
-    /* Display initial world-frame acceleration, adjusted to remove gravity
-    and rotated based on known orientation from Quaternion */
-    mpu6050_.dmpGetGyro(&ggWorld, FIFOBuffer);
-    Serial.print(" ");
-    Serial.print(ggWorld.x * mpu6050_.get_gyro_resolution() * DEG_TO_RAD);
-    Serial.print(" ");
-    Serial.print(ggWorld.y * mpu6050_.get_gyro_resolution() * DEG_TO_RAD);
-    Serial.print(" ");
-    Serial.println(ggWorld.z * mpu6050_.get_gyro_resolution() * DEG_TO_RAD);
-    }
-
+Serial.print(gx_rads); Serial.print(" ");
+Serial.print(gy_rads); Serial.print(" ");
+Serial.println(gz_rads);
+  
 }
 
 }  // namespace andino

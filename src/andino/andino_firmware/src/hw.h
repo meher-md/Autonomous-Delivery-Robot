@@ -34,9 +34,9 @@ namespace andino {
 /// @brief Hardware configuration.
 struct Hw {
   /// @brief Left encoder channel A pin. Connected to PD2 (digital pin 2).
-  static constexpr int kLeftEncoderChannelAGpioPin{3};
+  static constexpr int kLeftEncoderChannelAGpioPin{2};
   /// @brief Left encoder channel B pin. Connected to PD3 (digital pin 3).
-  static constexpr int kLeftEncoderChannelBGpioPin{4};
+  static constexpr int kLeftEncoderChannelBGpioPin{3};
 
   /// @brief Right encoder channel A pin. Connected to PC2 (digital pin 16, analog pin A2).
   static constexpr int kRightEncoderChannelAGpioPin{16};
