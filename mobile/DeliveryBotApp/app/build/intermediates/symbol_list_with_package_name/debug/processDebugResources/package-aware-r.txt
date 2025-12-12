@@ -3235,6 +3235,7 @@ id btnStop
 id btnTogglePanel
 id btnUp
 id btnVoice
+id btn_confirm_delivery_like
 id buttonPanel
 id cache_measures
 id callMeasure

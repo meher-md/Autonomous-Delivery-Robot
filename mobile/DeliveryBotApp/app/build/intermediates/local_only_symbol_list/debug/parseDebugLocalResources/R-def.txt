@@ -45,6 +45,7 @@ id btnStop
 id btnTogglePanel
 id btnUp
 id btnVoice
+id btn_confirm_delivery_like
 id cameraPreview
 id cameraRoot
 id controlPanel
