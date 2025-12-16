@@ -35,3 +35,6 @@ Thumbs.db
 frames_*.pdf
 frames_*.gv
 generated_qr/
+.~lock.*
+*.zip
+*~
