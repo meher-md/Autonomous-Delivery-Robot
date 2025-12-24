@@ -22,7 +22,11 @@ class AddressActivity : AppCompatActivity() {
     private var generatedQrPath: String? = null
     // map to lock QR per destination
     private val generatedQrByAddress: MutableMap<String, String> = mutableMapOf()
-    
+
+    // Callbacks for ROS subscriptions
+    private var statusCallback: ((String) -> Unit)? = null
+    private var qrCallback: ((String) -> Unit)? = null
+
     // UI
     private lateinit var rgLocations: RadioGroup
     private lateinit var btnPlaceOrder: Button
@@ -60,9 +64,10 @@ class AddressActivity : AppCompatActivity() {
 
         // Subscribe to robot feedback (optional)
         try {
-            RosBridgeClient.subscribe("/app/goal_status") { msg ->
+            statusCallback = { msg ->
                 runOnUiThread { tvStatus.text = "Robot: $msg" }
             }
+            RosBridgeClient.subscribe("/app/goal_status", statusCallback!!)
         } catch (t: Throwable) {
             Log.e(TAG, "subscribe failed", t)
         }
@@ -238,7 +243,7 @@ class AddressActivity : AppCompatActivity() {
     private fun setupQrSubscription() {
         // Subscribe to receive generated QR (robust parsing of rosbridge wrapper or direct JSON)
         try {
-            RosBridgeClient.subscribe("/app/qr/image") { raw ->
+            qrCallback = { raw ->
                 try {
                     // raw may be a rosbridge wrapper JSON (with 'msg'->'data') or the direct string produced by node
                     var b64 = ""
@@ -272,55 +277,55 @@ class AddressActivity : AppCompatActivity() {
 
                     if (b64.isBlank()) {
                         Log.w(TAG, "No qr_b64_png found in message: $raw")
-                        return@subscribe
-                    }
+                    } else {
+                        val bytes = Base64.decode(b64, Base64.DEFAULT)
+                        val bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
 
-                    val bytes = Base64.decode(b64, Base64.DEFAULT)
-                    val bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                        // try to extract an address from the incoming message so we can lock the QR to it
+                        var payloadAddress: String? = null
+                        try {
+                            val topJson = org.json.JSONObject(raw)
+                            val candidate = when {
+                                topJson.has("msg") -> topJson.optJSONObject("msg")?.optString("data", null)
+                                topJson.has("data") -> topJson.optString("data", null)
+                                else -> raw
+                            }
+                            val candidateJson = try { if (candidate != null) org.json.JSONObject(candidate) else null } catch (_: Exception) { null }
+                            if (candidateJson != null) {
+                                // prefer payload.address or address fields if present
+                                val payloadObj = candidateJson.optJSONObject("payload")
+                                if (payloadObj != null) payloadAddress = payloadObj.optString("address", null)
+                                if (payloadAddress == null && candidateJson.has("address")) payloadAddress = candidateJson.optString("address", null)
+                            }
+                        } catch (_: Exception) { /* ignore parsing failures */ }
 
-                    // try to extract an address from the incoming message so we can lock the QR to it
-                    var payloadAddress: String? = null
-                    try {
-                        val topJson = org.json.JSONObject(raw)
-                        val candidate = when {
-                            topJson.has("msg") -> topJson.optJSONObject("msg")?.optString("data", null)
-                            topJson.has("data") -> topJson.optString("data", null)
-                            else -> raw
+                        // Save to external cache (prefer externalCacheDir so some choosers don't remove it)
+                        val baseDir = externalCacheDir ?: cacheDir
+                        val qrFile = File(baseDir, "qr_${System.currentTimeMillis()}.png")
+                        qrFile.outputStream().use { out -> bmp.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, out) }
+                        generatedQrPath = qrFile.absolutePath
+
+                        // Tie QR to destination (payloadAddress) if available, else to current selectedAddress
+                        val key = payloadAddress ?: selectedAddress
+                        if (key != null) {
+                            generatedQrByAddress[key] = qrFile.absolutePath
+                            // Update history with this QR path
+                            updateOrderHistoryWithQr(key, qrFile.absolutePath)
                         }
-                        val candidateJson = try { if (candidate != null) org.json.JSONObject(candidate) else null } catch (_: Exception) { null }
-                        if (candidateJson != null) {
-                            // prefer payload.address or address fields if present
-                            val payloadObj = candidateJson.optJSONObject("payload")
-                            if (payloadObj != null) payloadAddress = payloadObj.optString("address", null)
-                            if (payloadAddress == null && candidateJson.has("address")) payloadAddress = candidateJson.optString("address", null)
+
+                        runOnUiThread {
+                            qrPlaceholder.visibility = View.GONE
+                            qrImageView.setImageBitmap(bmp)
+                            btnShareWhatsApp.isEnabled = true
+                            Toast.makeText(this@AddressActivity, "QR received and displayed", Toast.LENGTH_SHORT).show()
                         }
-                    } catch (_: Exception) { /* ignore parsing failures */ }
-
-                    // Save to external cache (prefer externalCacheDir so some choosers don't remove it)
-                    val baseDir = externalCacheDir ?: cacheDir
-                    val qrFile = File(baseDir, "qr_${System.currentTimeMillis()}.png")
-                    qrFile.outputStream().use { out -> bmp.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, out) }
-                    generatedQrPath = qrFile.absolutePath
-
-                    // Tie QR to destination (payloadAddress) if available, else to current selectedAddress
-                    val key = payloadAddress ?: selectedAddress
-                    if (key != null) {
-                        generatedQrByAddress[key] = qrFile.absolutePath
-                        // Update history with this QR path
-                        updateOrderHistoryWithQr(key, qrFile.absolutePath)
-                    }
-
-                    runOnUiThread {
-                        qrPlaceholder.visibility = View.GONE
-                        qrImageView.setImageBitmap(bmp)
-                        btnShareWhatsApp.isEnabled = true
-                        Toast.makeText(this, "QR received and displayed", Toast.LENGTH_SHORT).show()
                     }
                 } catch (e: Exception) {
                     Log.e(TAG, "Failed to handle /app/qr/image: ${e.message}", e)
                     runOnUiThread { showAlert("QR Error", "Failed to process QR image.") }
                 }
             }
+            RosBridgeClient.subscribe("/app/qr/image", qrCallback!!)
         } catch (t: Throwable) {
             Log.e(TAG, "subscribe /app/qr/image failed", t)
         }
@@ -481,5 +486,11 @@ class AddressActivity : AppCompatActivity() {
             Log.w(TAG, "findFileProviderAuthority failed: ${e.message}")
         }
         return null
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        statusCallback?.let { RosBridgeClient.unsubscribe("/app/goal_status", it) }
+        qrCallback?.let { RosBridgeClient.unsubscribe("/app/qr/image", it) }
     }
 }

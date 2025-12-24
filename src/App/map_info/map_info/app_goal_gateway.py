@@ -98,6 +98,8 @@ class AppGoalGateway(Node):
         self.named_poses = load_named_poses(self.yaml_path)
         self.current_handle = None
 
+        self.last_feedback_time = 0.0
+
         self.get_logger().info(
             f'Loaded {len(self.named_poses)} waypoints from {self.yaml_path} | frame={self.frame_id}'
         )
@@ -177,6 +179,12 @@ class AppGoalGateway(Node):
         res_fut.add_done_callback(self._on_result)
 
     def _on_feedback(self, fb_msg):
+        # Throttle feedback to ~1Hz to prevent network saturation
+        now = self.get_clock().now().nanoseconds / 1e9
+        if now - self.last_feedback_time < 1.0:
+            return
+        self.last_feedback_time = now
+
         fb = fb_msg.feedback
         # distance_remaining is present in Nav2 feedback; guard just in case
         dist = getattr(fb, 'distance_remaining', None)

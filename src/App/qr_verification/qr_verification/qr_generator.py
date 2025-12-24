@@ -23,11 +23,11 @@ class QrGenerator(Node):
         self.qr_dir = os.path.expanduser(os.path.join('~/ws', 'generated_qr'))
         os.makedirs(self.qr_dir, exist_ok=True)
         
-        # Track robot location to ensure QR is only generated when moving from Lobby
-        # Assume robot starts at Lobby (stock location)
-        self.previous_location = 'Lobby'
-        self.current_location = 'Lobby'
-        self.has_moved_from_lobby = False  # Flag to track if robot has moved from Lobby
+        # Track robot location to ensure QR is only generated when moving from R403
+        # Assume robot starts at R403 (stock location)
+        self.previous_location = 'R403'
+        self.current_location = 'R403'
+        self.has_moved_from_R403 = False  # Flag to track if robot has moved from R403
         
         # Order history file in main project folder
         self.project_root = os.path.expanduser('~/ws')
@@ -36,7 +36,7 @@ class QrGenerator(Node):
         self.get_logger().info(f'qr_generator ready (order history: {self.order_history_file})')
 
     def on_goal_name(self, msg: String):
-        """Track robot location changes to detect movement from Lobby."""
+        """Track robot location changes to detect movement from R403."""
         try:
             goal_name = msg.data.strip()
             if not goal_name:
@@ -46,26 +46,26 @@ class QrGenerator(Node):
             self.previous_location = self.current_location
             self.current_location = goal_name
             
-            # Check if robot has moved from Lobby to another location
-            if self.previous_location and self.previous_location.lower() == 'lobby' and self.current_location.lower() != 'lobby':
-                self.has_moved_from_lobby = True
-                self.get_logger().info(f'Robot moved from Lobby to {self.current_location} - QR generation now allowed')
-            elif self.current_location.lower() == 'lobby':
-                # Reset flag when robot returns to Lobby
-                self.has_moved_from_lobby = False
-                self.get_logger().info('Robot returned to Lobby - QR generation disabled until next departure')
+            # Check if robot has moved from R403 to another location
+            if self.previous_location and self.previous_location == 'R403' and self.current_location != 'R403':
+                self.has_moved_from_R403 = True
+                self.get_logger().info(f'Robot moved from R403 to {self.current_location} - QR generation now allowed')
+            elif self.current_location == 'R403':
+                # Reset flag when robot returns to R403
+                self.has_moved_from_R403 = False
+                self.get_logger().info('Robot returned to R403 - QR generation disabled until next departure')
         except Exception as e:
             self.get_logger().error(f'Error tracking goal name: {e}')
 
     def on_generate(self, msg: String):
-        """Generate QR code only if robot has moved from Lobby to another location."""
+        """Generate QR code only if robot has moved from R403 to another location."""
         try:
             req = json.loads(msg.data) if msg.data else {}
             address = req.get('address', 'Unknown')
             
-            # Check if robot has moved from Lobby
-            if not self.has_moved_from_lobby:
-                error_msg = 'QR code can only be generated after robot moves from Lobby to another location. Please send robot to a destination first.'
+            # Check if robot has moved from R403
+            if not self.has_moved_from_R403:
+                error_msg = 'QR code can only be generated after robot moves from R403 to another location. Please send robot to a destination first.'
                 self.get_logger().warn(error_msg)
                 # Publish error response
                 error_resp = {
