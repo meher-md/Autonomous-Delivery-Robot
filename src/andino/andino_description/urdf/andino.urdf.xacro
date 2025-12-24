@@ -69,7 +69,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///home/jack/ws/src/andino/andino_description/meshes/base_link.STL" />
+          filename="package://andino_description/meshes/base_link.STL" />
       </geometry>
       <material
         name="">
@@ -83,7 +83,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///home/jack/ws/src/andino/andino_description/meshes/base_link.STL" />
+          filename="package://andino_description/meshes/base_link.STL" />
       </geometry>
     </collision>
   </link>
@@ -109,7 +109,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///home/jack/ws/src/andino/andino_description/meshes/left_wheel.STL" />
+          filename="package://andino_description/meshes/left_wheel.STL" />
       </geometry>
       <material
         name="">
@@ -123,7 +123,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///home/jack/ws/src/andino/andino_description/meshes/left_wheel.STL" />
+          filename="package://andino_description/meshes/left_wheel.STL" />
       </geometry>
     </collision>
   </link>
@@ -162,7 +162,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///home/jack/ws/src/andino/andino_description/meshes/right_wheel.STL" />
+          filename="package://andino_description/meshes/right_wheel.STL" />
       </geometry>
       <material
         name="">
@@ -176,7 +176,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///home/jack/ws/src/andino/andino_description/meshes/right_wheel.STL" />
+          filename="package://andino_description/meshes/right_wheel.STL" />
       </geometry>
     </collision>
   </link>
@@ -215,7 +215,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///home/jack/ws/src/andino/andino_description/meshes/left_back_wheel.STL" />
+          filename="package://andino_description/meshes/left_back_wheel.STL" />
       </geometry>
       <material
         name="">
@@ -229,7 +229,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///home/jack/ws/src/andino/andino_description/meshes/left_back_wheel.STL" />
+          filename="package://andino_description/meshes/left_back_wheel.STL" />
       </geometry>
     </collision>
   </link>
@@ -269,7 +269,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///home/jack/ws/src/andino/andino_description/meshes/right_back_wheel.STL" />
+          filename="package://andino_description/meshes/right_back_wheel.STL" />
       </geometry>
       <material
         name="">
@@ -283,7 +283,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///home/jack/ws/src/andino/andino_description/meshes/right_back_wheel.STL" />
+          filename="package://andino_description/meshes/right_back_wheel.STL" />
       </geometry>
     </collision>
   </link>
@@ -323,7 +323,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///home/jack/ws/src/andino/andino_description/meshes/front_left_motor_Link.STL" />
+          filename="package://andino_description/meshes/front_left_motor_Link.STL" />
       </geometry>
       <material
         name="">
@@ -337,7 +337,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///home/jack/ws/src/andino/andino_description/meshes/front_left_motor_Link.STL" />
+          filename="package://andino_description/meshes/front_left_motor_Link.STL" />
       </geometry>
     </collision>
   </link>
@@ -376,7 +376,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///home/jack/ws/src/andino/andino_description/meshes/front_right_motor_Link.STL" />
+          filename="package://andino_description/meshes/front_right_motor_Link.STL" />
       </geometry>
       <material
         name="">
@@ -390,7 +390,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///home/jack/ws/src/andino/andino_description/meshes/front_right_motor_Link.STL" />
+          filename="package://andino_description/meshes/front_right_motor_Link.STL" />
       </geometry>
     </collision>
   </link>
@@ -429,7 +429,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///home/jack/ws/src/andino/andino_description/meshes/rear_left_motor_Link.STL" />
+          filename="package://andino_description/meshes/rear_left_motor_Link.STL" />
       </geometry>
       <material
         name="">
@@ -443,7 +443,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///home/jack/ws/src/andino/andino_description/meshes/rear_left_motor_Link.STL" />
+          filename="package://andino_description/meshes/rear_left_motor_Link.STL" />
       </geometry>
     </collision>
   </link>
@@ -482,7 +482,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///home/jack/ws/src/andino/andino_description/meshes/rear_right_motor_joint_Link.STL" />
+          filename="package://andino_description/meshes/rear_right_motor_joint_Link.STL" />
       </geometry>
       <material
         name="">
@@ -496,7 +496,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///home/jack/ws/src/andino/andino_description/meshes/rear_right_motor_joint_Link.STL" />
+          filename="package://andino_description/meshes/rear_right_motor_joint_Link.STL" />
       </geometry>
     </collision>
   </link>
@@ -543,7 +543,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///home/jack/ws/src/andino/andino_description/meshes/camera_Link.STL" />
+          filename="package://andino_description/meshes/camera_Link.STL" />
       </geometry>
       <material
         name="">
@@ -557,7 +557,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///home/jack/ws/src/andino/andino_description/meshes/camera_Link.STL" />
+          filename="package://andino_description/meshes/camera_Link.STL" />
       </geometry>
     </collision>
   </link>
@@ -596,7 +596,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///home/jack/ws/src/andino/andino_description/meshes/imu_Link.STL" />
+          filename="package://andino_description/meshes/imu_Link.STL" />
       </geometry>
       <material
         name="">
@@ -610,7 +610,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="file:///home/jack/ws/src/andino/andino_description/meshes/imu_Link.STL" />
+          filename="package://andino_description/meshes/imu_Link.STL" />
       </geometry>
     </collision>
   </link>
