@@ -3,7 +3,7 @@
 import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, GroupAction, IncludeLaunchDescription, LogInfo
+from launch.actions import DeclareLaunchArgument, GroupAction, IncludeLaunchDescription, LogInfo, SetEnvironmentVariable
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression, TextSubstitution
@@ -231,7 +231,29 @@ def generate_launch_description():
         spawn_robots_group.append(robots_group)
         spawn_robots_group.append(nav_group)
 
+    # Add the share directory to the Gazebo resource path.
+    pkg_share_path = get_package_share_directory('andino_gz')
+    gz_resource_path = SetEnvironmentVariable(
+        name='GZ_SIM_RESOURCE_PATH',
+        value=[
+            os.path.join(pkg_share_path, 'models'), ':',
+            os.path.join(pkg_share_path, 'worlds'), ':',
+            os.environ.get('GZ_SIM_RESOURCE_PATH', '')
+        ]
+    )
+
+    ign_resource_path = SetEnvironmentVariable(
+        name='IGN_GAZEBO_RESOURCE_PATH',
+        value=[
+             os.path.join(pkg_share_path, 'models'), ':',
+            os.path.join(pkg_share_path, 'worlds'), ':',
+            os.environ.get('IGN_GAZEBO_RESOURCE_PATH', '')
+        ]
+    )
+
     ld = LaunchDescription()
+    ld.add_action(gz_resource_path)
+    ld.add_action(ign_resource_path)
     ld.add_action(log_robots_by_user)
     ld.add_action(log_number_robots)
     ld.add_action(ros_bridge_arg)

@@ -28,4 +28,4 @@ wheel:
   x_offset: 0.035
   dx: -0.016  # ${-caster_base_size/2.0*0.8}
   dy: -1
-  dz: -0.04
+  dz: -0.068

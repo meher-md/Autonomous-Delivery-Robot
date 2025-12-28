@@ -83,8 +83,8 @@
       name="ignition::gazebo::systems::DiffDrive">
       <left_joint>left_wheel_joint</left_joint>
       <right_joint>right_wheel_joint</right_joint>
-      <wheel_separation>0.137</wheel_separation>
-      <wheel_radius>0.033</wheel_radius>
+      <wheel_separation>0.403</wheel_separation>
+      <wheel_radius>0.06</wheel_radius>
       <!--
       Odometry in the diff drive plugin is quite bad, therefore 
       a dedicated OdometryPublisher plugin is being used.
@@ -106,6 +106,7 @@
       <odom_publish_frequency>20</odom_publish_frequency>
       <robot_base_frame>base_link</robot_base_frame>
       <odom_frame>odom</odom_frame>
+      <tf_topic>/model/andino/tf</tf_topic>
     </plugin>
   </gazebo>
 
