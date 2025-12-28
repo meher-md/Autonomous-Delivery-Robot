@@ -223,7 +223,7 @@ We are constantly working to enhance the capabilities of the Autonomous Delivery
 
 <table align="center">
   <tr>
-    <td align="center"><b>Mohammed Nasser Abdulhady</b></td>
+    <td align="center"><b>Mohammed Nasser Abdelhady</b></td>
     <td align="center">
       <a href="https://www.linkedin.com/in/mohamed-nasser-7857702b2/">
         <img src="https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" />
