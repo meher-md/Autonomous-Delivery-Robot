@@ -194,6 +194,7 @@ cd ws
 | **Path Planning** | `Nav2` (A*) | Dynamic pathfinding with costmaps |
 | **Vision** | `YOLOv8` + `OpenCV` | Object detection and image processing |
 | **Communication** | `rosbridge_suite` | JSON-based WebSocket bridge for app control |
+| **Video Stream** | `web_video_server` | Low-latency MJPEG streaming over HTTP |
 | **Simulation** | `Gazebo` + `Rviz2` | Physics simulation and visualization |
 
 ---
@@ -205,18 +206,59 @@ cd ws
 <table align="center">
   <tr>
     <td align="center"><b>Mohammed Nasser Abdulhadi</b></td>
+    <td align="center">
+      <a href="https://www.linkedin.com/in/mohamed-nasser-7857702b2/">
+        <img src="https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" />
+      </a>
+    </td>
+  </tr>
+  <tr>
     <td align="center"><b>Abdulrahman Muhammad Muhammad</b></td>
+    <td align="center">
+      <a href="https://www.linkedin.com/in/abdalrahmanabouelnaga">
+        <img src="https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" />
+      </a>
+    </td>
   </tr>
   <tr>
     <td align="center"><b>Jack Isaac Boshra</b></td>
+    <td align="center">
+      <a href="https://www.linkedin.com/in/jackoviic">
+        <img src="https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" />
+      </a>
+    </td>
+  </tr>
+  <tr>
     <td align="center"><b>Kareem Ahmed Taha</b></td>
+    <td align="center">
+      <a href="https://www.linkedin.com/in/karim-ahmed-657307263">
+        <img src="https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" />
+      </a>
+    </td>
   </tr>
   <tr>
     <td align="center"><b>Seif Ayman Hassan</b></td>
-    <td align="center"><b>Islam Tohamy Shaaban</b></td>
+    <td align="center">
+      <a href="https://www.linkedin.com/in/seif-ayman-a98028384">
+        <img src="https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" />
+      </a>
+    </td>
   </tr>
   <tr>
-    <td align="center" colspan="2"><b>Reem Sayed Saad</b></td>
+    <td align="center"><b>Islam Tohamy Shaaban</b></td>
+    <td align="center">
+      <a href="https://www.linkedin.com/in/eslam-tohamy">
+        <img src="https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" />
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><b>Reem Sayed Saad</b></td>
+    <td align="center">
+      <a href="https://www.linkedin.com/in/reem-sayed-07402b264">
+        <img src="https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" />
+      </a>
+    </td>
   </tr>
 </table>
 

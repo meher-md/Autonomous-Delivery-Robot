@@ -1,16 +1,59 @@
-# Core ROS 2 Python client library
-rclpy
+# 📦 Project Requirements
 
-# Standard ROS 2 message packages
-std_msgs
-geometry_msgs
-sensor_msgs
-nav_msgs
+# ---------------------------------------------------------
+# 1. Python Libraries (Install with pip)
+# ---------------------------------------------------------
+# Command: pip install -r requirements.txt
 
-# For transforms and TF2
-tf2_ros
-tf_transformations
+# --- AI & Computer Vision ---
+opencv-python>=4.8.0
+numpy>=1.24.0
+onnxruntime>=1.15.0      # For running the YOLO .onnx model
+ultralytics>=8.0.0       # For YOLOv8 training/exporting
+pyzbar>=0.1.9            # For robust QR Code decoding
 
-# Visualization tools
-rqt_gui
-rqt_gui_py
+# --- Audio & Interaction ---
+gTTS>=2.3.0              # Google Text-to-Speech
+pygame>=2.5.0            # For playing audio files
+
+# --- Utilities ---
+PyYAML>=6.0              # For parsing config files
+setuptools               # Standard packaging tool
+requests                 # General HTTP requests
+
+# ---------------------------------------------------------
+# 2. System Dependencies (Install with apt)
+# ---------------------------------------------------------
+# These are ROS 2 packages and system tools required for the project.
+# Command: sudo apt install <package_name>
+
+# --- Core ROS 2 (Humble) ---
+# ros-humble-desktop
+# ros-humble-ros-base
+
+# --- Simulation & Visualization ---
+# ros-humble-ros-gz                # Gazebo Garden/Fortress Bridge
+# ros-humble-gazebo-ros-pkgs       # Gazebo Classic (if used)
+# ros-humble-rviz2                 # Visualization tool
+
+# --- Navigation Stack (Nav2) ---
+# ros-humble-navigation2
+# ros-humble-nav2-bringup
+# ros-humble-slam-toolbox          # For SLAM mapping
+
+# --- Robot Hardware & Drivers ---
+# ros-humble-xacro                 # For URDF processing
+# ros-humble-robot-state-publisher
+# ros-humble-joint-state-publisher
+# ros-humble-ros2-control
+# ros-humble-ros2-controllers
+# ros-humble-diff-drive-controller
+
+# --- Communication & Bridge ---
+# ros-humble-rosbridge-server      # WebSocket for Mobile App
+# ros-humble-rosbridge-suite
+
+# --- Python System Dependencies ---
+# python3-colcon-common-extensions # Build tool
+# python3-rosdep                   # Dependency manager (rosdep install)
+# python3-pip
