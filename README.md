@@ -39,7 +39,6 @@ The robot goes beyond simple navigation with advanced AI modules:
 ### 🔋 Autonomous Operations
 *   **Nav2 Navigation**: Uses SLAM for mapping and the ROS 2 Navigation Stack for path planning and localization.
 *   **Auto-Return**: Automatically returns to the charging dock/home position after delivery confirmation.
-*   **Battery Management**: Continuous monitoring of power levels (simulated) to ensure operational continuity.
 
 ---
 
@@ -96,6 +95,8 @@ The project is divided into three main layers:
 ---
 
 ## 🕹️ Usage Guide
+
+> **Important**: You must change the folder name from `Autonomous-Delivery-Robot` to `ws` before running the commands below.
 
 ### 1️⃣ Simulation Mode (Gazebo & Office World)
 
@@ -196,6 +197,23 @@ cd ws
 | **Communication** | `rosbridge_suite` | JSON-based WebSocket bridge for app control |
 | **Video Stream** | `web_video_server` | Low-latency MJPEG streaming over HTTP |
 | **Simulation** | `Gazebo` + `Rviz2` | Physics simulation and visualization |
+
+
+---
+
+## 🔮 Future Improvements
+
+We are constantly working to enhance the capabilities of the Autonomous Delivery Robot. The following features are planned for future updates to improve performance, adaptability, and user experience.
+
+### 🛠️ Hardware Upgrades
+*   **Ultrasonic 360° Coverage**: Expanding the sensor array to eliminate blind spots and ensure complete safety in complex environments.
+*   **GPS Module Integration**: Enabling outdoor navigation capabilities to allow the robot to operate between buildings or in open campus areas.
+*   **Real-time Battery Monitoring (BMS)**: Implementing a hardware-based Battery Management System to provide accurate voltage and current readings, replacing the current simulated model for better power management.
+
+### 🚀 System Extensions
+*   **Multi-Floor Navigation**: Integrating with elevator IoT systems to allow the robot to traverse different floors autonomously.
+*   **Voice Interaction**: Adding advanced Natural Language Processing (NLP) to allow users to interact with the robot via voice commands.
+*   **Cloud Dashboard**: A web-based remote monitoring platform to view robot status, camera feeds, and analytics from anywhere over the internet.
 
 ---
 
