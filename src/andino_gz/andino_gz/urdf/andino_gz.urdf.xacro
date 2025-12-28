@@ -4,6 +4,80 @@
   <xacro:include filename="$(find andino_description)/urdf/andino.urdf.xacro"/>
 
   <gazebo>
+    <!-- ========================================================= -->
+    <!-- Gazebo Properties (Moved from andino.urdf.xacro) -->
+    <!-- ========================================================= -->
+  </gazebo>
+
+  <gazebo reference="left_wheel">
+    <mu1>1.0</mu1>
+    <mu2>1.0</mu2>
+    <fdir1>1 0 0</fdir1>
+    <kp>1000000.0</kp>
+    <kd>10.0</kd>
+    <minDepth>0.001</minDepth>
+
+  </gazebo>
+
+  <gazebo reference="right_wheel">
+    <mu1>1.0</mu1>
+    <mu2>1.0</mu2>
+    <fdir1>1 0 0</fdir1>
+    <kp>1000000.0</kp>
+    <kd>10.0</kd>
+    <minDepth>0.001</minDepth>
+
+  </gazebo>
+
+  <gazebo reference="left_back_wheel">
+    <mu1>0.0</mu1>
+    <mu2>0.0</mu2>
+    <fdir1>1 0 0</fdir1>
+    <kp>1000000.0</kp>
+    <kd>10.0</kd>
+    <minDepth>0.001</minDepth>
+
+  </gazebo>
+
+  <gazebo reference="right_back_wheel">
+    <mu1>0.0</mu1>
+    <mu2>0.0</mu2>
+    <fdir1>1 0 0</fdir1>
+    <kp>1000000.0</kp>
+    <kd>10.0</kd>
+    <minDepth>0.001</minDepth>
+
+  </gazebo>
+
+  <!-- Gazebo Camera Plugin (Classic) -->
+  <gazebo reference="camera_Link">
+    <sensor type="camera" name="camera_classic">
+      <update_rate>30.0</update_rate>
+      <camera name="head">
+        <horizontal_fov>1.3962634</horizontal_fov>
+        <image>
+          <width>640</width>
+          <height>480</height>
+          <format>R8G8B8</format>
+        </image>
+        <clip>
+          <near>0.02</near>
+          <far>300</far>
+        </clip>
+      </camera>
+      <plugin name="camera_controller" filename="libgazebo_ros_camera.so">
+        <alwaysOn>true</alwaysOn>
+        <updateRate>0.0</updateRate>
+        <cameraName>camera</cameraName>
+        <imageTopicName>/image_raw</imageTopicName>
+        <cameraInfoTopicName>/camera_info</cameraInfoTopicName>
+        <frameName>camera_Link</frameName>
+        <hackBaseline>0.07</hackBaseline>
+      </plugin>
+    </sensor>
+  </gazebo>
+
+  <gazebo>
     <plugin
       filename="ignition-gazebo-diff-drive-system"
       name="ignition::gazebo::systems::DiffDrive">
@@ -41,8 +115,8 @@
       name="ignition::gazebo::systems::JointStatePublisher">
       <joint_name>left_wheel_joint</joint_name>
       <joint_name>right_wheel_joint</joint_name>
-      <joint_name>caster_wheel_joint</joint_name>
-      <joint_name>caster_rotation_joint</joint_name>
+      <joint_name>left_back_wheel_joint</joint_name>
+      <joint_name>right_back_wheel_joint</joint_name>
     </plugin>
   </gazebo>
 
@@ -78,9 +152,9 @@
     </plugin>
   </gazebo>
 
-  <gazebo reference="camera_link">
+  <gazebo reference="camera_Link">
     <sensor name="camera" type="camera">
-      <gz_frame_id>camera_link</gz_frame_id>
+      <gz_frame_id>camera_Link</gz_frame_id>
       <camera>
         <horizontal_fov>1.047</horizontal_fov>
         <image>

@@ -5,8 +5,8 @@
     <gazebo reference="base_link">
       <visual>
         <material>
-          <ambient>0.0 0.0 1.0 1.0</ambient>
-          <diffuse>0.0 0.0 1.0 1.0</diffuse>
+          <ambient>0.5 0.5 0.5 1.0</ambient>
+          <diffuse>0.5 0.5 0.5 1.0</diffuse>
           <specular>0.1 0.1 0.1 1.0</specular>
           <emissive>0.0 0.0 0.0 1.0</emissive>
         </material>
@@ -26,8 +26,8 @@
     <gazebo reference="left_wheel">
       <visual>
         <material>
-          <ambient>0.1 0.1 0.1 1.0</ambient>
-          <diffuse>0.02 0.02 0.02 1.0</diffuse>
+          <ambient>0.0 0.0 0.0 1.0</ambient>
+          <diffuse>0.0 0.0 0.0 1.0</diffuse>
           <specular>0.1 0.1 0.1 1.0</specular>
           <emissive>0.0 0.0 0.0 1.0</emissive>
         </material>
@@ -36,8 +36,28 @@
     <gazebo reference="right_wheel">
       <visual>
         <material>
-          <ambient>0.1 0.1 0.1 1.0</ambient>
-          <diffuse>0.02 0.02 0.02 1.0</diffuse>
+          <ambient>0.0 0.0 0.0 1.0</ambient>
+          <diffuse>0.0 0.0 0.0 1.0</diffuse>
+          <specular>0.1 0.1 0.1 1.0</specular>
+          <emissive>0.0 0.0 0.0 1.0</emissive>
+        </material>
+      </visual>
+    </gazebo>
+    <gazebo reference="left_back_wheel">
+      <visual>
+        <material>
+          <ambient>0.0 0.0 0.0 1.0</ambient>
+          <diffuse>0.0 0.0 0.0 1.0</diffuse>
+          <specular>0.1 0.1 0.1 1.0</specular>
+          <emissive>0.0 0.0 0.0 1.0</emissive>
+        </material>
+      </visual>
+    </gazebo>
+    <gazebo reference="right_back_wheel">
+      <visual>
+        <material>
+          <ambient>0.0 0.0 0.0 1.0</ambient>
+          <diffuse>0.0 0.0 0.0 1.0</diffuse>
           <specular>0.1 0.1 0.1 1.0</specular>
           <emissive>0.0 0.0 0.0 1.0</emissive>
         </material>
@@ -96,7 +116,7 @@
       </visual>
     </gazebo>
     <!-- Camera -->
-    <gazebo reference="camera_link">
+    <gazebo reference="camera_Link">
       <visual>
         <material>
           <ambient>0.0 0.0 1.0 1.0</ambient>

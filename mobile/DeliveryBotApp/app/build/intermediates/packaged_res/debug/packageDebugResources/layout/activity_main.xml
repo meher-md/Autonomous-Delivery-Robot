@@ -115,7 +115,7 @@
 
         <Button
             android:id="@+id/btnChat"
-            android:text="Open Chat 💬"
+            android:text="Manual Control 🎮"
             android:textAllCaps="false"
             android:textSize="17sp"
             android:textColor="@color/text_primary"
