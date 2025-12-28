@@ -75,8 +75,10 @@ The project is divided into three main layers:
 
 1.  **Clone the Repository**
     ```bash
-    cd ~/ws/src
-    git clone https://github.com/MO-NASSER9/Autonomous-Delivery-Robot.git .
+    cd ~
+    git clone https://github.com/MO-NASSER9/Autonomous-Delivery-Robot.git
+    mv Autonomous-Delivery-Robot ws
+    cd ws
     ```
 
 2.  **Install Dependencies**
@@ -95,8 +97,6 @@ The project is divided into three main layers:
 ---
 
 ## 🕹️ Usage Guide
-
-> **Important**: You must change the folder name from `Autonomous-Delivery-Robot` to `ws` before running the commands below.
 
 ### 1️⃣ Simulation Mode (Gazebo & Office World)
 
