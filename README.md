@@ -262,6 +262,19 @@ cd ws
   </tr>
 </table>
 
+<br />
+
+## 🙏 Acknowledgments
+
+We would like to express our sincere gratitude to our project supervisors for their invaluable guidance and support throughout this journey.
+
+<table align="center">
+  <tr>
+    <td align="center"><b>Prof. Dr. Amal Ibrahim</b></td>
+    <td align="center"><b>Dr. Ahmed El-Sayed</b></td>
+  </tr>
+</table>
+
 ---
 <div align="center">
   <sub>Created for HTI Mechatronics Graduation Project</sub>
