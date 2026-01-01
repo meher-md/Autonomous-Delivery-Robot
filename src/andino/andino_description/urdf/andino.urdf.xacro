@@ -2,26 +2,28 @@
 
 <robot
   name="Delivery Robot_urdf" xmlns:xacro="http://www.ros.org/wiki/xacro">
-  <!-- ========================================================= -->
-  <!-- Properties and Includes -->
-  <!-- ========================================================= -->
   <xacro:property name="package_name" value="andino_description"/>
   <xacro:property name="robot_name" value="andino"/>
 
+  <!-- ========================================================= -->
+  <!-- Includes -->
+  <!-- ========================================================= -->
   <xacro:include filename="$(find ${package_name})/urdf/include/common_macros.urdf.xacro" />
   <xacro:include filename="$(find ${package_name})/urdf/include/common_sensors.urdf.xacro" />
   <xacro:include filename="$(find ${package_name})/urdf/include/andino_caster_macro.urdf.xacro" />
 
   <xacro:arg name="yaml_config_dir" default="$(find ${package_name})/config/${robot_name}" />
 
+  <!-- ========================================================= -->
+  <!-- Properties -->
+  <!-- ========================================================= -->
   <xacro:property name="caster_wheel_yaml" value="$(arg yaml_config_dir)/caster_wheel.yaml" />
   <xacro:property name="caster_wheel_props" value="${xacro.load_yaml(caster_wheel_yaml)}"/>
   <xacro:arg name="use_fixed_caster" default="True"/>
-
+  <xacro:arg name="use_real_ros_control" default="True"/>
 
   <xacro:property name="wheel_yaml" value="$(arg yaml_config_dir)/wheel.yaml" />
   <xacro:property name="wheel_props" value="${xacro.load_yaml(wheel_yaml)}"/>
-  <xacro:property name="wheel_width" value="${wheel_props.get('width', 0.04)}"/>
 
   <xacro:property name="motor_yaml" value="$(arg yaml_config_dir)/motor.yaml" />
   <xacro:property name="motor_props" value="${xacro.load_yaml(motor_yaml)}"/>
@@ -37,22 +39,7 @@
 
   <xacro:property name="hardware_yaml" value="$(arg yaml_config_dir)/hardware.yaml" />
   <xacro:property name="hardware_props" value="${xacro.load_yaml(hardware_yaml)}"/>
-
-  <!-- ========================================================= -->
-  <!-- Macros -->
-  <!-- ========================================================= -->
-  <!-- Macro for wheel inertia to ensure stability -->
-  <xacro:macro name="wheel_inertial" params="mass">
-    <inertial>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <mass value="${mass}"/>
-      <inertia
-        ixx="${mass*(3*wheel_props['radius']*wheel_props['radius']+wheel_width*wheel_width)/12}" ixy="0" ixz="0"
-        iyy="${mass*wheel_props['radius']*wheel_props['radius']/2}" iyz="0"
-        izz="${mass*(3*wheel_props['radius']*wheel_props['radius']+wheel_width*wheel_width)/12}"/>
-    </inertial>
-  </xacro:macro>
-
+  
   <xacro:macro name="footprint"
                params="wheel_props">
     <!-- Base-Footprint -->
@@ -66,20 +53,27 @@
       <origin xyz="0 0 ${-(wheel_props['radius'] - wheel_props['z_offset'])}" rpy="0 0 0" />
     </joint>
   </xacro:macro>
+
+  <xacro:footprint wheel_props="${wheel_props}" />
+
   <!-- ========================================================= -->
-  <!-- Base Link & Footprint -->
+  <!-- Base Link -->
   <!-- ========================================================= -->
-    <xacro:footprint wheel_props="${wheel_props}" />
   <link
     name="base_link">
     <inertial>
-      <!-- Simplified and centered inertia for stability -->
-      <origin xyz="0 0 -0.01" rpy="0 0 0" />
-      <mass value="1.71" />
+      <origin
+        xyz="0.0197110608215278 -0.0027804176800969 0.0969148643167121"
+        rpy="0 0 0" />
+      <mass
+        value="1.71386249919413" />
       <inertia
-        ixx="0.06" ixy="0" ixz="0"
-        iyy="0.08" iyz="0"
-        izz="0.06" />
+        ixx="0.0231569461000395"
+        ixy="2.50777808928108E-05"
+        ixz="0.000439253426777476"
+        iyy="0.038907074274843"
+        iyz="9.52977406661948E-06"
+        izz="0.0503099220851436" />
     </inertial>
     <visual>
       <origin
@@ -105,12 +99,26 @@
       </geometry>
     </collision>
   </link>
+
   <!-- ========================================================= -->
   <!-- Wheels -->
   <!-- ========================================================= -->
   <link
     name="left_wheel">
-    <xacro:wheel_inertial mass="0.47" />
+    <inertial>
+      <origin
+        xyz="-1.43304923483356E-10 0.00578827480780619 2.09625126285085E-10"
+        rpy="0 0 0" />
+      <mass
+        value="0.468152044139992" />
+      <inertia
+        ixx="0.000602353929382081"
+        ixy="-7.18444193596074E-12"
+        ixz="-1.00167587643128E-11"
+        iyy="0.000954241002904411"
+        iyz="1.15813680205067E-12"
+        izz="0.000602353904161843" />
+    </inertial>
     <visual>
       <origin
         xyz="0 0 0"
@@ -130,7 +138,8 @@
         xyz="0 0 0"
         rpy="0 0 0" />
       <geometry>
-        <sphere radius="${wheel_props['radius']}"/>
+        <mesh
+          filename="package://andino_description/meshes/left_wheel.STL" />
       </geometry>
     </collision>
   </link>
@@ -146,11 +155,23 @@
       link="left_wheel" />
     <axis
       xyz="0 1 0" />
-    <limit effort="500" velocity="100"/>
   </joint>
   <link
     name="right_wheel">
-    <xacro:wheel_inertial mass="0.47" />
+    <inertial>
+      <origin
+        xyz="-1.16706644348596E-11 -0.00578827480780653 -2.53660450283411E-10"
+        rpy="0 0 0" />
+      <mass
+        value="0.468152044139995" />
+      <inertia
+        ixx="0.000602353913448942"
+        ixy="5.50210245429957E-12"
+        ixz="1.57577941586563E-11"
+        iyy="0.000954241002904415"
+        iyz="4.76280775920882E-12"
+        izz="0.000602353920094988" />
+    </inertial>
     <visual>
       <origin
         xyz="0 0 0"
@@ -170,7 +191,8 @@
         xyz="0 0 0"
         rpy="0 0 0" />
       <geometry>
-        <sphere radius="${wheel_props['radius']}"/>
+        <mesh
+          filename="package://andino_description/meshes/right_wheel.STL" />
       </geometry>
     </collision>
   </link>
@@ -186,11 +208,23 @@
       link="right_wheel" />
     <axis
       xyz="0 1 0" />
-    <limit effort="500" velocity="100"/>
   </joint>
   <link
     name="left_back_wheel">
-    <xacro:wheel_inertial mass="0.47" />
+    <inertial>
+      <origin
+        xyz="5.29933874560129E-11 0.00578827480780614 -2.48335936883781E-10"
+        rpy="0 0 0" />
+      <mass
+        value="0.468152044139996" />
+      <inertia
+        ixx="0.00060235391871097"
+        ixy="6.20688903130094E-12"
+        ixz="-1.59872080469483E-11"
+        iyy="0.000954241002904416"
+        iyz="-3.79895060057837E-12"
+        izz="0.000602353914832962" />
+    </inertial>
     <visual>
       <origin
         xyz="0 0 0"
@@ -210,7 +244,8 @@
         xyz="0 0 0"
         rpy="0 0 0" />
       <geometry>
-        <sphere radius="${wheel_props['radius']}"/>
+        <mesh
+          filename="package://andino_description/meshes/left_back_wheel.STL" />
       </geometry>
     </collision>
   </link>
@@ -226,12 +261,24 @@
       link="left_back_wheel" />
     <axis
       xyz="0 1 0" />
-    <limit effort="500" velocity="100"/>
-    <mimic joint="left_wheel_joint" multiplier="1" offset="0"/>
+            <mimic joint="left_wheel_joint" multiplier="1"/>
   </joint>
   <link
     name="right_back_wheel">
-    <xacro:wheel_inertial mass="0.47" />
+    <inertial>
+      <origin
+        xyz="1.05106146008893E-10 -0.00578827480780619 -2.3115340544444E-10"
+        rpy="0 0 0" />
+      <mass
+        value="0.468152044139994" />
+      <inertia
+        ixx="0.000602353902050807"
+        ixy="2.73004690151346E-12"
+        ixz="6.52978696203657E-12"
+        iyy="0.000954241002904414"
+        iyz="6.74568812925498E-12"
+        izz="0.000602353931493122" />
+    </inertial>
     <visual>
       <origin
         xyz="0 0 0"
@@ -251,7 +298,8 @@
         xyz="0 0 0"
         rpy="0 0 0" />
       <geometry>
-        <sphere radius="${wheel_props['radius']}"/>
+        <mesh
+          filename="package://andino_description/meshes/right_back_wheel.STL" />
       </geometry>
     </collision>
   </link>
@@ -266,10 +314,10 @@
     <child
       link="right_back_wheel" />
     <axis
-      xyz="0 1 0" />
-    <limit effort="500" velocity="100"/>
-    <mimic joint="right_wheel_joint" multiplier="1" offset="0"/>
+      xyz="0 -1 0" />
+            <mimic joint="right_wheel_joint" multiplier="1"/>
   </joint>
+
   <!-- ========================================================= -->
   <!-- Motors -->
   <!-- ========================================================= -->
@@ -303,6 +351,15 @@
           rgba="0.298039215686275 0.298039215686275 0.298039215686275 1" />
       </material>
     </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://andino_description/meshes/front_left_motor_Link.STL" />
+      </geometry>
+    </collision>
   </link>
   <joint
     name="front_left_motor_joint"
@@ -347,6 +404,15 @@
           rgba="0.298039215686275 0.298039215686275 0.298039215686275 1" />
       </material>
     </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://andino_description/meshes/front_right_motor_Link.STL" />
+      </geometry>
+    </collision>
   </link>
   <joint
     name="front_right_motor_joint"
@@ -391,6 +457,15 @@
           rgba="0.298039215686275 0.298039215686275 0.298039215686275 1" />
       </material>
     </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://andino_description/meshes/rear_left_motor_Link.STL" />
+      </geometry>
+    </collision>
   </link>
   <joint
     name="rear_left_motor_joint"
@@ -435,6 +510,15 @@
           rgba="0.298039215686275 0.298039215686275 0.298039215686275 1" />
       </material>
     </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://andino_description/meshes/rear_right_motor_joint_Link.STL" />
+      </geometry>
+    </collision>
   </link>
   <joint
     name="rear_right_motor_joint"
@@ -449,12 +533,8 @@
     <axis
       xyz="0 0 0" />
   </joint>
-
-
   
-  <!-- ========================================================= -->
-  <!-- Sensors -->
-  <!-- ========================================================= -->
+  
   <xacro:laser prefix="rplidar" parent_link="base_link"
                    sensor_prop="${sensor_prop}">
   </xacro:laser>
@@ -491,6 +571,15 @@
           rgba="1 0 0 1" />
       </material>
     </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://andino_description/meshes/camera_Link.STL" />
+      </geometry>
+    </collision>
   </link>
   <joint
     name="camera_joint"
@@ -505,7 +594,6 @@
     <axis
       xyz="0 0 0" />
   </joint>
-
   <link
     name="imu_Link">
     <inertial>
@@ -536,6 +624,15 @@
           rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
       </material>
     </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://andino_description/meshes/imu_Link.STL" />
+      </geometry>
+    </collision>
   </link>
   <joint
     name="imu_joint"
@@ -551,9 +648,9 @@
       xyz="0 0 0" />
   </joint>
   
-  <!-- ========================================================= -->
-  <!-- ROS 2 Control (hardware interfaces) -->
-  <!-- ========================================================= -->
-  <xacro:include filename="$(find ${package_name})/urdf/include/andino_control.urdf.xacro" />
-  <xacro:control hardware_props="${hardware_props}" />
-</robot>   
+    <!-- ====== ROS 2 Control (hardware interfaces) ====== -->
+  <xacro:if value="$(arg use_real_ros_control)">
+    <xacro:include filename="$(find ${package_name})/urdf/include/andino_control.urdf.xacro" />
+    <xacro:control hardware_props="${hardware_props}" />
+  </xacro:if>
+</robot>

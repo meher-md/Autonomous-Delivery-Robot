@@ -51,7 +51,7 @@ object ConnectionConfig {
 
     // ✅ FIXED CAMERA STREAM URL (THIS WAS THE BUG)
     fun cameraUrl(ctx: Context): String {
-        val topic = "/image_raw"
+        val topic = "/camera/image_raw"
         return "http://${host(ctx)}:8080/stream?topic=$topic"
     }
 

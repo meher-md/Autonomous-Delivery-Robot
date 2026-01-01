@@ -51,10 +51,10 @@ def generate_launch_description():
                 'FrameDurationLimits': frame_duration_limits,
                 'frame_id': 'camera_Link',
                 'camera_info_url': LaunchConfiguration('intrinsic_params_file'),
+                'jpeg_quality': 30,
             }],
             condition=UnlessCondition(LaunchConfiguration('use_sim_time')),
             remappings=[
-                ('/camera/image_raw', '/image_raw'),
                 ('/camera/camera_info', '/camera_info'),
             ],
         )

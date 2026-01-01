@@ -159,7 +159,10 @@ class AppGoalGateway(Node):
         goal = NavigateToPose.Goal()
         goal.pose = PoseStamped()
         goal.pose.header.frame_id = self.frame_id
-        goal.pose.header.stamp = self.get_clock().now().to_msg()
+        # Use timestamp 0 to allow TF to use the latest available transform
+        # This avoids issues if the laptop and robot clocks are not perfectly synced
+        goal.pose.header.stamp.sec = 0
+        goal.pose.header.stamp.nanosec = 0
         goal.pose.pose.position.x = p['x']
         goal.pose.pose.position.y = p['y']
         goal.pose.pose.position.z = p.get('z', 0.0)

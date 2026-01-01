@@ -64,11 +64,11 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "app.h"
 
-#include "I2Cdev.h"
-#include "MPU6050.h"
+#include <Adafruit_BNO055.h>
+#include <Adafruit_Sensor.h>
 #include <Arduino.h>
 #include <Wire.h>
-
+#include <utility/imumaths.h>
 
 #include "commands.h"
 #include "constants.h"
@@ -121,16 +121,7 @@ unsigned long App::last_set_motors_speed_cmd_{0};
 
 bool App::is_imu_connected{false};
 
-MPU6050 App::mpu;
-
-int16_t ax, ay, az;
-int16_t gx, gy, gz;
-bool blinkState;
-#define EARTH_GRAVITY_MS2 9.80665  //m/s2
-#define DEG_TO_RAD        0.017453292519943295769236907684886
-#define RAD_TO_DEG        57.295779513082320876798154814105
-
-
+Adafruit_BNO055 App::bno055_imu_{/*sensorID=*/55, BNO055_ADDRESS_A, &Wire};
 
 void App::setup() {
   // Required by Arduino libraries to work.
@@ -163,30 +154,10 @@ void App::setup() {
   shell_.register_command(Commands::kReadEncodersAndImu, cmd_read_encoders_and_imu_cb);
 
   // Initialize IMU sensor.
-
-  /*Initialize device and check connection*/ 
-  mpu.initialize();
-
-  if(mpu.testConnection() ==  false){
-    Serial.println("MPU6050 connection failed");
-    is_imu_connected = false;
-  }
-  else{
+  if (bno055_imu_.begin()) {
+    bno055_imu_.setExtCrystalUse(true);
     is_imu_connected = true;
   }
-  mpu.CalibrateAccel(10);  // Calibration Time: generate offsets and calibrate our MPU6050
-  mpu.CalibrateGyro(10);
-  /* Use the code below to change accel/gyro offset values. Use MPU6050_Zero to obtain the recommended offsets */ 
-
-  /*Print the defined offsets*/
-Serial.print("Accel FS = ");
-Serial.println(mpu.getFullScaleAccelRange());
-
-Serial.print("Gyro FS = ");
-Serial.println(mpu.getFullScaleGyroRange());
-
-  /*Configure board LED pin for output*/ 
-  pinMode(LED_BUILTIN, OUTPUT);
 }
 
 void App::loop() {
@@ -355,31 +326,36 @@ void App::cmd_read_encoders_and_imu_cb(int, char**) {
   // Retrieve absolute orientation (quaternion). See
   // https://learn.adafruit.com/adafruit-bno055-absolute-orientation-sensor/overview for further
   // information.
-  mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-  
+  imu::Quaternion orientation = bno055_imu_.getQuat();
+  Serial.print(orientation.x(), 4);
+  Serial.print(" ");
+  Serial.print(orientation.y(), 4);
+  Serial.print(" ");
+  Serial.print(orientation.z(), 4);
+  Serial.print(" ");
+  Serial.print(orientation.w(), 4);
+  Serial.print(" ");
 
-  //Serial.print(((ax/((mpu.getFullScaleAccelRange()+1)*16384.0))/2.0)*EARTH_GRAVITY_MS2); Serial.print(" ");
-  //Serial.print(((ay/((mpu.getFullScaleAccelRange()+1)*16384.0))/2.0)*EARTH_GRAVITY_MS2); Serial.print(" ");
-  //Serial.print(((az/((mpu.getFullScaleAccelRange()+1)*16384.0))/2.0)*EARTH_GRAVITY_MS2); Serial.print(" ");
-  //Serial.print(((gx/((mpu.getFullScaleGyroRange()+1)*131.0))/250.0)*DEG_TO_RAD); Serial.print(" ");
-  //Serial.print(((gy/((mpu.getFullScaleGyroRange()+1)*131.0))/250.0)*DEG_TO_RAD); Serial.print(" ");
-  //Serial.println(((gz/((mpu.getFullScaleGyroRange()+1)*132.0))/250.0)*DEG_TO_RAD);
-  float ax_ms2 = (float)ax / 16384.0 * EARTH_GRAVITY_MS2;
-	float ay_ms2 = (float)ay / 16384.0 * EARTH_GRAVITY_MS2;
-	float az_ms2 = (float)az / 16384.0 * EARTH_GRAVITY_MS2;
-	
-	float gx_rads = (float)gx / 131.0 * DEG_TO_RAD;
-float gy_rads = (float)gy / 131.0 * DEG_TO_RAD;
-float gz_rads = (float)gz / 131.0 * DEG_TO_RAD;
+  // Retrieve angular velocity (rad/s). See
+  // https://learn.adafruit.com/adafruit-bno055-absolute-orientation-sensor/overview for further
+  // information.
+  imu::Vector<3> angular_velocity = bno055_imu_.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
+  Serial.print(angular_velocity.x());
+  Serial.print(" ");
+  Serial.print(angular_velocity.y());
+  Serial.print(" ");
+  Serial.print(angular_velocity.z());
+  Serial.print(" ");
 
-Serial.print(ax_ms2); Serial.print(" ");
-Serial.print(ay_ms2); Serial.print(" ");
-Serial.print(az_ms2); Serial.print(" ");
-
-Serial.print(gx_rads); Serial.print(" ");
-Serial.print(gy_rads); Serial.print(" ");
-Serial.println(gz_rads);
-  
+  // Retrieve linear acceleration (m/s^2). See
+  // https://learn.adafruit.com/adafruit-bno055-absolute-orientation-sensor/overview for further
+  // information.
+  imu::Vector<3> linear_acceleration = bno055_imu_.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
+  Serial.print(linear_acceleration.x());
+  Serial.print(" ");
+  Serial.print(linear_acceleration.y());
+  Serial.print(" ");
+  Serial.print(linear_acceleration.z());
 }
 
 }  // namespace andino

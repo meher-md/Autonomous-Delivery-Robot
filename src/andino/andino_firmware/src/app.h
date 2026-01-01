@@ -29,8 +29,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
-#include "I2Cdev.h"
-#include "MPU6050.h"
+#include <Adafruit_BNO055.h>
 
 #include "digital_out_arduino.h"
 #include "encoder.h"
@@ -125,7 +124,7 @@ class App {
   static Pid right_pid_controller_;
 
   /// Adafruit BNO055 IMU sensor.
-  static MPU6050 mpu;
+  static Adafruit_BNO055 bno055_imu_;
 
   /// Tracks the last time the PID computation was made.
   static unsigned long last_pid_computation_;

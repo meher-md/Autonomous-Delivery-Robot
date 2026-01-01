@@ -3,7 +3,7 @@
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Bool, String
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import CompressedImage
 from ament_index_python.packages import get_package_share_directory
 import os
 import cv2
@@ -25,7 +25,7 @@ class LikeDetectorNode(Node):
 
         # Subscriptions
         self.image_sub = self.create_subscription(
-            Image, '/image_raw', self.image_callback, 10
+            CompressedImage, '/camera/image_raw/compressed', self.image_callback, 10
         )
         self.status_sub = self.create_subscription(
             String, '/app/goal_status', self.on_status, 10
@@ -89,32 +89,14 @@ class LikeDetectorNode(Node):
     # -------------------------------------------------------------------------
     def imgmsg_to_cv2(self, img_msg):
         """
-        Manually convert a sensor_msgs/Image to an OpenCV image (numpy array).
-        This avoids cv_bridge compatibility issues with NumPy 2.x.
+        Manually convert a sensor_msgs/CompressedImage to an OpenCV image.
         """
-        dtype = np.uint8
-        n_channels = 1
-        
-        if img_msg.encoding == "bgr8":
-            n_channels = 3
-        elif img_msg.encoding == "rgb8":
-            n_channels = 3
-        elif img_msg.encoding == "mono8":
-            n_channels = 1
-        else:
-            if "8" in img_msg.encoding:
-                 n_channels = 3
-        
         try:
-            im = np.frombuffer(img_msg.data, dtype=dtype)
-            im = im.reshape((img_msg.height, img_msg.width, n_channels))
-            
-            if img_msg.encoding == "rgb8":
-                im = cv2.cvtColor(im, cv2.COLOR_RGB2BGR)
-                
+            np_arr = np.frombuffer(img_msg.data, np.uint8)
+            im = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
             return im
         except Exception as e:
-            self.get_logger().error(f"Failed to convert image: {e}")
+            self.get_logger().error(f"Failed to convert compressed image: {e}")
             return None
 
     # -------------------------------------------------------------------------

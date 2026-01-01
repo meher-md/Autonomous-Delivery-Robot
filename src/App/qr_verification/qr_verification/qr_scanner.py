@@ -7,7 +7,7 @@ import sys
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String, Bool
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import CompressedImage
 import cv2
 import numpy as np
 
@@ -36,9 +36,9 @@ class QrScanner(Node):
         # Publisher for scanner status (for monitoring)
         self.status_pub = self.create_publisher(String, '/robot/qr/scanner_status', 10)
 
-        # Subscribe to camera topic
+        # Subscribe to camera topic (Compressed)
         self.image_sub = self.create_subscription(
-            Image, '/image_raw', self.image_callback, 10
+            CompressedImage, '/camera/image_raw/compressed', self.image_callback, 10
         )
 
         # Subscribe to app_goal_gateway status (publishes "succeeded" when robot arrives)
@@ -83,7 +83,7 @@ class QrScanner(Node):
         self._frames_processed = 0
 
         self.get_logger().info(
-            f'qr_scanner ready (listening to /image_raw). Pyzbar={PYZBAR_AVAILABLE}, OpenCV={cv2.__version__}'
+            f'qr_scanner ready (listening to /image_raw/compressed). Pyzbar={PYZBAR_AVAILABLE}, OpenCV={cv2.__version__}'
         )
         self._publish_status('initialized', 'Scanner initialized, waiting for arrival...')
 
@@ -92,35 +92,14 @@ class QrScanner(Node):
     # -------------------------------------------------------------------------
     def imgmsg_to_cv2(self, img_msg):
         """
-        Manually convert a sensor_msgs/Image to an OpenCV image (numpy array).
-        This avoids cv_bridge compatibility issues with NumPy 2.x.
+        Manually convert a sensor_msgs/CompressedImage to an OpenCV image.
         """
-        dtype = np.uint8
-        n_channels = 1
-        
-        if img_msg.encoding == "bgr8":
-            n_channels = 3
-        elif img_msg.encoding == "rgb8":
-            n_channels = 3
-        elif img_msg.encoding == "mono8":
-            n_channels = 1
-        else:
-            # Fallback for other encodings if needed, or assume 3 channels/1 byte per channel
-            if "8" in img_msg.encoding:
-                 n_channels = 3 # best guess for unhandled 8-bit formats
-        
         try:
-            # Create numpy array from buffer
-            im = np.frombuffer(img_msg.data, dtype=dtype)
-            im = im.reshape((img_msg.height, img_msg.width, n_channels))
-            
-            # If RGB, convert to BGR for OpenCV
-            if img_msg.encoding == "rgb8":
-                im = cv2.cvtColor(im, cv2.COLOR_RGB2BGR)
-                
+            np_arr = np.frombuffer(img_msg.data, np.uint8)
+            im = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
             return im
         except Exception as e:
-            self.get_logger().error(f"Failed to convert image: {e}")
+            self.get_logger().error(f"Failed to convert compressed image: {e}")
             return None
 
     # -------------------------------------------------------------------------

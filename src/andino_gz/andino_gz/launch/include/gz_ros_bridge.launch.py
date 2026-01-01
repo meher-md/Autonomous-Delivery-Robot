@@ -32,7 +32,20 @@ def generate_launch_description():
         }],
     )
 
+    # Republish raw image as compressed for application compatibility
+    image_compression_node = Node(
+        package='image_transport',
+        executable='republish',
+        arguments=['raw', 'compressed'],
+        remappings=[
+            ('in', 'camera/image_raw'),
+            ('out/compressed', 'camera/image_raw/compressed')
+        ],
+        output='screen'
+    )
+
     return LaunchDescription([
         entity_arg,
         bridge_node,
+        image_compression_node,
     ])

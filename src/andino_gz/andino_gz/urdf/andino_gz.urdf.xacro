@@ -1,14 +1,565 @@
 <?xml version="1.0"?>
-<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="andino">
 
-  <xacro:include filename="$(find andino_description)/urdf/andino.urdf.xacro"/>
+<robot
+  name="Delivery Robot_urdf" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <!-- ========================================================= -->
+  <!-- Properties and Includes -->
+  <!-- ========================================================= -->
+  <xacro:property name="package_name" value="andino_description"/>
+  <xacro:property name="robot_name" value="andino"/>
 
-  <gazebo>
-    <!-- ========================================================= -->
-    <!-- Gazebo Properties (Moved from andino.urdf.xacro) -->
-    <!-- ========================================================= -->
-  </gazebo>
+  <xacro:include filename="$(find ${package_name})/urdf/include/common_macros.urdf.xacro" />
+  <xacro:include filename="$(find ${package_name})/urdf/include/common_sensors.urdf.xacro" />
+  <xacro:include filename="$(find ${package_name})/urdf/include/andino_caster_macro.urdf.xacro" />
 
+  <xacro:arg name="yaml_config_dir" default="$(find ${package_name})/config/${robot_name}" />
+
+  <xacro:property name="caster_wheel_yaml" value="$(arg yaml_config_dir)/caster_wheel.yaml" />
+  <xacro:property name="caster_wheel_props" value="${xacro.load_yaml(caster_wheel_yaml)}"/>
+  <xacro:arg name="use_fixed_caster" default="True"/>
+
+
+  <xacro:property name="wheel_yaml" value="$(arg yaml_config_dir)/wheel.yaml" />
+  <xacro:property name="wheel_props" value="${xacro.load_yaml(wheel_yaml)}"/>
+  <xacro:property name="wheel_width" value="${wheel_props.get('width', 0.04)}"/>
+
+  <xacro:property name="motor_yaml" value="$(arg yaml_config_dir)/motor.yaml" />
+  <xacro:property name="motor_props" value="${xacro.load_yaml(motor_yaml)}"/>
+
+  <xacro:property name="base_yaml" value="$(arg yaml_config_dir)/base.yaml" />
+  <xacro:property name="base_props" value="${xacro.load_yaml(base_yaml)}"/>
+
+  <xacro:property name="second_base_yaml" value="$(arg yaml_config_dir)/second_base.yaml" />
+  <xacro:property name="second_base_props" value="${xacro.load_yaml(second_base_yaml)}"/>
+
+  <xacro:property name="sensor_yaml" value="$(arg yaml_config_dir)/sensors.yaml" />
+  <xacro:property name="sensor_prop" value="${xacro.load_yaml(sensor_yaml)}"/>
+
+  <xacro:property name="hardware_yaml" value="$(arg yaml_config_dir)/hardware.yaml" />
+  <xacro:property name="hardware_props" value="${xacro.load_yaml(hardware_yaml)}"/>
+
+  <!-- ========================================================= -->
+  <!-- Macros -->
+  <!-- ========================================================= -->
+  <!-- Macro for wheel inertia to ensure stability -->
+  <xacro:macro name="wheel_inertial" params="mass">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="${mass}"/>
+      <inertia
+        ixx="${mass*(3*wheel_props['radius']*wheel_props['radius']+wheel_width*wheel_width)/12}" ixy="0" ixz="0"
+        iyy="${mass*wheel_props['radius']*wheel_props['radius']/2}" iyz="0"
+        izz="${mass*(3*wheel_props['radius']*wheel_props['radius']+wheel_width*wheel_width)/12}"/>
+    </inertial>
+  </xacro:macro>
+
+  <xacro:macro name="footprint"
+               params="wheel_props">
+    <!-- Base-Footprint -->
+    <!-- base_footprint is a fictitious link(frame) that is on the ground right below base_link origin -->
+    <link name="base_footprint" />
+
+    <!-- Joint to connect base_footprint with base_link -->
+    <joint name="base_footprint_joint" type="fixed">
+      <parent link="base_link"/>
+      <child link="base_footprint" />
+      <origin xyz="0 0 ${-(wheel_props['radius'] - wheel_props['z_offset'])}" rpy="0 0 0" />
+    </joint>
+  </xacro:macro>
+  <!-- ========================================================= -->
+  <!-- Base Link & Footprint -->
+  <!-- ========================================================= -->
+    <xacro:footprint wheel_props="${wheel_props}" />
+  <link
+    name="base_link">
+    <inertial>
+      <!-- Simplified and centered inertia for stability -->
+      <origin xyz="0 0 -0.01" rpy="0 0 0" />
+      <mass value="1.71" />
+      <inertia
+        ixx="0.06" ixy="0" ixz="0"
+        iyy="0.08" iyz="0"
+        izz="0.06" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://andino_description/meshes/base_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0 0 0 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://andino_description/meshes/base_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <!-- ========================================================= -->
+  <!-- Wheels -->
+  <!-- ========================================================= -->
+  <link
+    name="left_wheel">
+    <xacro:wheel_inertial mass="0.47" />
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://andino_description/meshes/left_wheel.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.298039215686275 0.298039215686275 0.298039215686275 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <sphere radius="${wheel_props['radius']}"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="left_wheel_joint"
+    type="continuous">
+    <origin
+      xyz="0.14695 0.20151 -0.0138"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="left_wheel" />
+    <axis
+      xyz="0 1 0" />
+    <limit effort="500" velocity="100"/>
+  </joint>
+  <link
+    name="right_wheel">
+    <xacro:wheel_inertial mass="0.47" />
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://andino_description/meshes/right_wheel.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.298039215686275 0.298039215686275 0.298039215686275 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <sphere radius="${wheel_props['radius']}"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="right_wheel_joint"
+    type="continuous">
+    <origin
+      xyz="0.14695 -0.20149 -0.0138"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="right_wheel" />
+    <axis
+      xyz="0 1 0" />
+    <limit effort="500" velocity="100"/>
+  </joint>
+  <link
+    name="left_back_wheel">
+    <xacro:wheel_inertial mass="0.47" />
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://andino_description/meshes/left_back_wheel.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.298039215686275 0.298039215686275 0.298039215686275 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <sphere radius="${wheel_props['radius']}"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="left_back_wheel_joint"
+    type="continuous">
+    <origin
+      xyz="-0.14305 0.20001 -0.0138"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="left_back_wheel" />
+    <axis
+      xyz="0 1 0" />
+    <limit effort="500" velocity="100"/>
+    <mimic joint="left_wheel_joint" multiplier="1" offset="0"/>
+  </joint>
+  <link
+    name="right_back_wheel">
+    <xacro:wheel_inertial mass="0.47" />
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://andino_description/meshes/right_back_wheel.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.298039215686275 0.298039215686275 0.298039215686275 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <sphere radius="${wheel_props['radius']}"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="right_back_wheel_joint"
+    type="continuous">
+    <origin
+      xyz="-0.14305 -0.20149 -0.0138"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="right_back_wheel" />
+    <axis
+      xyz="0 1 0" />
+    <limit effort="500" velocity="100"/>
+    <mimic joint="right_wheel_joint" multiplier="1" offset="0"/>
+  </joint>
+  <!-- ========================================================= -->
+  <!-- Motors -->
+  <!-- ========================================================= -->
+  <link
+    name="front_left_motor_Link">
+    <inertial>
+      <origin
+        xyz="-2.93427859787698E-09 -0.0282987057433313 1.98829454782501E-07"
+        rpy="0 0 0" />
+      <mass
+        value="0.0243780634374845" />
+      <inertia
+        ixx="6.5049636783815E-06"
+        ixy="-1.28022090855895E-11"
+        ixz="-2.83914080677337E-10"
+        iyy="1.79658931765907E-06"
+        iyz="-1.60846366473882E-10"
+        izz="6.49720687653235E-06" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://andino_description/meshes/front_left_motor_Link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.298039215686275 0.298039215686275 0.298039215686275 1" />
+      </material>
+    </visual>
+  </link>
+  <joint
+    name="front_left_motor_joint"
+    type="fixed">
+    <origin
+      xyz="0.14695 0.18351 -0.0138"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="front_left_motor_Link" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  <link
+    name="front_right_motor_Link">
+    <inertial>
+      <origin
+        xyz="-3.90875860567519E-08 0.0282987057433313 1.94971594275756E-07"
+        rpy="0 0 0" />
+      <mass
+        value="0.0243780634374845" />
+      <inertia
+        ixx="6.50450117035748E-06"
+        ixy="-4.64547734604659E-11"
+        ixz="1.85856843533978E-09"
+        iyy="1.79658931765907E-06"
+        iyz="1.54523151022933E-10"
+        izz="6.49766938455636E-06" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://andino_description/meshes/front_right_motor_Link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.298039215686275 0.298039215686275 0.298039215686275 1" />
+      </material>
+    </visual>
+  </link>
+  <joint
+    name="front_right_motor_joint"
+    type="fixed">
+    <origin
+      xyz="0.14695 -0.18349 -0.0138"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="front_right_motor_Link" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  <link
+    name="rear_left_motor_Link">
+    <inertial>
+      <origin
+        xyz="-2.93427060427121E-09 -0.0257987057433852 1.98829458026434E-07"
+        rpy="0 0 0" />
+      <mass
+        value="0.0243780634374845" />
+      <inertia
+        ixx="6.5049636783815E-06"
+        ixy="-1.28022090855905E-11"
+        ixz="-2.83914080677331E-10"
+        iyy="1.79658931765907E-06"
+        iyz="-1.60846366473941E-10"
+        izz="6.49720687653235E-06" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://andino_description/meshes/rear_left_motor_Link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.298039215686275 0.298039215686275 0.298039215686275 1" />
+      </material>
+    </visual>
+  </link>
+  <joint
+    name="rear_left_motor_joint"
+    type="fixed">
+    <origin
+      xyz="-0.14305 0.18101 -0.0138"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="rear_left_motor_Link" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  <link
+    name="rear_right_motor_joint_Link">
+    <inertial>
+      <origin
+        xyz="9.00014895943713E-08 0.0282987057433313 1.77317494423623E-07"
+        rpy="0 0 0" />
+      <mass
+        value="0.0243780634374844" />
+      <inertia
+        ixx="6.50369018171631E-06"
+        ixy="5.91757692779439E-11"
+        ixz="-2.88739930323651E-09"
+        iyy="1.79658931765907E-06"
+        iyz="1.50112219710858E-10"
+        izz="6.49848037319751E-06" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://andino_description/meshes/rear_right_motor_joint_Link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.298039215686275 0.298039215686275 0.298039215686275 1" />
+      </material>
+    </visual>
+  </link>
+  <joint
+    name="rear_right_motor_joint"
+    type="fixed">
+    <origin
+      xyz="-0.14305 -0.18349 -0.0138"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="rear_right_motor_joint_Link" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+
+
+  
+  <!-- ========================================================= -->
+  <!-- Sensors -->
+  <!-- ========================================================= -->
+  <xacro:laser prefix="rplidar" parent_link="base_link"
+                   sensor_prop="${sensor_prop}">
+  </xacro:laser>
+  
+  
+  
+  <link
+    name="camera_Link">
+    <inertial>
+      <origin
+        xyz="0.000117233948187856 1.11022302462516E-16 -0.00287446531611046"
+        rpy="0 0 0" />
+      <mass
+        value="0.000713241583007372" />
+      <inertia
+        ixx="5.98763196395108E-08"
+        ixy="3.79970669441156E-23"
+        ixz="1.74410053694481E-09"
+        iyy="3.02779460629598E-08"
+        iyz="-1.24049223182452E-22"
+        izz="3.09233696784637E-08" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://andino_description/meshes/camera_Link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 0 0 1" />
+      </material>
+    </visual>
+  </link>
+  <joint
+    name="camera_joint"
+    type="fixed">
+    <origin
+      xyz="0.14177 -0.088493 0.28082"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="camera_Link" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+
+  <link
+    name="imu_Link">
+    <inertial>
+      <origin
+        xyz="9.14669704326077E-05 7.43113497559955E-05 -0.000730279767243657"
+        rpy="0 0 0" />
+      <mass
+        value="0.000641277078130652" />
+      <inertia
+        ixx="1.18623588033942E-08"
+        ixy="-1.25747803912043E-13"
+        ixz="1.37266547980991E-14"
+        iyy="3.31177640674267E-08"
+        iyz="-7.98714410293282E-13"
+        izz="4.4714140581948E-08" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://andino_description/meshes/imu_Link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+  </link>
+  <joint
+    name="imu_joint"
+    type="fixed">
+    <origin
+      xyz="0.0019454 0.0099438 0.0016"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="imu_Link" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  
+  <!-- ========================================================= -->
+  <!-- ROS 2 Control (hardware interfaces) -->
+  <!-- ========================================================= -->
+  <xacro:include filename="$(find ${package_name})/urdf/include/andino_control.urdf.xacro" />
+  <xacro:control hardware_props="${hardware_props}" />
+
+  <!-- ========================================================= -->
+  <!-- Gazebo Properties (Recovered) -->
+  <!-- ========================================================= -->
   <gazebo reference="left_wheel">
     <mu1>1.0</mu1>
     <mu2>1.0</mu2>
@@ -16,7 +567,6 @@
     <kp>1000000.0</kp>
     <kd>10.0</kd>
     <minDepth>0.001</minDepth>
-
   </gazebo>
 
   <gazebo reference="right_wheel">
@@ -26,7 +576,6 @@
     <kp>1000000.0</kp>
     <kd>10.0</kd>
     <minDepth>0.001</minDepth>
-
   </gazebo>
 
   <gazebo reference="left_back_wheel">
@@ -36,7 +585,6 @@
     <kp>1000000.0</kp>
     <kd>10.0</kd>
     <minDepth>0.001</minDepth>
-
   </gazebo>
 
   <gazebo reference="right_back_wheel">
@@ -46,35 +594,6 @@
     <kp>1000000.0</kp>
     <kd>10.0</kd>
     <minDepth>0.001</minDepth>
-
-  </gazebo>
-
-  <!-- Gazebo Camera Plugin (Classic) -->
-  <gazebo reference="camera_Link">
-    <sensor type="camera" name="camera_classic">
-      <update_rate>30.0</update_rate>
-      <camera name="head">
-        <horizontal_fov>1.3962634</horizontal_fov>
-        <image>
-          <width>640</width>
-          <height>480</height>
-          <format>R8G8B8</format>
-        </image>
-        <clip>
-          <near>0.02</near>
-          <far>300</far>
-        </clip>
-      </camera>
-      <plugin name="camera_controller" filename="libgazebo_ros_camera.so">
-        <alwaysOn>true</alwaysOn>
-        <updateRate>0.0</updateRate>
-        <cameraName>camera</cameraName>
-        <imageTopicName>/image_raw</imageTopicName>
-        <cameraInfoTopicName>/camera_info</cameraInfoTopicName>
-        <frameName>camera_Link</frameName>
-        <hackBaseline>0.07</hackBaseline>
-      </plugin>
-    </sensor>
   </gazebo>
 
   <gazebo>
@@ -85,11 +604,6 @@
       <right_joint>right_wheel_joint</right_joint>
       <wheel_separation>0.403</wheel_separation>
       <wheel_radius>0.06</wheel_radius>
-      <!--
-      Odometry in the diff drive plugin is quite bad, therefore 
-      a dedicated OdometryPublisher plugin is being used.
-      As it can not be disabled we publish odom info to an unused topic
-      -->
       <odom_topic>/unused/diff_drive_odometry</odom_topic>
       <tf_topic>/unused/diff_drive_tf</tf_topic>
       <odom_publish_frequency>1</odom_publish_frequency>
@@ -98,7 +612,6 @@
     </plugin>
   </gazebo>
 
-  <!-- OdometryPublisher being used instead of Diff Drive's odometry -->
   <gazebo>
     <plugin
       filename="ignition-gazebo-odometry-publisher-system"
@@ -174,6 +687,8 @@
           <p2>0.0</p2>
         </distortion>
       </camera>
+      <topic>camera/image_raw</topic>
+      <topic>camera/camera_info</topic>
       <always_on>1</always_on>
       <update_rate>30</update_rate>
       <visualize>true</visualize>
