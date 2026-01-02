@@ -221,65 +221,87 @@ We are constantly working to enhance the capabilities of the Autonomous Delivery
 ## Contributors
 
 **Development Team - HTI Mechatronics**
+<table align="center" width="100%">
 
-<table align="center">
+  <!-- ================= SOFTWARE TEAM ================= -->
   <tr>
-    <td align="center"><b>Mohammed Nasser Abdelhady</b></td>
-    <td align="center">
+    <th colspan="2" align="center">
+      <h2> Software Team</h2>
+    </th>
+  </tr>
+
+  <tr>
+    <td width="70%"><b>Mohammed Nasser Abdelhady</b></td>
+    <td width="30%" align="center">
       <a href="https://www.linkedin.com/in/mohamed-nasser-7857702b2/">
-        <img src="https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" />
+        <img src="https://img.shields.io/badge/LinkedIn-Profile-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white"/>
       </a>
     </td>
   </tr>
+
   <tr>
-    <td align="center"><b>Abdulrahman Muhammad Muhammad</b></td>
+    <td><b>Abdulrahman Muhammad Muhammad</b></td>
     <td align="center">
       <a href="https://www.linkedin.com/in/abdalrahmanabouelnaga">
-        <img src="https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" />
+        <img src="https://img.shields.io/badge/LinkedIn-Profile-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white"/>
       </a>
     </td>
   </tr>
+
   <tr>
-    <td align="center"><b>Jack Isaac Boshra</b></td>
+    <td><b>Jack Isaac Boshra</b></td>
     <td align="center">
       <a href="https://www.linkedin.com/in/jackoviic">
-        <img src="https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" />
+        <img src="https://img.shields.io/badge/LinkedIn-Profile-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white"/>
       </a>
     </td>
   </tr>
+
   <tr>
-    <td align="center"><b>Kareem Ahmed Taha</b></td>
-    <td align="center">
-      <a href="https://www.linkedin.com/in/karim-ahmed-657307263">
-        <img src="https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" />
-      </a>
-    </td>
-  </tr>
-  <tr>
-    <td align="center"><b>Seif Ayman Hassan</b></td>
-    <td align="center">
-      <a href="https://www.linkedin.com/in/seif-ayman-a98028384">
-        <img src="https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" />
-      </a>
-    </td>
-  </tr>
-  <tr>
-    <td align="center"><b>Islam Tohamy Shaaban</b></td>
-    <td align="center">
-      <a href="https://www.linkedin.com/in/eslam-tohamy">
-        <img src="https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" />
-      </a>
-    </td>
-  </tr>
-  <tr>
-    <td align="center"><b>Reem Sayed Saad</b></td>
+    <td><b>Reem Sayed Saad</b></td>
     <td align="center">
       <a href="https://www.linkedin.com/in/reem-sayed-07402b264">
-        <img src="https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" />
+        <img src="https://img.shields.io/badge/LinkedIn-Profile-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white"/>
       </a>
     </td>
   </tr>
+
+  <!-- ================= MECHANICAL TEAM ================= -->
+  <tr>
+    <th colspan="2" align="center">
+      <h2> Mechanical Team</h2>
+    </th>
+  </tr>
+
+  <tr>
+    <td><b>Kareem Ahmed Taha</b></td>
+    <td align="center">
+      <a href="https://www.linkedin.com/in/karim-ahmed-657307263">
+        <img src="https://img.shields.io/badge/LinkedIn-Profile-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white"/>
+      </a>
+    </td>
+  </tr>
+
+  <tr>
+    <td><b>Seif Ayman Hassan</b></td>
+    <td align="center">
+      <a href="https://www.linkedin.com/in/seif-ayman-a98028384">
+        <img src="https://img.shields.io/badge/LinkedIn-Profile-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white"/>
+      </a>
+    </td>
+  </tr>
+
+  <tr>
+    <td><b>Eslam Tohamy Shaaban</b></td>
+    <td align="center">
+      <a href="https://www.linkedin.com/in/eslam-tohamy">
+        <img src="https://img.shields.io/badge/LinkedIn-Profile-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white"/>
+      </a>
+    </td>
+  </tr>
+
 </table>
+
 
 <br />
 
