@@ -10,6 +10,10 @@ from std_msgs.msg import String, Bool
 from sensor_msgs.msg import CompressedImage
 import cv2
 import numpy as np
+import os
+import datetime
+from std_msgs.msg import String, Bool
+from sensor_msgs.msg import CompressedImage
 
 # Try pyzbar for robust QR decoding
 PYZBAR_AVAILABLE = False
@@ -35,11 +39,13 @@ class QrScanner(Node):
 
         # Publisher for scanner status (for monitoring)
         self.status_pub = self.create_publisher(String, '/robot/qr/scanner_status', 10)
+        
+        # Publisher for Mission Evidence Path (so YOLO knows where to save)
+        self.mission_path_pub = self.create_publisher(String, '/robot/mission_path', 10)
 
-        # Subscribe to camera topic (Compressed)
-        self.image_sub = self.create_subscription(
-            CompressedImage, '/camera/image_raw/compressed', self.image_callback, 10
-        )
+        # Subscribe to camera topic (Compressed) - INITIALIZED TO NONE
+        self.image_sub = None
+        # Subscription will be created in start_scanning()
 
         # Subscribe to app_goal_gateway status (publishes "succeeded" when robot arrives)
         self.status_sub = self.create_subscription(
@@ -51,12 +57,18 @@ class QrScanner(Node):
             String, '/app/goal_name', self.on_goal_name, 10
         )
 
+
         # Subscribe to order creation topics to reset timer state when a new order is placed
         self.order_create_sub = self.create_subscription(
             String, '/order/create', self.on_order_created, 10
         )
         self.order_json_sub = self.create_subscription(
             String, '/order/json', self.on_order_created, 10
+        )
+        
+        # Subscribe to like_detected to track mission success
+        self.like_sub = self.create_subscription(
+            Bool, '/like_detected', self.on_like_detected, 10
         )
 
         # Whether scanner is currently active
@@ -67,6 +79,10 @@ class QrScanner(Node):
         
         # Track active order ID for verification
         self.active_order_id = None
+        
+        # Mission Status Flags
+        self.mission_qr_scanned = False
+        self.mission_yolo_detected = False
 
         # Cooldown management for publishing QR scans
         self._last_scan_time = 0.0
@@ -74,7 +90,7 @@ class QrScanner(Node):
 
         # Timer used to schedule return-to-R403 after ARRIVAL
         self._return_timer = None
-        self._return_delay = 30.0  # seconds to wait before sending robot back to R403
+        self._return_delay = 120.0  # seconds to wait before sending robot back to R403
 
         # Flag to track if the return-to-R403 timer is already scheduled
         self._timer_scheduled = False
@@ -135,6 +151,18 @@ class QrScanner(Node):
                 self.get_logger().info(
                     '🚫 Robot arrived at R403 - skipping QR scan (waiting for new order)'
                 )
+                
+                # FINAL MISSION DEBRIEF (Requested by User)
+                # Print what happened during the trip we just returned from
+                report = (
+                    "\n================ MISSION REPORT (FINAL) ================\n"
+                    f"Previous Destination: {self.current_destination} (Arrived at R403)\n"
+                    f"QR Code Scanned:    {'[YES] ✅' if self.mission_qr_scanned else '[NO] ❌'}\n"
+                    f"YOLO Like Detected: {'[YES] 👍' if self.mission_yolo_detected else '[NO] ❌'}\n"
+                    "========================================================"
+                )
+                self.get_logger().info(report)
+
                 self._publish_status(
                     'skipped',
                     'Arrived at R403 - scanner not started (waiting for new order)'
@@ -146,6 +174,10 @@ class QrScanner(Node):
                 self.get_logger().info(
                     f'✅ Robot arrived at destination{destination_str} - starting QR scanner!'
                 )
+                
+                # Reset mission flags on arrival
+                self.mission_qr_scanned = False
+                self.mission_yolo_detected = False
 
                 self.start_scanning()
 
@@ -214,20 +246,55 @@ class QrScanner(Node):
                 
         except Exception as e:
             self.get_logger().debug(f'Error parsing order message: {e}')
+            
+    def on_like_detected(self, msg: Bool):
+        """Track if YOLO detected a 'like' gesture."""
+        if msg.data:
+            self.mission_yolo_detected = True
+            
+            # Requested by User: Return immediately if Like is detected!
+            # We give it 5 seconds to play audio and save image before moving.
+            if self._timer_scheduled:
+                self.get_logger().info('👍 Like Detected! Canceling waiting time and returning home in 5s...')
+                self._schedule_return_to_R403(delay=5.0)
 
     # -------------------------------------------------------------------------
     # Scanning logic
     # -------------------------------------------------------------------------
 
     def start_scanning(self):
+        if self.scanning:
+            return
+
         self.scanning = True
         self._frames_processed = 0
+        
+        # Create subscription if not exists
+        if self.image_sub is None:
+            self.image_sub = self.create_subscription(
+                CompressedImage, '/camera/image_raw/compressed', self.image_callback, 10
+            )
+            self.get_logger().info('Rx: Camera subscription created')
+
         self._publish_status('scanning', 'Scanner active (listening to camera topic)')
 
     def stop_scanning(self):
+        if not self.scanning:
+            return
+
         self.scanning = False
+        
+        # Destroy subscription to save bandwidth
+        if self.image_sub is not None:
+            self.destroy_subscription(self.image_sub)
+            self.image_sub = None
+            self.get_logger().info('Rx: Camera subscription destroyed')
+
         self._publish_status('stopped', f'Scanner stopped. Processed {self._frames_processed} frames.')
         self._frames_processed = 0
+        
+        # Close the UI window (Requested by User)
+        cv2.destroyAllWindows()
 
     def image_callback(self, msg):
         """
@@ -252,34 +319,64 @@ class QrScanner(Node):
             found_qr = False
             decoded_data = None
 
+            # Preprocessing for better detection (Ported from test_qr_camera.py)
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            
+            # Enhance contrast using CLAHE
+            clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+            enhanced = clahe.apply(gray)
+            
             if PYZBAR_AVAILABLE:
-                decoded = pyzbar.decode(frame)
-                if decoded:
-                    # Just take the first one
-                    decoded_data = decoded[0].data.decode('utf-8')
-                    found_qr = True
+                # Robust Multi-Pass Strategy: Try Gray, Enhanced, and Original
+                # (Order matters: Enhanced allows reading in low light/shadows)
+                for img_pass in [enhanced, gray, frame]:
+                    decoded = pyzbar.decode(img_pass)
+                    if decoded:
+                        decoded_data = decoded[0].data.decode('utf-8')
+                        found_qr = True
+                        break
             else:
                 # Fallback to OpenCV detector
                 detector = cv2.QRCodeDetector()
-                data, points, _ = detector.detectAndDecode(frame)
+                # Try simple gray first
+                data, points, _ = detector.detectAndDecode(gray)
                 if data:
                     decoded_data = data
                     found_qr = True
 
+            # Draw and Display (Requested by User)
+            display_frame = frame.copy()
+            
+            # Resize for better visibility (Requested by User)
+            display_frame = cv2.resize(display_frame, (640, 480))
+            
+            if found_qr and decoded_data:
+                # Draw Box (Green)
+                cv2.putText(display_frame, f"QR: {decoded_data}", (10, 50), 
+                           cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2)
+            else:
+                # Draw status (Red)
+                cv2.putText(display_frame, "SCANNING...", (10, 50), 
+                           cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 2)
+                           
+            cv2.imshow("QR Scanner Feed", display_frame)
+            cv2.waitKey(1)
+            
             if found_qr and decoded_data:
                 self.get_logger().info('🔍 QR code detected! Processing...')
-                self._process_scanned_data(decoded_data)
+                self._process_scanned_data(decoded_data, frame)
                 
         except Exception as e:
             self.get_logger().error(f'Error during QR decoding: {e}')
 
 
-    def _process_scanned_data(self, payload_str: str):
+    def _process_scanned_data(self, payload_str: str, frame):
         """
         Handle the scanned QR data:
         1. Publish to main /robot/qr/scanned topic (existing).
         2. Verify against active_order_id.
         3. Publish verification status.
+        4. Save Evidence (needs frame).
         """
         now = time.time()
         if now - self._last_scan_time < self._scan_cooldown:
@@ -315,12 +412,65 @@ class QrScanner(Node):
             verified_msg.data = is_verified
             self.verified_pub.publish(verified_msg)
             
+            # --- EVIDENCE SAVING (Requested by User) ---
+            if is_verified:
+                 try:
+                     # 1. Create Folder
+                     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                     folder_name = f"mission_{timestamp}"
+                     base_dir = os.path.expanduser("~/ws/mission_evidence")
+                     mission_dir = os.path.join(base_dir, folder_name)
+                     os.makedirs(mission_dir, exist_ok=True)
+                     
+                     # 2. Publish Path for YOLO
+                     path_msg = String()
+                     path_msg.data = mission_dir
+                     self.mission_path_pub.publish(path_msg)
+                     
+                     # 3. Save QR Image (Requested: Large and Clear)
+                     evidence_frame = frame.copy()
+                     # Resize to 640x480 for better visibility
+                     evidence_frame = cv2.resize(evidence_frame, (640, 480))
+                     
+                     # Overlay Text (Split if too long)
+                     text_str = f"ACCEPTED: {payload_str}"
+                     # Simple wrapping: taken first 40 chars, then next line
+                     y0, dy = 50, 30
+                     for i, line in enumerate([text_str[i:i+40] for i in range(0, len(text_str), 40)]):
+                         y = y0 + i*dy
+                         cv2.putText(evidence_frame, line, (10, y), 
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+                                    
+                     timestamp_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                     cv2.putText(evidence_frame, f"Time: {timestamp_str}", (10, 450), 
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 1)
+                                
+                     save_path = os.path.join(mission_dir, "qr_scan.jpg")
+                     cv2.imwrite(save_path, evidence_frame)
+                     self.get_logger().info(f"📸 QR Evidence saved (High Res) to: {save_path}")
+                     
+                 except Exception as e:
+                     self.get_logger().error(f"Failed to save evidence: {e}")
+            # -------------------------------------------
+            
             self._publish_status(
                 'qr_scanned', 
                 f'QR: {payload_str} | Verified: {is_verified}'
             )
             
+            # Mark mission flag
+            self.mission_qr_scanned = True
+            
             self._last_scan_time = now
+            
+            # Stop scanning immediately after success (Requested by User)
+            # This closes the window and lets YOLO take over.
+            if is_verified:
+                # Add a small delay/sleep to let the user see the "Green Box" for a split second?
+                # Actually, blocking here inside callback is bad, but a tiny sleep is OK or just close.
+                # Let's just stop. The evidence is saved anyway.
+                self.get_logger().info("✅ Scan Complete. Closing Scanner...")
+                self.stop_scanning()
             
         except Exception as e:
             self.get_logger().error(f'Publishing scan/verification failed: {e}')
@@ -354,6 +504,17 @@ class QrScanner(Node):
                     goal_msg = String()
                     goal_msg.data = 'R403'
                     self.app_goal_pub.publish(goal_msg)
+                    
+                    # LOG MISSION REPORT
+                    report = (
+                        "\n================ MISSION REPORT ================\n"
+                        f"Target Destination: {self.current_destination}\n"
+                        f"QR Code Scanned:    {'[YES] ✅' if self.mission_qr_scanned else '[NO] ❌'}\n"
+                        f"YOLO Like Detected: {'[YES] 👍' if self.mission_yolo_detected else '[NO] ❌'}\n"
+                        "================================================"
+                    )
+                    self.get_logger().info(report)
+                    
                     self.get_logger().info(f'Published return-to-R403 request')
                     self._timer_scheduled = False
                 except Exception as e:

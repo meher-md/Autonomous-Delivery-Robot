@@ -53,8 +53,9 @@ fi
 : "${ROS_DOMAIN_ID:=0}"
 : "${ROS_LOCALHOST_ONLY:=0}"   # 0 = allow LAN; set to 1 manually if you want loopback-only
 export ROS_DOMAIN_ID ROS_LOCALHOST_ONLY
-unset CYCLONEDDS_URI           # avoid custom Cyclone configs that can block participants
+export CYCLONEDDS_URI="file://${WS_ROOT}/cyclonedds.xml"
 echo "Using ROS_DOMAIN_ID=${ROS_DOMAIN_ID}, ROS_LOCALHOST_ONLY=${ROS_LOCALHOST_ONLY}"
+echo "Using CYCLONEDDS_URI=${CYCLONEDDS_URI}"
 
 # ---------- Launch ----------
 echo "==> launching ${PKG}/app.launch.py (rosbridge:${ROSBRIDGE_PORT}, web_video:${WEB_VIDEO_PORT}, slam:${START_SLAM}, map_http:${START_MAP_HTTP}, map_http_port:${MAP_HTTP_PORT})"

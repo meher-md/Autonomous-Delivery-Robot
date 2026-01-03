@@ -180,7 +180,6 @@ def generate_launch_description():
         DeclareLaunchArgument('server_timeout', default_value='8.0'),
         DeclareLaunchArgument('fuzzy_cutoff', default_value='0.7'),
 
-        # Nodes
         rosbridge,
         web_video,
         slam,
@@ -188,5 +187,5 @@ def generate_launch_description():
         app_goal_gateway,
         qr_generator,
         qr_scanner,
-        like_detector # تم حل التعارض وإضافة العقدة هنا
+        like_detector
     ])

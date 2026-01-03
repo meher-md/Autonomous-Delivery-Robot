@@ -24,9 +24,8 @@ class LikeDetectorNode(Node):
         self.get_logger().info("ROS 2 Publisher for /like_detected is ready.")
 
         # Subscriptions
-        self.image_sub = self.create_subscription(
-            CompressedImage, '/camera/image_raw/compressed', self.image_callback, 10
-        )
+        # Subscriptions
+        self.image_sub = None # Created dynamically
         self.status_sub = self.create_subscription(
             String, '/app/goal_status', self.on_status, 10
         )
@@ -36,6 +35,11 @@ class LikeDetectorNode(Node):
         # NEW: Listen for QR verification result
         self.verified_sub = self.create_subscription(
             Bool, '/robot/qr/verified', self.on_verified, 10
+        )
+        
+        # Subscribe to Mission Path (receive folder from qr_scanner)
+        self.mission_path_sub = self.create_subscription(
+            String, '/robot/mission_path', self.on_mission_path, 10
         )
         
         pkg_share_dir = get_package_share_directory('yolo_like_detector')
@@ -61,7 +65,7 @@ class LikeDetectorNode(Node):
         self.img_height = self.input_shape[2]
         self.img_width = self.input_shape[3]
         
-        self.confidence_threshold = 0.5
+        self.confidence_threshold = 0.70 # Stricter threshold for high certainty
         
         pygame.mixer.init()
         
@@ -69,6 +73,10 @@ class LikeDetectorNode(Node):
         self.detection_enabled = False
         self.detection_made = False
         self.current_destination = None
+        self.current_mission_path = None 
+        
+        # Countdown Timer (Requested by User)
+        self.target_start_time = 0.0
         
         self.get_logger().info("Like Detector Node (Passive) ready. Waiting for QR Verification...")
     
@@ -126,8 +134,7 @@ class LikeDetectorNode(Node):
             # If robot moves away, disable detection immediately
             if self.detection_enabled:
                 self.get_logger().info("Robot left destination - Disabling Like Detection.")
-                self.detection_enabled = False
-                cv2.destroyAllWindows()
+                self.stop_detection()
 
     def on_verified(self, msg: Bool):
         """
@@ -135,11 +142,21 @@ class LikeDetectorNode(Node):
         """
         if msg.data: # True => Verified
             if not self.detection_enabled:
-                self.get_logger().info("✅ QR Verified! Enabling Like Detection sequence.")
-                self.detection_enabled = True
+                self.get_logger().info("✅ QR Verified! Starting 5s Countdown...")
+                
+                # Set countdown target (5 seconds from now)
+                self.target_start_time = time.time() + 5.0
+                
+                self.start_detection()
                 self.detection_made = False  # Reset for new interaction
+                self._yolo_saved = False # Reset save flag
         else:
             self.get_logger().info("QR Verification failed (or false signal received).")
+
+    def on_mission_path(self, msg: String):
+        """Receive the folder path to save evidence images."""
+        self.current_mission_path = msg.data
+        self.get_logger().info(f"📂 Mission folder set to: {self.current_mission_path}")
 
 
     def image_callback(self, msg):
@@ -150,36 +167,89 @@ class LikeDetectorNode(Node):
         if frame is None:
             return
 
+        # COUNTDOWN LOGIC (Requested by User)
+        time_left = self.target_start_time - time.time()
+        if time_left > 0:
+            # Show Countdown
+            display_frame = frame.copy()
+            display_frame = cv2.resize(display_frame, (640, 480))
+            
+            # Big Red Countdown
+            text = f"GET READY: {int(time_left) + 1}"
+            cv2.putText(display_frame, text, (150, 240), 
+                       cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 4)
+            
+            cv2.imshow("YOLOv8 Like Detection", display_frame)
+            cv2.waitKey(1)
+            return # SKIP DETECTION while counting down
+
         try:
             input_tensor = self.preprocess_image(frame)
             outputs = self.session.run(self.output_names, {self.input_name: input_tensor})
             detections = self.postprocess_detections(outputs, frame.shape)
             
-            like_detected = any(det['class_name'] == 'like' for det in detections)
-            
             msg_out = Bool()
+            
+            # Check for 'like' (case-insensitive)
+            like_detected = any(d['class_name'].lower() == 'like' for d in detections)
+            
             msg_out.data = like_detected
             self.publisher_.publish(msg_out)
             
             if like_detected and not self.detection_made:
-                like_dets = [d for d in detections if d['class_name'] == 'like']
+                like_dets = [d for d in detections if d['class_name'].lower() == 'like']
                 self.get_logger().info(f"Like detected! Count: {len(like_dets)}")
                 self.detection_made = True
                 self.play_thank_you_message()
             
-            # Visualization
+            # Visualization & Saving
             display_frame = frame.copy()
             display_frame = self.draw_detections(display_frame, detections)
             
             info_text = f"Like: {'YES' if like_detected else 'NO'}"
-            cv2.putText(display_frame, info_text, (10, 30), 
-                       cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+            cv2.putText(display_frame, info_text, (10, 50), 
+                       cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2)
             
+            # Resize for consistent UI (Requested by User)
+            display_frame = cv2.resize(display_frame, (640, 480))
             cv2.imshow("YOLOv8 Like Detection", display_frame)
             cv2.waitKey(1)
             
+            # Save Evidence if detected
+            if like_detected and self.current_mission_path and not getattr(self, '_yolo_saved', False):
+                 try:
+                     save_path = os.path.join(self.current_mission_path, "yolo_like.jpg")
+                     # Add timestamp
+                     timestamp = time.strftime("%H:%M:%S")
+                     cv2.putText(display_frame, f"Time: {timestamp}", (10, 450), 
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 1)
+                     
+                     cv2.imwrite(save_path, display_frame)
+                     self.get_logger().info(f"📸 YOLO Evidence saved to: {save_path}")
+                     self._yolo_saved = True # Prevent spam saving
+                 except Exception as e:
+                     self.get_logger().error(f"Failed to save YOLO evidence: {e}")
+            
         except Exception as e:
             self.get_logger().error(f"Error during inference: {e}")
+
+    def start_detection(self):
+        if self.detection_enabled:
+            return
+        self.detection_enabled = True
+        if self.image_sub is None:
+            self.image_sub = self.create_subscription(
+                 CompressedImage, '/camera/image_raw/compressed', self.image_callback, 10
+            )
+            self.get_logger().info("Rx: Camera subscription created (LikeDetector)")
+
+    def stop_detection(self):
+        self.detection_enabled = False
+        if self.image_sub is not None:
+            self.destroy_subscription(self.image_sub)
+            self.image_sub = None
+            self.get_logger().info("Rx: Camera subscription destroyed (LikeDetector)")
+        cv2.destroyAllWindows()
     
     # -------------------------------------------------------------------------
     # Inference Helpers
@@ -228,12 +298,21 @@ class LikeDetectorNode(Node):
         return detections
     
     def draw_detections(self, image, detections):
-        for det in detections:
+        # Requested: Draw ONLY ONE box (the best one)
+        if not detections:
+            return image
+            
+        # Find best detection by confidence
+        best_det = max(detections, key=lambda x: x['confidence'])
+        
+        # Wrap in list to reuse loop logic (but only iterate once)
+        for det in [best_det]:
             x1, y1, x2, y2 = det['bbox']
             confidence = det['confidence']
             class_name = det['class_name']
             
-            color = (0, 255, 0) if class_name == 'like' else (255, 0, 0)
+            # Green if like, Blue otherwise
+            color = (0, 255, 0) if class_name.lower() == 'like' else (255, 0, 0)
             cv2.rectangle(image, (x1, y1), (x2, y2), color, 2)
             
             label = f"{class_name}: {confidence:.2f}"
