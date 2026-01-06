@@ -24,6 +24,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
+            'order_logger_node = order_logger.order_logger_node:main',
         ],
     },
 )

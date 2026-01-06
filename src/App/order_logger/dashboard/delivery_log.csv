@@ -70,3 +70,4 @@ Date_Full,Year,Month,Day_Name,Time_Arrival,Order_ID,Target_Location,QR_Scan_Stat
 01-05-26,2026,January,Monday,19:15:00,d6558843,A,Verified,Thumb Up,31,1.1,5.6,Delivered
 01-05-26,2026,January,Monday,19:00:00,e60b2fd7,A,Verified,Thumb Up,36,2.7,6.1,Delivered
 01-05-26,2026,January,Monday,19:25:00,df3bbaf7,A,Verified,Thumb Up,33,1.4,6.0,Delivered
+2026-01-06,2026,January,Tuesday,17:10:57,TEST_VERIFY_999,TEST_LOC,Pending,Pending,0,0.0,0.0,In Progress

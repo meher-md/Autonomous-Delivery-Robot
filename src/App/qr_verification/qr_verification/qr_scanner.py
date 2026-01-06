@@ -117,6 +117,10 @@ class QrScanner(Node):
     # AUDIO HELPER (Non-Blocking)
     # -------------------------------------------------------------------------
     def speak(self, text):
+        # Stop any currently playing audio immediately (Interruption)
+        if pygame.mixer.get_init():
+            pygame.mixer.music.stop()
+
         def _speak_thread():
             with self.synthesizer_lock:
                 try:
@@ -302,6 +306,10 @@ class QrScanner(Node):
         if msg.data:
             self.mission_yolo_detected = True
             
+            # Stop any verification audio from this node (prevent overlap with YOLO's "Thank You")
+            if pygame.mixer.get_init():
+                pygame.mixer.music.stop()
+            
             # Requested by User: Return immediately if Like is detected!
             # We give it 5 seconds to play audio and save image before moving.
             if self._timer_scheduled:
@@ -378,11 +386,12 @@ class QrScanner(Node):
             
             # Big Red Countdown
             seconds = int(time_left) + 1
-            text = f"SCANNING STARTS IN: {seconds}"
+            text = f"GET READY: {seconds}"
             
             # Centered text (approx)
-            cv2.putText(display_frame, text, (50, 240), 
-                       cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 255), 3)
+            # Use same font scale (1.5) and thickness (4) as YOLO for consistency
+            cv2.putText(display_frame, text, (100, 240), 
+                       cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 4)
             
             cv2.imshow("QR Scanner Feed", display_frame)
             cv2.waitKey(1)
@@ -494,42 +503,84 @@ class QrScanner(Node):
             # --- EVIDENCE SAVING (Requested by User) ---
             if is_verified:
                  try:
-                     # 1. Create Folder
-                     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-                     folder_name = f"mission_{timestamp}"
-                     base_dir = os.path.expanduser("~/ws/mission_evidence")
-                     mission_dir = os.path.join(base_dir, folder_name)
+                     # 1. Create Folder Structure: year/Month/day/mission_<timestamp>
+                     now_dt = datetime.datetime.now()
+                     year_str = now_dt.strftime("%Y")
+                     month_str = now_dt.strftime("%B") # Full month name e.g. January
+                     day_str = now_dt.strftime("%d")
+                     # Use order_id in folder name if available, else just timestamp
+                     mission_id = self.active_order_id if self.active_order_id else f"{int(now)}"
+                     folder_name = f"mission_{mission_id}" # or stick to timestamp as primary unique id? User asked for mission_<id>?
+                     # Let's stick to a timestamp based ID to avoid collisions if re-delivering same order, 
+                     # but maybe append order ID for clarity.
+                     # User example: mission_191618 (looks like time or random). 
+                     # Let's use timestamp for uniqueness.
+                     folder_name = f"mission_{int(now)}"
+                     
+                     base_dir = os.path.expanduser("~/ws/mission_proof")
+                     mission_dir = os.path.join(base_dir, year_str, month_str, day_str, folder_name)
                      os.makedirs(mission_dir, exist_ok=True)
                      
+                     self.get_logger().info(f"📂 Created mission proof directory: {mission_dir}")
+
                      # 2. Publish Path for YOLO
                      path_msg = String()
                      path_msg.data = mission_dir
                      self.mission_path_pub.publish(path_msg)
                      
-                     # 3. Save QR Image (Requested: Large and Clear)
+                     # 3. Copy Original Generated QR (if available)
+                     # We need to extract the order ID from the scanned payload to find the file.
+                     # Payload expected to be JSON: {"order_id": "...", ...}
+                     scanned_order_id = None
+                     try:
+                         # Try parsing as JSON first
+                         scanned_json = json.loads(payload_str)
+                         scanned_order_id = scanned_json.get('order_id')
+                     except json.JSONDecodeError:
+                         # If it's just a raw string, maybe that is the order ID?
+                         scanned_order_id = payload_str.strip()
+                     
+                     if scanned_order_id:
+                         # Look for the file in generated_qr
+                         gen_qr_dir = os.path.expanduser("~/ws/generated_qr")
+                         # Filename format from qr_generator.py: f"qr_{order_id}.png"
+                         gen_filename = f"qr_{scanned_order_id}.png"
+                         src_path = os.path.join(gen_qr_dir, gen_filename)
+                         
+                         if os.path.exists(src_path):
+                             dst_path = os.path.join(mission_dir, f"generated_qr_{scanned_order_id}.png")
+                             import shutil
+                             shutil.copy2(src_path, dst_path)
+                             self.get_logger().info(f"📄 Copied original QR to: {dst_path}")
+                         else:
+                             self.get_logger().warn(f"⚠️ Original generated QR file not found at: {src_path}")
+                     
+                     # 4. Save Scanned Evidence (The Camera Feed)
                      evidence_frame = frame.copy()
-                     # Resize to 640x480 for better visibility
+                     # Resize to 640x480 
                      evidence_frame = cv2.resize(evidence_frame, (640, 480))
                      
-                     # Overlay Text (Split if too long)
-                     text_str = f"ACCEPTED: {payload_str}"
-                     # Simple wrapping: taken first 40 chars, then next line
-                     y0, dy = 50, 30
+                     # Overlay Text
+                     text_str = f"SCANNED: {payload_str}"
+                     y0, dy = 30, 25
+                     # Wrap text
                      for i, line in enumerate([text_str[i:i+40] for i in range(0, len(text_str), 40)]):
                          y = y0 + i*dy
                          cv2.putText(evidence_frame, line, (10, y), 
-                                    cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
                                     
-                     timestamp_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                     cv2.putText(evidence_frame, f"Time: {timestamp_str}", (10, 450), 
+                     timestamp_str = now_dt.strftime("%Y-%m-%d %H:%M:%S")
+                     cv2.putText(evidence_frame, f"Time: {timestamp_str}", (10, 460), 
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 1)
                                 
                      save_path = os.path.join(mission_dir, "qr_scan.jpg")
                      cv2.imwrite(save_path, evidence_frame)
-                     self.get_logger().info(f"📸 QR Evidence saved (High Res) to: {save_path}")
+                     self.get_logger().info(f"📸 Saved scan evidence to: {save_path}")
                      
                  except Exception as e:
                      self.get_logger().error(f"Failed to save evidence: {e}")
+                     import traceback
+                     traceback.print_exc()
             # -------------------------------------------
             
             self._publish_status(

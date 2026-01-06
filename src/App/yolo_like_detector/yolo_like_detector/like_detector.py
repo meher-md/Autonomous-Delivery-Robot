@@ -176,7 +176,7 @@ class LikeDetectorNode(Node):
             
             # Big Red Countdown
             text = f"GET READY: {int(time_left) + 1}"
-            cv2.putText(display_frame, text, (150, 240), 
+            cv2.putText(display_frame, text, (100, 240), 
                        cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 4)
             
             cv2.imshow("YOLOv8 Like Detection", display_frame)

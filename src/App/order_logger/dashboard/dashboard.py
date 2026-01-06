@@ -15,7 +15,8 @@ st.set_page_config(
 )
 
 # Constants
-CSV_FILE = os.path.expanduser("~/ws/delivery_log.csv")
+# Constants
+CSV_FILE = os.path.join(os.path.dirname(__file__), "delivery_log.csv")
 REFRESH_RATE = 5  # seconds
 
 # Title with Style
@@ -40,8 +41,11 @@ st.sidebar.header("Filters")
 
 # --- Branding (Sidebar) ---
 # Display HTI Logo (Reverted to Original)
-if os.path.exists("hti_logo.jpg"):
-    st.sidebar.image("hti_logo.jpg", width=150)
+base_dir = os.path.dirname(__file__)
+
+hti_logo_path = os.path.join(base_dir, "hti_logo.jpg")
+if os.path.exists(hti_logo_path):
+    st.sidebar.image(hti_logo_path, width=150)
     
 st.sidebar.markdown("**Higher Technological Institute**")
 st.sidebar.markdown("*10th of Ramadan City*")
@@ -51,14 +55,15 @@ st.sidebar.markdown("---")
 col_logo, col_title = st.columns([1, 4])
 with col_logo:
     # Use Processed Dashboard Logo (Original Colors + Transparent)
-    if os.path.exists("robot_logo_dashboard.png"):
-        st.image("robot_logo_dashboard.png", width=180)
-    elif os.path.exists("robot_logo_inverted.png"):
-        st.image("robot_logo_inverted.png", width=180)
-    elif os.path.exists("robot_logo_white.png"):
-        st.image("robot_logo_white.png", width=180)
-    elif os.path.exists("robot_logo_black.png"):
-        st.image("robot_logo_black.png", width=180)
+    robot_logo_path = None
+    for name in ["robot_logo_dashboard.png", "robot_logo_inverted.png",  "robot_logo_white.png", "robot_logo_black.png"]:
+        p = os.path.join(base_dir, name)
+        if os.path.exists(p):
+            robot_logo_path = p
+            break
+            
+    if robot_logo_path:
+        st.image(robot_logo_path, width=180)
     else:
         st.write("🤖")
 
@@ -261,17 +266,22 @@ class PDFReport(FPDF):
     def header(self):
         # Logos for PDF
         # We enforce a smaller height/width to ensure they fit above the line.
+        base_dir = os.path.dirname(__file__)
         
-        if os.path.exists("hti_logo.jpg"):
-            self.image("hti_logo.jpg", 10, 5, 25) # Left Logo (Smaller, Y=5)
+        hti_logo = os.path.join(base_dir, "hti_logo.jpg")
+        if os.path.exists(hti_logo):
+            self.image(hti_logo, 10, 5, 25) # Left Logo (Smaller, Y=5)
             
         # Use Robot Logo (Dashboard or Original)
-        if os.path.exists("robot_logo_dashboard.png"):
-             self.image("robot_logo_dashboard.png", 175, 5, 25)
-        elif os.path.exists("robot_logo_orig.png"):
-             self.image("robot_logo_orig.png", 175, 5, 25)
-        elif os.path.exists("robot_logo_black.png"): # Fallback
-            self.image("robot_logo_black.png", 175, 5, 25)
+        robot_logo_path = None
+        for name in ["robot_logo_dashboard.png", "robot_logo_orig.png", "robot_logo_black.png"]:
+            p = os.path.join(base_dir, name)
+            if os.path.exists(p):
+                robot_logo_path = p
+                break
+        
+        if robot_logo_path:
+             self.image(robot_logo_path, 175, 5, 25)
 
         # Title
         self.set_y(10) # Align Title with logos
@@ -301,12 +311,44 @@ def create_pdf_charts(df):
     # 1. Pie Chart (Success vs Failed)
     if not df.empty:
         status_counts = df['Order_Final_Status'].value_counts()
-        fig1, ax1 = plt.subplots(figsize=(5, 4))
-        # Use simple colors
-        colors = ['#28a745', '#dc3545', '#ffc107', '#17a2b8'] # Green, Red, Yellow, Cyan
-        wedges, texts, autotexts = ax1.pie(status_counts, labels=status_counts.index, autopct='%1.1f%%', startangle=90, colors=colors)
+        # Square figure to maximize circle size
+        fig1, ax1 = plt.subplots(figsize=(6, 6)) 
+        
+        # Consistent Color Map
+        color_map = {
+            'Delivered': '#00C851',    # Vibrant Green (Material Design)
+            'In Progress': '#dc3545',  # Red
+            'Pending': '#dc3545',      # Red
+            'Failed': '#343a40',       # Dark Gray/Black
+            'Cancelled': '#6c757d'     # Gray
+        }
+        
+        # Generate colors list based on index
+        colors = [color_map.get(status, '#17a2b8') for status in status_counts.index]
+        
+        wedges, texts, autotexts = ax1.pie(
+            status_counts, 
+            labels=None, 
+            autopct='%1.1f%%', 
+            startangle=90, 
+            colors=colors,
+            pctdistance=0.5, 
+            radius=1.1       # Slightly smaller to avoid distinct overlap feeling
+        )
+        
         ax1.axis('equal')
-        plt.title("Delivery Success Rate")
+        plt.title("Delivery Success Rate", fontsize=14, pad=10)
+        
+        # Legend at BOTTOM 
+        legend_labels = status_counts.index
+        ax1.legend(
+            wedges, 
+            legend_labels,
+            title="Status",
+            loc="upper center", 
+            bbox_to_anchor=(0.5, -0.05),
+            ncol=2
+        )
         
         # Save
         with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp:
@@ -317,9 +359,10 @@ def create_pdf_charts(df):
     # 2. Bar Chart (Orders by Location)
     if not df.empty:
         loc_counts = df['Target_Location'].value_counts()
-        fig2, ax2 = plt.subplots(figsize=(6, 4))
+        # Square figure to match Pie Chart's visual weight
+        fig2, ax2 = plt.subplots(figsize=(6, 6)) 
         ax2.bar(loc_counts.index, loc_counts.values, color='#007bff')
-        plt.title("Orders by Destination")
+        plt.title("Orders by Destination", fontsize=14)
         plt.xlabel("Location")
         plt.ylabel("Count")
         
@@ -332,6 +375,26 @@ def create_pdf_charts(df):
     return chart_paths
 
 def generate_pdf(dataframe, period_name):
+    # ... (Keep existing code above)
+    pdf = PDFReport()
+    pdf.alias_nb_pages()
+    pdf.add_page()
+    
+    # --- 1. Report Info ---
+    pdf.set_y(40) # Start below header
+    # ... (omitted unchanging parts for brevity if possible, keeping context)
+    # Actually, replace_file_content needs exact match or full block.
+    # To avoid errors, I will focus on the specific block starting from generate_pdf charts section logic if possible,
+    # or just use the chart generation block and the spacing block.
+    # Since they are far apart, I need a larger block or multiple edits.
+    # The tool supports 'ReplacementChunks' or I can just provide the whole affected region.
+    # The file is not too huge, but let's try to target the exact lines for radius and spacing.
+    # The prompt tool description says "multiple edits across a single file, use the multi_replace_file_content tool".
+    # I will use multi_replace instead to be precise.
+    pass
+
+def generate_pdf(dataframe, period_name):
+    # ... (Keep existing code above)
     pdf = PDFReport()
     pdf.alias_nb_pages()
     pdf.add_page()
@@ -344,7 +407,7 @@ def generate_pdf(dataframe, period_name):
     pdf.set_font("Arial", '', 10)
     pdf.cell(0, 6, f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}", 0, 1)
     
-    # --- 2. KPI Cards (Executive Summary) ---
+    # --- 2. KPI Cards ---
     pdf.ln(5)
     pdf.set_font("Arial", 'B', 14)
     pdf.cell(0, 10, "Executive Summary", 0, 1)
@@ -354,23 +417,21 @@ def generate_pdf(dataframe, period_name):
     delivered = len(dataframe[dataframe['Order_Final_Status'] == 'Delivered'])
     success_pct = (delivered / total * 100) if total > 0 else 0
     
-    # Avg Trip Duration (Mock logic if real data missing, but let's try to parse 'Trip_Duration_Min')
+    # Avg Trip Duration
     avg_dur = 0.0
     if not dataframe.empty and 'Trip_Duration_Min' in dataframe.columns:
-         # Clean data: convert to numeric, coerce errors
          dems = pd.to_numeric(dataframe['Trip_Duration_Min'], errors='coerce')
          avg_dur = dems.mean()
          if pd.isna(avg_dur): avg_dur = 0.0
             
     # Draw 3 Cards
-    # Y Position
     card_y = pdf.get_y() + 2
     card_w = 60
     card_h = 25
     gap = 5
     
     # Card 1: Total
-    pdf.set_fill_color(240, 245, 255) # Light Blue
+    pdf.set_fill_color(240, 245, 255) 
     pdf.rect(10, card_y, card_w, card_h, 'F')
     pdf.set_xy(10, card_y + 5)
     pdf.set_font("Arial", '', 10)
@@ -380,7 +441,7 @@ def generate_pdf(dataframe, period_name):
     pdf.cell(card_w, 10, f"{total}", 0, 0, 'C')
     
     # Card 2: Success
-    pdf.set_fill_color(240, 255, 240) # Light Green
+    pdf.set_fill_color(240, 255, 240) 
     pdf.rect(10 + card_w + gap, card_y, card_w, card_h, 'F')
     pdf.set_xy(10 + card_w + gap, card_y + 5)
     pdf.set_font("Arial", '', 10)
@@ -391,7 +452,7 @@ def generate_pdf(dataframe, period_name):
     pdf.cell(card_w, 10, f"{success_pct:.1f}%", 0, 0, 'C')
 
     # Card 3: Avg Time
-    pdf.set_fill_color(255, 250, 240) # Light Orange
+    pdf.set_fill_color(255, 250, 240)
     pdf.rect(10 + 2*(card_w + gap), card_y, card_w, card_h, 'F')
     pdf.set_xy(10 + 2*(card_w + gap), card_y + 5)
     pdf.set_font("Arial", '', 10)
@@ -401,26 +462,29 @@ def generate_pdf(dataframe, period_name):
     pdf.set_text_color(255, 140, 0)
     pdf.cell(card_w, 10, f"{avg_dur:.1f} min", 0, 0, 'C')
     
-    pdf.set_y(card_y + card_h + 10)
+    # Increased spacing 
+    pdf.set_y(card_y + card_h + 45)
     
     # --- 3. Charts Section ---
     pdf.set_font("Arial", 'B', 14)
     pdf.set_text_color(0)
     pdf.cell(0, 10, "Analytics", 0, 1)
     
-    # Generate Charts
     charts = create_pdf_charts(dataframe)
     
     # Embed Charts side-by-side
     start_y_charts = pdf.get_y()
     if 'pie' in charts:
-        pdf.image(charts['pie'], x=15, y=start_y_charts, w=80)
+        # Huge Square Image
+        pdf.image(charts['pie'], x=8, y=start_y_charts, w=95) 
     if 'bar' in charts:
-        pdf.image(charts['bar'], x=110, y=start_y_charts, w=85)
+        # Pushed to right and made larger (square)
+        pdf.image(charts['bar'], x=108, y=start_y_charts, w=95)
         
-    pdf.set_y(start_y_charts + 70) # Move down past charts
+    # --- 4. Detailed Logs (Enhanced Table) - Page 2 ---
+    pdf.add_page() 
+    pdf.set_y(45) # Start below header on new page
     
-    # --- 4. Detailed Logs (Enhanced Table) ---
     pdf.set_font("Arial", 'B', 14)
     pdf.set_text_color(0, 50, 100)
     pdf.cell(0, 10, "Mission Logs (Recent 50)", 0, 1)
