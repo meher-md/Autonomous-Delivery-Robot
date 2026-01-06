@@ -12,10 +12,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.*
 import java.net.InetAddress
+import java.net.Inet4Address
+import java.net.NetworkInterface
 import java.net.InetSocketAddress
 import java.net.Socket
-import java.net.NetworkInterface
-import java.net.Inet4Address
 
 data class Device(val ip: String, val name: String)
 
@@ -45,17 +45,6 @@ class ScanActivity : AppCompatActivity() {
         }
 
         startScan()
-        
-        // Backup Box Logic
-        val etManualIp = findViewById<android.widget.EditText>(R.id.etManualIp)
-        findViewById<View>(R.id.btnManualConnect).setOnClickListener {
-             val ip = etManualIp.text.toString().trim()
-             if (ip.isNotEmpty()) {
-                 Prefs.saveIp(this, ip)
-                 setResult(RESULT_OK)
-                 finish()
-             }
-        }
     }
 
     private fun startScan() {
@@ -66,36 +55,70 @@ class ScanActivity : AppCompatActivity() {
 
         scanJob = CoroutineScope(Dispatchers.IO).launch {
             try {
-                // Modified scan logic: try subnet scan and local fallback
-                val wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
-                val myIps = getLocalIpAddresses()
-                val allJobs = mutableListOf<Deferred<Unit>>()
+                // Collect all local IPs to identify possible subnets
+                val  localIps = mutableSetOf<String>()
 
-                // 1. Wifi Scan (subnet)
+                // 1. Try WifiManager (Good for Client mode)
+                val wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
                 if (wifiManager != null) {
-                    val dhcpInfo = wifiManager.dhcpInfo
-                    if (dhcpInfo != null && dhcpInfo.ipAddress != 0) {
-                         val myIp = formatIp(dhcpInfo.ipAddress)
-                         val subnet = myIp.substringBeforeLast(".") + "."
-                         
-                         val subnetJobs = (1..254).map { i ->
-                            async {
-                                val targetIp = "$subnet$i"
-                                checkIp(targetIp)
-                            }
-                         }
-                         allJobs.addAll(subnetJobs)
-                    }
+                     val dhcpInfo = wifiManager.dhcpInfo
+                     if (dhcpInfo != null && dhcpInfo.ipAddress != 0) {
+                         localIps.add(formatIp(dhcpInfo.ipAddress))
+                     }
                 }
                 
-                // 2. Scan fallback (localhost or other interfaces if needed)
-                // For now, simple subnet scan is usually enough. 
-                // We'll trust the user to use manual box if scan fails.
+                // 2. Try NetworkInterfaces (Good for Hotspot Host mode & Fallback)
+                val interfaceIps = getLocalIpAddresses()
+                localIps.addAll(interfaceIps)
 
+                if (localIps.isEmpty()) {
+                     withContext(Dispatchers.Main) {
+                        android.widget.Toast.makeText(this@ScanActivity, "Could not determine any Device IP", android.widget.Toast.LENGTH_SHORT).show()
+                        findViewById<View>(R.id.progressBar).visibility = View.GONE
+                    }
+                    return@launch
+                }
+                
+                // Identify unique subnets (e.g. 192.168.43. and 10.0.0.)
+                val subnets = localIps.map { it.substringBeforeLast(".") + "." }.distinct()
+                
+                // Scan all subnets in parallel
+                val allJobs = mutableListOf<Deferred<Unit>>()
+
+                for (subnet in subnets) {
+                    val subnetJobs = (1..254).map { i ->
+                        async {
+                            val targetIp = "$subnet$i"
+                            // Skip our own IPs to avoid confusion (optional, but good practice)
+                            if (localIps.contains(targetIp)) return@async
+                            
+                            try {
+                                val socket = Socket()
+                                socket.connect(InetSocketAddress(targetIp, 9090), 500)
+                                socket.close()
+                                
+                                val name = try {
+                                    InetAddress.getByName(targetIp).canonicalHostName
+                                } catch (e: Exception) { targetIp }
+                                
+                                withContext(Dispatchers.Main) {
+                                    // Avoid duplicates in UI
+                                    if (devices.none { it.ip == targetIp }) {
+                                        devices.add(Device(targetIp, name))
+                                        adapter.notifyItemInserted(devices.size - 1)
+                                    }
+                                }
+                            } catch (e: Exception) {
+                                // Not found
+                            }
+                        }
+                    }
+                    allJobs.addAll(subnetJobs)
+                }
                 allJobs.awaitAll()
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    android.widget.Toast.makeText(this@ScanActivity, "Scan incomplete: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
+                    android.widget.Toast.makeText(this@ScanActivity, "Scan error: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
                 }
             } finally {
                 withContext(Dispatchers.Main) {
@@ -105,25 +128,6 @@ class ScanActivity : AppCompatActivity() {
                     }
                 }
             }
-        }
-    }
-    
-    private suspend fun checkIp(targetIp: String) {
-        try {
-            val socket = Socket()
-            socket.connect(InetSocketAddress(targetIp, 9090), 200)
-            socket.close()
-            
-            val name = try {
-                InetAddress.getByName(targetIp).canonicalHostName
-            } catch (e: Exception) { targetIp }
-            
-            withContext(Dispatchers.Main) {
-                devices.add(Device(targetIp, name))
-                adapter.notifyItemInserted(devices.size - 1)
-            }
-        } catch (e: Exception) {
-            // Not found
         }
     }
 
