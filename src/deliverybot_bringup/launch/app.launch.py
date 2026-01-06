@@ -1,5 +1,5 @@
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, ExecuteProcess
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
@@ -187,5 +187,15 @@ def generate_launch_description():
         app_goal_gateway,
         qr_generator,
         qr_scanner,
-        like_detector
+        like_detector,
+        ExecuteProcess(
+            cmd=[
+                'python3', '-m', 'streamlit', 'run', 
+                os.path.join(os.environ['HOME'], 'ws/src/App/order_logger/dashboard/dashboard.py'),
+                '--server.port', '8501',
+                '--server.headless', 'false'
+            ],
+            cwd=os.path.join(os.environ['HOME'], 'ws/src/App/order_logger/dashboard'),
+            output='screen'
+        )
     ])

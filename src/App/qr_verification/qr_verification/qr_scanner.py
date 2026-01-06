@@ -14,6 +14,9 @@ import os
 import datetime
 from std_msgs.msg import String, Bool
 from sensor_msgs.msg import CompressedImage
+import asyncio
+import edge_tts
+import pygame
 
 # Try pyzbar for robust QR decoding
 PYZBAR_AVAILABLE = False
@@ -101,7 +104,48 @@ class QrScanner(Node):
         self.get_logger().info(
             f'qr_scanner ready (listening to /image_raw/compressed). Pyzbar={PYZBAR_AVAILABLE}, OpenCV={cv2.__version__}'
         )
+        
+        # Audio System
+        pygame.mixer.init()
+        self.synthesizer_lock = threading.Lock()
+        
+        self.scan_start_time = 0.0 # For countdown
+
         self._publish_status('initialized', 'Scanner initialized, waiting for arrival...')
+
+    # -------------------------------------------------------------------------
+    # AUDIO HELPER (Non-Blocking)
+    # -------------------------------------------------------------------------
+    def speak(self, text):
+        def _speak_thread():
+            with self.synthesizer_lock:
+                try:
+                    self.get_logger().info(f"🔊 Speaking: {text}")
+                    
+                    # Use Christopher Neural Voice
+                    voice = "en-US-ChristopherNeural"
+                    filename = f"/tmp/qr_audio_{int(time.time())}.mp3"
+                    
+                    async def _gen_audio():
+                        communicate = edge_tts.Communicate(text, voice)
+                        await communicate.save(filename)
+                        
+                    # Run async generation in this thread
+                    asyncio.run(_gen_audio())
+                    
+                    pygame.mixer.music.load(filename)
+                    pygame.mixer.music.play()
+                    
+                    while pygame.mixer.music.get_busy():
+                        time.sleep(0.1)
+                        
+                    os.remove(filename)
+                except Exception as e:
+                    self.get_logger().error(f"Audio error: {e}")
+        
+        t = threading.Thread(target=_speak_thread)
+        t.daemon = True
+        t.start()
 
     # -------------------------------------------------------------------------
     # Helper: Manual Image Conversion (NumPy 2.x compatible)
@@ -180,6 +224,9 @@ class QrScanner(Node):
                 self.mission_yolo_detected = False
 
                 self.start_scanning()
+                
+                # SPEAK WELCOME MESSAGE (Professional)
+                self.speak("Welcome. I have arrived at the delivery location. Please present your QR code to verify your identity.")
 
                 # Schedule return to R403 after a fixed delay
                 if not self._timer_scheduled:
@@ -190,10 +237,13 @@ class QrScanner(Node):
                             f'Failed scheduling return to R403: {e}'
                         )
 
+
+                        
         elif not arrived and self.scanning:
             # Robot left destination - stop scanner
-            self.get_logger().info('Robot left destination - stopping QR scanner')
-            self.stop_scanning()
+            if not self.mission_qr_scanned: # Don't stop if we just scanned and are showing "success" state theoretically, but actually we should stop if logic says departed
+                 self.get_logger().info('Robot left destination - stopping QR scanner')
+                 self.stop_scanning()
 
     def on_order_created(self, msg: String):
         """
@@ -269,6 +319,9 @@ class QrScanner(Node):
         self.scanning = True
         self._frames_processed = 0
         
+        # Set start time for countdown
+        self.scan_start_time = time.time() + 5.0 # 5 seconds from now
+        
         # Create subscription if not exists
         if self.image_sub is None:
             self.image_sub = self.create_subscription(
@@ -312,6 +365,28 @@ class QrScanner(Node):
         # Convert to OpenCV image
         frame = self.imgmsg_to_cv2(msg)
         if frame is None:
+            return
+
+        # -----------------------------------------------------
+        # COUNTDOWN LOGIC (Requested by User)
+        # -----------------------------------------------------
+        time_left = self.scan_start_time - time.time()
+        if time_left > 0:
+            # Show Countdown Overlay
+            display_frame = frame.copy()
+            display_frame = cv2.resize(display_frame, (640, 480))
+            
+            # Big Red Countdown
+            seconds = int(time_left) + 1
+            text = f"SCANNING STARTS IN: {seconds}"
+            
+            # Centered text (approx)
+            cv2.putText(display_frame, text, (50, 240), 
+                       cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 255), 3)
+            
+            cv2.imshow("QR Scanner Feed", display_frame)
+            cv2.waitKey(1)
+            # SKIP DECODING
             return
 
         # Decode QR
@@ -411,6 +486,10 @@ class QrScanner(Node):
             verified_msg = Bool()
             verified_msg.data = is_verified
             self.verified_pub.publish(verified_msg)
+            
+            # SPEAK SUCCESS MSG (Professional)
+            if is_verified:
+                self.speak("Identity verified successfully. Please retrieve your order from the compartment. Once finished, kindly give a thumbs up to complete the delivery.")
             
             # --- EVIDENCE SAVING (Requested by User) ---
             if is_verified:

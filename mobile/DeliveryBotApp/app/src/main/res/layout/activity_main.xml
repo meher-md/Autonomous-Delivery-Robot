@@ -1,152 +1,271 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:background="@color/bg_dark"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#121212"
+    android:padding="16dp">
 
-    <LinearLayout
-        android:orientation="vertical"
-        android:padding="20dp"
+    <!-- Top Bar -->
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp">
 
-        <TextView
-            android:id="@+id/titleText"
-            android:text="DeliveryBot Control"
-            android:textStyle="bold"
-            android:textColor="@color/text_primary"
-            android:textSize="28sp"
-            android:gravity="center"
-            android:paddingTop="16dp"
-            android:paddingBottom="10dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+        <!-- Connect Icon (Left) -->
+        <ImageButton
+            android:id="@+id/btnConnect"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/ic_menu_rotate"
+            app:tint="#FF5252"
+            android:scaleType="fitCenter"
+            android:padding="8dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:contentDescription="Connect" />
 
-        <TextView
-            android:text="Robot IP Address"
-            android:textColor="@color/text_secondary"
-            android:textSize="14sp"
-            android:layout_marginTop="6dp"
+        <!-- Title and Status (Center) -->
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            />
+            android:orientation="vertical"
+            android:layout_centerInParent="true"
+            android:gravity="center">
 
-        <EditText
-            android:id="@+id/ipEdit"
-            android:text="10.42.0.1"
-            android:textColor="@color/text_primary"
-            android:textColorHint="@color/text_secondary"
-            android:hint="Input IP Address ..."
-            android:inputType="textUri"
-            android:singleLine="true"
-            android:background="@android:color/transparent"
-            android:gravity="end"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Delivery Bot"
+                android:textColor="#FFFFFF"
+                android:textSize="22sp"
+                android:textStyle="bold" />
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@color/divider"
-            android:layout_marginTop="4dp"
-            android:layout_marginBottom="12dp"
-            />
+            <TextView
+                android:id="@+id/statusText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🔴 Offline | 10.42.0.1"
+                android:textColor="#AAAAAA"
+                android:textSize="12sp"
+                android:layout_marginTop="4dp" />
+        </LinearLayout>
 
-        <Button
-            android:id="@+id/btnSave"
-            android:text="Connect / Scan 🔌"
-            android:textAllCaps="false"
-            android:textSize="17sp"
-            android:textColor="@color/text_primary"
-            android:background="@drawable/btn_lavender"
-            android:layout_marginTop="18dp"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            />
-
-        <Button
-            android:id="@+id/btnCamera"
-            android:text="Open Camera 📷"
-            android:textAllCaps="false"
-            android:textSize="17sp"
-            android:textColor="@color/text_primary"
-            android:background="@drawable/btn_lavender"
-            android:layout_marginTop="18dp"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            />
-
-        <Button
-            android:id="@+id/btnMap"
-            android:text="Open Map 🗺️"
-            android:textAllCaps="false"
-            android:textSize="17sp"
-            android:textColor="@color/text_primary"
-            android:background="@drawable/btn_lavender"
-            android:layout_marginTop="18dp"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            />
-
-        <Button
-            android:id="@+id/btnAddress"
-            android:text="Create an Order 📦️"
-            android:textAllCaps="false"
-            android:textSize="17sp"
-            android:textColor="@color/text_primary"
-            android:background="@drawable/btn_lavender"
-            android:layout_marginTop="18dp"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            />
-
-        <Button
-            android:id="@+id/btnOrderHistory"
-            android:text="Order History 📜"
-            android:textAllCaps="false"
-            android:textSize="17sp"
-            android:textColor="@color/text_primary"
-            android:background="@drawable/btn_lavender"
-            android:layout_marginTop="18dp"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            />
-
-        <Button
-            android:id="@+id/btnChat"
-            android:text="Manual Control 🎮"
-            android:textAllCaps="false"
-            android:textSize="17sp"
-            android:textColor="@color/text_primary"
-            android:background="@drawable/btn_lavender"
-            android:layout_marginTop="18dp"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            />
-
-        <Button
-            android:id="@+id/btnChatbot"
-            android:text="Chatbot Assistant 🤖"
-            android:textAllCaps="false"
-            android:textSize="17sp"
-            android:textColor="@color/text_primary"
-            android:background="@drawable/btn_lavender"
-            android:layout_marginTop="18dp"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            />
-
-        <Button
+        <!-- Settings Icon (Right) -->
+        <ImageButton
             android:id="@+id/btnSettings"
-            android:text="Settings ⚙️"
-            android:textAllCaps="false"
-            android:textSize="17sp"
-            android:textColor="@color/text_primary"
-            android:background="@drawable/btn_lavender"
-            android:layout_marginTop="18dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/ic_menu_preferences"
+            app:tint="#EEEEEE"
+            android:scaleType="fitCenter"
+            android:padding="8dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:contentDescription="Settings" />
+    </RelativeLayout>
+    
+    <TextView
+        android:id="@+id/heroTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Dashboard (Swipe ➝ Camera)"
+        android:textColor="#AAAAAA"
+        android:textSize="14sp"
+        android:layout_marginBottom="8dp"
+        android:layout_gravity="start"/>
+
+    <!-- Hero Section (Camera/Dashboard) -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1.2"
+        android:layout_marginBottom="24dp"
+        app:cardCornerRadius="16dp"
+        app:cardBackgroundColor="#000000"
+        app:cardElevation="4dp">
+
+        <FrameLayout
+            android:id="@+id/heroContainer"
             android:layout_width="match_parent"
-            android:layout_height="50dp"
-            />
-    </LinearLayout>
-</ScrollView>
+            android:layout_height="match_parent">
+            
+            <WebView
+                android:id="@+id/webViewCamera"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+                
+            <WebView
+                android:id="@+id/webViewDashboard"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone" />
+        </FrameLayout>
+
+    </androidx.cardview.widget.CardView>
+    
+    <!-- Grid Menu -->
+    <GridLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:columnCount="2"
+        android:rowCount="2"
+        android:layout_gravity="center">
+        
+        <!-- Map Card (Blue) -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardMap"
+            android:layout_width="0dp"
+            android:layout_height="80dp"
+            android:layout_columnWeight="1"
+            android:layout_rowWeight="1"
+            android:layout_margin="8dp"
+            app:cardCornerRadius="14dp"
+            app:cardBackgroundColor="#00000000"
+            app:cardElevation="0dp"
+            app:strokeWidth="2dp"
+            app:strokeColor="@color/card_blue">
+            
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:gravity="center">
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@android:drawable/ic_dialog_map"
+                    app:tint="@color/card_blue"
+                    android:layout_marginBottom="4dp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Open Map"
+                    android:textColor="#FFFFFF"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+        
+        <!-- Dashboard Card (Cyan) -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardDashboard"
+            android:layout_width="0dp"
+            android:layout_height="80dp"
+            android:layout_columnWeight="1"
+            android:layout_rowWeight="1"
+            android:layout_margin="8dp"
+            app:cardCornerRadius="14dp"
+            app:cardBackgroundColor="#00000000"
+            app:cardElevation="0dp"
+            app:strokeWidth="2dp"
+            app:strokeColor="@color/card_cyan">
+             <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:gravity="center">
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@android:drawable/ic_menu_sort_by_size"
+                    app:tint="@color/card_cyan"
+                    android:layout_marginBottom="4dp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Dashboard"
+                    android:textColor="#FFFFFF"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+        
+        <!-- Chatbot Card (Pink) -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardChatbot"
+            android:layout_width="0dp"
+            android:layout_height="80dp"
+            android:layout_columnWeight="1"
+            android:layout_rowWeight="1"
+            android:layout_margin="8dp"
+            app:cardCornerRadius="14dp"
+            app:cardBackgroundColor="#00000000"
+            app:cardElevation="0dp"
+            app:strokeWidth="2dp"
+            app:strokeColor="@color/card_pink">
+             <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:gravity="center">
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@android:drawable/sym_def_app_icon"
+                    app:tint="@color/card_pink"
+                    android:layout_marginBottom="4dp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="AI Chatbot"
+                    android:textColor="#FFFFFF"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+        
+         <!-- Manual Card (Orange) -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardManual"
+            android:layout_width="0dp"
+            android:layout_height="80dp"
+            android:layout_columnWeight="1"
+            android:layout_rowWeight="1"
+            android:layout_margin="8dp"
+            app:cardCornerRadius="14dp"
+            app:cardBackgroundColor="#00000000"
+            app:cardElevation="0dp"
+            app:strokeWidth="2dp"
+            app:strokeColor="@color/card_orange">
+             <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:gravity="center">
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@android:drawable/ic_input_add"
+                    app:tint="@color/card_orange"
+                    android:layout_marginBottom="4dp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Manual Control"
+                    android:textColor="#FFFFFF"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+        
+    </GridLayout>
+
+    <!-- Bottom Button -->
+    <Button
+        android:id="@+id/btnCreateOrder"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:text="Create New Order 📦"
+        android:backgroundTint="@color/btn_blue_accent"
+        android:textSize="19sp"
+        android:textStyle="bold"
+        android:textColor="#FFFFFF"
+        android:layout_marginTop="24dp"
+        android:layout_marginBottom="16dp"
+        app:cornerRadius="12dp"/>
+
+</LinearLayout>
