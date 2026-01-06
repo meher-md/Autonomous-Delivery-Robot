@@ -5,6 +5,7 @@ set -e  # don't use -u to avoid ROS env var issues
 PKG=${PKG:-deliverybot_bringup}
 ROSBRIDGE_PORT=${ROSBRIDGE_PORT:-9090}
 WEB_VIDEO_PORT=${WEB_VIDEO_PORT:-8080}
+DASHBOARD_PORT=${DASHBOARD_PORT:-8502}
 START_SLAM=${START_SLAM:-false}
 START_MAP_HTTP=${START_MAP_HTTP:-false}
 MAP_HTTP_PORT=${MAP_HTTP_PORT:-8070}
@@ -121,6 +122,26 @@ if [[ ${RC} -ne 0 ]]; then
   fi
 
   echo "Minimal stack started. Logs in ${LOG_DIR}/"
+fi
+
+# ---------- Streamlit Dashboard (always start in background) ----------
+DASHBOARD_SCRIPT="${WS_ROOT}/src/App/order_logger/dashboard/dashboard.py"
+if [[ -f "${DASHBOARD_SCRIPT}" ]]; then
+  # Kill any existing dashboard on this port
+  if pgrep -f "streamlit.*${DASHBOARD_PORT}" >/dev/null; then
+    echo "  -> Dashboard already running on port ${DASHBOARD_PORT}"
+  else
+    echo "  -> Starting Streamlit Dashboard on port ${DASHBOARD_PORT}..."
+    nohup python3 -m streamlit run "${DASHBOARD_SCRIPT}" \
+      --server.port="${DASHBOARD_PORT}" \
+      --server.address="0.0.0.0" \
+      --server.headless=true \
+      > "${LOG_DIR}/dashboard.log" 2>&1 &
+    echo "  -> Dashboard started: http://0.0.0.0:${DASHBOARD_PORT}"
+    echo "     Log: ${LOG_DIR}/dashboard.log"
+  fi
+else
+  echo "  !! Dashboard script not found: ${DASHBOARD_SCRIPT}"
 fi
 
 exit 0
