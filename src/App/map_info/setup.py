@@ -1,3 +1,4 @@
+from glob import glob
 from setuptools import setup
 import os
 
@@ -15,8 +16,8 @@ setup(
         # Install package.xml so `ros2 pkg` can see the package
         ('share/' + package_name, ['package.xml']),
 
-        # Install the default named poses YAML next to package.xml
-        ('share/' + package_name, ['named_poses.yaml']),
+        # Install the maps directory
+        ('share/' + package_name + '/maps', glob('maps/*.yaml')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,

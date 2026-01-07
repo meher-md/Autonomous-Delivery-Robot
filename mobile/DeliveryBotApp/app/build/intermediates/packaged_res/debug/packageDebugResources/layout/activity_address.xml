@@ -83,6 +83,19 @@
                 android:paddingVertical="4dp"/>
         </HorizontalScrollView>
 
+        <!-- Robot Status -->
+        <TextView
+            android:id="@+id/tvStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Robot status..."
+            android:textColor="@android:color/white"
+            android:textSize="14sp"
+            android:padding="8dp"
+            android:gravity="center_vertical"
+            android:background="@drawable/edit_field_bg"
+            android:layout_marginBottom="12dp"/>
+
         <!-- QR Section - Bigger -->
         <FrameLayout
             android:id="@+id/qrSection"
@@ -158,11 +171,7 @@
             android:layout_height="wrap_content"
             android:visibility="gone"/>
 
-        <TextView
-            android:id="@+id/tvStatus"
-            android:visibility="gone"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+
 
         <TextView
             android:id="@+id/tvTitle"
