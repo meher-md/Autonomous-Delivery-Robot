@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="bg_dark">#FFFFFF</color>
+    <color name="bg_dark">#1A1A2E</color>
     <color name="btn_gray">#E0E0E0</color>
     <color name="divider">#E0E0E0</color>
     <color name="field_bg">#F0F0F0</color>

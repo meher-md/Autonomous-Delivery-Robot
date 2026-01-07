@@ -40,4 +40,12 @@ class MainPagerAdapter(
     fun updateDashboardUrl(newUrl: String) {
         dashboardFragment?.updateUrl(newUrl)
     }
+
+    fun stopVideo() {
+        videoFragment?.stopVideo()
+    }
+
+    fun startVideo() {
+        videoFragment?.reloadVideo()
+    }
 }

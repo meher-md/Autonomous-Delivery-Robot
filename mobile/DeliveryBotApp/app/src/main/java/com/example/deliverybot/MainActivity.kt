@@ -181,8 +181,9 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, ChatbotActivity::class.java))
         }
 
-        // Manual Control Card
+        // Manual Control Card - Stop main video before opening
         cardManualControl.setOnClickListener {
+            pagerAdapter.stopVideo()  // Stop video in main screen
             startActivity(Intent(this, ChatActivity::class.java))
         }
 
@@ -268,6 +269,7 @@ class MainActivity : AppCompatActivity() {
         dashboardUrl = "http://$ip:8501"
         pagerAdapter.updateVideoUrl(mjpegUrl)
         pagerAdapter.updateDashboardUrl(dashboardUrl)
+        pagerAdapter.startVideo() // Resume video when returning to main screen
     }
 
     // Listener to handle ROS bridge connection status updates

@@ -144,7 +144,7 @@
                 android:layout_marginStart="8dp"
                 android:orientation="vertical"
                 android:gravity="center"
-                android:background="@drawable/bg_card_cyan"
+                android:background="@drawable/bg_card_purple"
                 android:clickable="true"
                 android:focusable="true">
 

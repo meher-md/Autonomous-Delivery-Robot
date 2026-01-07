@@ -9,14 +9,14 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 
-    <!-- Transparent overlay for tap to fullscreen -->
+    <!-- Transparent overlay for tap to fullscreen (non-blocking) -->
     <View
         android:id="@+id/videoClickOverlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@android:color/transparent"
-        android:clickable="true"
-        android:focusable="true"/>
+        android:clickable="false"
+        android:focusable="false"/>
 
     <ProgressBar
         android:id="@+id/videoProgress"

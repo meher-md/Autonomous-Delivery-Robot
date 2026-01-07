@@ -122,6 +122,7 @@ attr alertDialogButtonGroupStyle
 attr alertDialogCenterButtons
 attr alertDialogStyle
 attr alertDialogTheme
+attr alignmentMode
 attr allowStacking
 attr alpha
 attr alphabeticModifiers
@@ -380,6 +381,8 @@ attr colorTertiary
 attr colorTertiaryContainer
 attr colorTertiaryFixed
 attr colorTertiaryFixedDim
+attr columnCount
+attr columnOrderPreserved
 attr commitIcon
 attr compatShadowEnabled
 attr constraintRotate
@@ -705,6 +708,9 @@ attr layout_anchorGravity
 attr layout_behavior
 attr layout_collapseMode
 attr layout_collapseParallaxMultiplier
+attr layout_column
+attr layout_columnSpan
+attr layout_columnWeight
 attr layout_constrainedHeight
 attr layout_constrainedWidth
 attr layout_constraintBaseline_creator
@@ -761,10 +767,14 @@ attr layout_goneMarginLeft
 attr layout_goneMarginRight
 attr layout_goneMarginStart
 attr layout_goneMarginTop
+attr layout_gravity
 attr layout_insetEdge
 attr layout_keyline
 attr layout_marginBaseline
 attr layout_optimizationLevel
+attr layout_row
+attr layout_rowSpan
+attr layout_rowWeight
 attr layout_scrollEffect
 attr layout_scrollFlags
 attr layout_scrollInterpolator
@@ -938,6 +948,7 @@ attr onPositiveCross
 attr onShow
 attr onStateTransition
 attr onTouchUp
+attr orientation
 attr overlapAnchor
 attr overlay
 attr paddingBottomNoButtons
@@ -1007,6 +1018,8 @@ attr rippleColor
 attr rotationCenterId
 attr round
 attr roundPercent
+attr rowCount
+attr rowOrderPreserved
 attr saturation
 attr scaleFromTextSize
 attr scrimAnimationDuration
@@ -1293,6 +1306,7 @@ attr triggerSlack
 attr ttcIndex
 attr upDuration
 attr useCompatPadding
+attr useDefaultMargins
 attr useDrawerArrowDrawable
 attr useMaterialThemeColors
 attr values
@@ -2207,6 +2221,7 @@ dimen compat_control_corner_material
 dimen compat_notification_large_icon_max_height
 dimen compat_notification_large_icon_max_width
 dimen def_drawer_elevation
+dimen default_gap
 dimen design_appbar_elevation
 dimen design_bottom_navigation_active_item_max_width
 dimen design_bottom_navigation_active_item_min_width
@@ -3003,11 +3018,21 @@ drawable bg_card_dark
 drawable bg_card_green
 drawable bg_card_orange
 drawable bg_card_pink
+drawable bg_card_purple
+drawable bg_chip
+drawable bg_chip_container
+drawable bg_control_button_cyan
+drawable bg_control_button_stop
+drawable bg_destination_button
+drawable bg_destination_selected
+drawable bg_spinner
 drawable bg_video_container
+drawable bg_video_live
 drawable btn_checkbox_checked_mtrl
 drawable btn_checkbox_checked_to_unchecked_mtrl_animation
 drawable btn_checkbox_unchecked_mtrl
 drawable btn_checkbox_unchecked_to_checked_mtrl_animation
+drawable btn_cyan
 drawable btn_lavender
 drawable btn_primary
 drawable btn_radio_off_mtrl
@@ -3197,6 +3222,8 @@ id actions
 id activity_chooser_view_content
 id add
 id alertTitle
+id alignBounds
+id alignMargins
 id aligned
 id all
 id allStates
@@ -3223,8 +3250,11 @@ id bounce
 id bounceBoth
 id bounceEnd
 id bounceStart
+id btnAddLocation
+id btnAddMap
 id btnBack
 id btnCancel
+id btnCloseDialog
 id btnConfirmPhone
 id btnConnect
 id btnCreateOrder
@@ -3274,10 +3304,12 @@ id clip_vertical
 id clockwise
 id closest
 id collapseActionView
+id commandSection
 id compress
 id confirm_button
 id constraint
 id container
+id containerDestinations
 id content
 id contentPanel
 id contiguous
@@ -3306,6 +3338,8 @@ id design_menu_item_action_area
 id design_menu_item_action_area_stub
 id design_menu_item_text
 id design_navigation_view
+id dialogContent
+id dialogTitle
 id dialog_button
 id dimensions
 id direct
@@ -3339,6 +3373,7 @@ id enterAlways
 id enterAlwaysCollapsed
 id escape
 id etPhoneInput
+id etSearch
 id exitUntilCollapsed
 id expand_activities_button
 id expanded_menu
@@ -3376,6 +3411,7 @@ id historyContainer
 id home
 id homeAsUp
 id honorRequest
+id horizontal
 id horizontal_only
 id icon
 id icon_group
@@ -3389,6 +3425,7 @@ id included
 id indeterminate
 id info
 id inputContainer
+id inputSection
 id invisible
 id inward
 id italic
@@ -3406,11 +3443,13 @@ id line3
 id linear
 id listMode
 id list_item
+id locationsContainer
 id logScroll
 id logText
 id m3_side_sheet
 id mapRoot
 id mapView
+id mapsContainer
 id marquee
 id masked
 id match_constraint
@@ -3533,10 +3572,6 @@ id qrPlaceholder
 id qrSection
 id radio
 id ratio
-id rbCafeteria
-id rbLab
-id rbLibrary
-id rbLobby
 id rectangles
 id recyclerDevices
 id recyclerViewChat
@@ -3555,6 +3590,7 @@ id sawtooth
 id scale
 id screen
 id scroll
+id scrollDestinations
 id scrollIndicatorDown
 id scrollIndicatorUp
 id scrollView
@@ -3569,6 +3605,7 @@ id search_mag_icon
 id search_plate
 id search_src_text
 id search_voice_btn
+id seekBarSpeed
 id select_dialog_listview
 id selected
 id selection_type
@@ -3589,7 +3626,9 @@ id snapMargins
 id south
 id spacer
 id special_effects_controller_view_tag
+id speedSection
 id speedText
+id spinnerMaps
 id spline
 id split_action_bar
 id spread
@@ -3670,6 +3709,8 @@ id transition_scene_layoutid_cache
 id transition_transform
 id triangle
 id tvBody
+id tvCommand1
+id tvCommand2
 id tvNoHistory
 id tvSender
 id tvStatus
@@ -3685,8 +3726,11 @@ id uniform
 id unlabeled
 id up
 id useLogo
+id vertical
 id vertical_only
 id videoClickOverlay
+id videoContainer
+id videoFragmentContainer
 id videoProgress
 id videoWebView
 id viewPager
@@ -3848,6 +3892,7 @@ layout design_navigation_menu
 layout design_navigation_menu_item
 layout design_text_input_end_icon
 layout design_text_input_start_icon
+layout dialog_map_management
 layout fragment_dashboard
 layout fragment_video
 layout ime_base_split_test_activity
@@ -3919,6 +3964,8 @@ layout notification_template_part_time
 layout select_dialog_item_material
 layout select_dialog_multichoice_material
 layout select_dialog_singlechoice_material
+layout spinner_dropdown_item
+layout spinner_item
 layout support_simple_spinner_dropdown_item
 mipmap ic_launcher
 mipmap ic_launcher_foreground
@@ -5286,6 +5333,8 @@ styleable Fragment android_name android_id android_tag
 styleable FragmentContainerView android_name android_tag
 styleable GradientColor android_startColor android_endColor android_type android_centerX android_centerY android_gradientRadius android_tileMode android_centerColor android_startX android_startY android_endX android_endY
 styleable GradientColorItem android_color android_offset
+styleable GridLayout alignmentMode columnCount columnOrderPreserved orientation rowCount rowOrderPreserved useDefaultMargins
+styleable GridLayout_Layout android_layout_width android_layout_height android_layout_margin android_layout_marginLeft android_layout_marginTop android_layout_marginRight android_layout_marginBottom layout_column layout_columnSpan layout_columnWeight layout_gravity layout_row layout_rowSpan layout_rowWeight
 styleable ImageFilterView altSrc blendSrc brightness contrast crossfade imagePanX imagePanY imageRotate imageZoom overlay round roundPercent saturation warmth
 styleable Insets marginLeftSystemWindowInsets marginRightSystemWindowInsets marginTopSystemWindowInsets paddingBottomSystemWindowInsets paddingLeftSystemWindowInsets paddingRightSystemWindowInsets paddingStartSystemWindowInsets paddingTopSystemWindowInsets
 styleable KeyAttribute android_alpha android_transformPivotX android_transformPivotY android_translationX android_translationY android_scaleX android_scaleY android_rotation android_rotationX android_rotationY android_translationZ android_elevation curveFit framePosition motionProgress motionTarget transformPivotTarget transitionEasing transitionPathRotate

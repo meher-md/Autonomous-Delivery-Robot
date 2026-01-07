@@ -129,4 +129,16 @@ class VideoFragment : Fragment() {
             loadVideo()
         }
     }
+
+    fun stopVideo() {
+        if (::webView.isInitialized) {
+            webView.loadUrl("about:blank")
+        }
+    }
+
+    fun reloadVideo() {
+        if (::webView.isInitialized && videoUrl.isNotEmpty()) {
+            loadVideo()
+        }
+    }
 }
