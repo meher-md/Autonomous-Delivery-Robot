@@ -32,6 +32,9 @@ setup(
             'certs/cert.pem',
             'certs/key.pem',
         ]),
+
+        # Install scripts into lib/<package> (libexec)
+        ('lib/' + package_name, glob('scripts/*.py')),
     ],
 
     install_requires=['setuptools'],

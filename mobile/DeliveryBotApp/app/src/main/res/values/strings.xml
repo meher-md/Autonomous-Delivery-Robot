@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">DeliveryBotApp</string>
+    <string name="app_name">HTI DeliveryBot</string>
     <string name="hello_world">Hello World!</string>
     <string name="map_view">Map View</string>
     <string name="qr_image">QR image</string>

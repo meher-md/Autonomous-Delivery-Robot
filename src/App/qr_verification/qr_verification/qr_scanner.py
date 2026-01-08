@@ -27,6 +27,14 @@ except Exception:
     PYZBAR_AVAILABLE = False
 
 
+from rclpy.action import ActionClient
+try:
+    from audio_common_msgs.action import TTS
+    TTS_AVAILABLE = True
+except ImportError:
+    TTS_AVAILABLE = False
+
+
 class QrScanner(Node):
     def __init__(self):
         super().__init__('qr_scanner')
@@ -100,6 +108,13 @@ class QrScanner(Node):
 
         # Monitoring: frame processing stats
         self._frames_processed = 0
+        
+        # PIPER CLIENT
+        if TTS_AVAILABLE:
+            self.tts_client = ActionClient(self, TTS, '/piper_node/say')
+            self.get_logger().info('Scanner connected to Piper TTS')
+        else:
+            self.tts_client = None
 
         self.get_logger().info(
             f'qr_scanner ready (listening to /image_raw/compressed). Pyzbar={PYZBAR_AVAILABLE}, OpenCV={cv2.__version__}'
@@ -114,42 +129,16 @@ class QrScanner(Node):
         self._publish_status('initialized', 'Scanner initialized, waiting for arrival...')
 
     # -------------------------------------------------------------------------
-    # AUDIO HELPER (Non-Blocking)
+    # AUDIO HELPER (Piper Action)
     # -------------------------------------------------------------------------
     def speak(self, text):
-        # Stop any currently playing audio immediately (Interruption)
-        if pygame.mixer.get_init():
-            pygame.mixer.music.stop()
-
-        def _speak_thread():
-            with self.synthesizer_lock:
-                try:
-                    self.get_logger().info(f"🔊 Speaking: {text}")
-                    
-                    # Use Christopher Neural Voice
-                    voice = "en-US-ChristopherNeural"
-                    filename = f"/tmp/qr_audio_{int(time.time())}.mp3"
-                    
-                    async def _gen_audio():
-                        communicate = edge_tts.Communicate(text, voice)
-                        await communicate.save(filename)
-                        
-                    # Run async generation in this thread
-                    asyncio.run(_gen_audio())
-                    
-                    pygame.mixer.music.load(filename)
-                    pygame.mixer.music.play()
-                    
-                    while pygame.mixer.music.get_busy():
-                        time.sleep(0.1)
-                        
-                    os.remove(filename)
-                except Exception as e:
-                    self.get_logger().error(f"Audio error: {e}")
-        
-        t = threading.Thread(target=_speak_thread)
-        t.daemon = True
-        t.start()
+        if self.tts_client and self.tts_client.wait_for_server(timeout_sec=1.0):
+            goal = TTS.Goal()
+            goal.text = text
+            self.tts_client.send_goal_async(goal)
+            self.get_logger().info(f"🔊 Speaking (Piper): {text}")
+        else:
+            self.get_logger().warn("Piper not available for speech")
 
     # -------------------------------------------------------------------------
     # Helper: Manual Image Conversion (NumPy 2.x compatible)
@@ -194,17 +183,17 @@ class QrScanner(Node):
             arrived = 'arrived' in payload or 'succeeded' in payload
 
         if arrived and not self.scanning:
-            # Check if destination is R403 - don't start scanning or timer at R403
-            if self.current_destination and self.current_destination == 'R403':
+            # Check if destination is Garage - don't start scanning or timer at Garage
+            if self.current_destination and self.current_destination == 'Garage':
                 self.get_logger().info(
-                    '🚫 Robot arrived at R403 - skipping QR scan (waiting for new order)'
+                    '🚫 Robot arrived at Garage - skipping QR scan (waiting for new order)'
                 )
                 
                 # FINAL MISSION DEBRIEF (Requested by User)
                 # Print what happened during the trip we just returned from
                 report = (
                     "\n================ MISSION REPORT (FINAL) ================\n"
-                    f"Previous Destination: {self.current_destination} (Arrived at R403)\n"
+                    f"Previous Destination: {self.current_destination} (Arrived at Garage)\n"
                     f"QR Code Scanned:    {'[YES] ✅' if self.mission_qr_scanned else '[NO] ❌'}\n"
                     f"YOLO Like Detected: {'[YES] 👍' if self.mission_yolo_detected else '[NO] ❌'}\n"
                     "========================================================"
@@ -213,7 +202,7 @@ class QrScanner(Node):
 
                 self._publish_status(
                     'skipped',
-                    'Arrived at R403 - scanner not started (waiting for new order)'
+                    'Arrived at Garage - scanner not started (waiting for new order)'
                 )
             else:
                 destination_str = (
@@ -229,8 +218,8 @@ class QrScanner(Node):
 
                 self.start_scanning()
                 
-                # SPEAK WELCOME MESSAGE (Professional)
-                self.speak("Welcome. I have arrived at the delivery location. Please present your QR code to verify your identity.")
+                # SPEAK WELCOME MESSAGE (Friendly)
+                self.speak("Hello! I have arrived. Please scan the QR code I sent you.")
 
                 # Schedule return to R403 after a fixed delay
                 if not self._timer_scheduled:
@@ -496,64 +485,53 @@ class QrScanner(Node):
             verified_msg.data = is_verified
             self.verified_pub.publish(verified_msg)
             
-            # SPEAK SUCCESS MSG (Professional)
+            # SPEAK SUCCESS MSG (Friendly)
             if is_verified:
-                self.speak("Identity verified successfully. Please retrieve your order from the compartment. Once finished, kindly give a thumbs up to complete the delivery.")
+                self.speak("Success! Please open the box and take your order. When you are done, please show me a Like sign.")
             
             # --- EVIDENCE SAVING (Requested by User) ---
             if is_verified:
                  try:
-                     # 1. Create Folder Structure: year/Month/day/mission_<timestamp>
+                     # 1. Create Folder Structure: year/Month/day/mission_<order_id>
                      now_dt = datetime.datetime.now()
                      year_str = now_dt.strftime("%Y")
                      month_str = now_dt.strftime("%B") # Full month name e.g. January
                      day_str = now_dt.strftime("%d")
-                     # Use order_id in folder name if available, else just timestamp
-                     mission_id = self.active_order_id if self.active_order_id else f"{int(now)}"
-                     folder_name = f"mission_{mission_id}" # or stick to timestamp as primary unique id? User asked for mission_<id>?
-                     # Let's stick to a timestamp based ID to avoid collisions if re-delivering same order, 
-                     # but maybe append order ID for clarity.
-                     # User example: mission_191618 (looks like time or random). 
-                     # Let's use timestamp for uniqueness.
-                     folder_name = f"mission_{int(now)}"
+
+                     # Use active_order_id for folder name to match qr_generator
+                     if self.active_order_id:
+                         mission_id = self.active_order_id
+                     else:
+                         mission_id = f"{int(now)}"
+                         
+                     folder_name = f"mission_{mission_id}"
                      
                      base_dir = os.path.expanduser("~/ws/mission_proof")
                      mission_dir = os.path.join(base_dir, year_str, month_str, day_str, folder_name)
                      os.makedirs(mission_dir, exist_ok=True)
                      
-                     self.get_logger().info(f"📂 Created mission proof directory: {mission_dir}")
+                     self.get_logger().info(f"📂 Used mission proof directory: {mission_dir}")
 
                      # 2. Publish Path for YOLO
                      path_msg = String()
                      path_msg.data = mission_dir
                      self.mission_path_pub.publish(path_msg)
                      
-                     # 3. Copy Original Generated QR (if available)
-                     # We need to extract the order ID from the scanned payload to find the file.
-                     # Payload expected to be JSON: {"order_id": "...", ...}
+                     # 3. Check for Original Generated QR (Should already be there)
                      scanned_order_id = None
                      try:
-                         # Try parsing as JSON first
                          scanned_json = json.loads(payload_str)
                          scanned_order_id = scanned_json.get('order_id')
                      except json.JSONDecodeError:
-                         # If it's just a raw string, maybe that is the order ID?
                          scanned_order_id = payload_str.strip()
-                     
-                     if scanned_order_id:
-                         # Look for the file in generated_qr
-                         gen_qr_dir = os.path.expanduser("~/ws/generated_qr")
-                         # Filename format from qr_generator.py: f"qr_{order_id}.png"
-                         gen_filename = f"qr_{scanned_order_id}.png"
-                         src_path = os.path.join(gen_qr_dir, gen_filename)
                          
-                         if os.path.exists(src_path):
-                             dst_path = os.path.join(mission_dir, f"generated_qr_{scanned_order_id}.png")
-                             import shutil
-                             shutil.copy2(src_path, dst_path)
-                             self.get_logger().info(f"📄 Copied original QR to: {dst_path}")
+                     if scanned_order_id:
+                         gen_filename = f"qr_{scanned_order_id}.png"
+                         gen_path = os.path.join(mission_dir, gen_filename)
+                         if os.path.exists(gen_path):
+                             self.get_logger().info(f"✅ Verified original QR exists in mission folder: {gen_path}")
                          else:
-                             self.get_logger().warn(f"⚠️ Original generated QR file not found at: {src_path}")
+                             self.get_logger().warn(f"⚠️ Original QR not found in {mission_dir} (maybe generated on a different day?)")
                      
                      # 4. Save Scanned Evidence (The Camera Feed)
                      evidence_frame = frame.copy()
@@ -632,7 +610,7 @@ class QrScanner(Node):
             def _do_return():
                 try:
                     goal_msg = String()
-                    goal_msg.data = 'R403'
+                    goal_msg.data = 'Garage'
                     self.app_goal_pub.publish(goal_msg)
                     
                     # LOG MISSION REPORT

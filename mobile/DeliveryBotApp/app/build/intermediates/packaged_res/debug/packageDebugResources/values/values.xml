@@ -9,7 +9,7 @@
     <color name="lavender">#6E56CF</color>
     <color name="text_primary">#000000</color>
     <color name="text_secondary">#666666</color>
-    <string name="app_name">DeliveryBotApp</string>
+    <string name="app_name">HTI DeliveryBot</string>
     <string name="hello_world">Hello World!</string>
     <string name="map_view">Map View</string>
     <string name="qr_image">QR image</string>

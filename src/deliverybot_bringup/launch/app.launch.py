@@ -144,6 +144,23 @@ def generate_launch_description():
         output='screen'
     )
 
+    # NEW: Chat Bridge - Connects Mobile App to Llama AI
+    chat_bridge = Node(
+        package='deliverybot_bringup',
+        executable='chat_bridge.py',
+        output='screen'
+    )
+
+    # Chatbot Logic (Llama, Whisper, etc.)
+    chatbot_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(
+                get_package_share_directory('chatbot_ros'),
+                'launch', 'chatbot.launch.py'
+            )
+        )
+    )
+
     # ---------- LaunchDescription ----------
     # All launch arguments + nodes are registered here.
     return LaunchDescription([
@@ -188,6 +205,8 @@ def generate_launch_description():
         qr_generator,
         qr_scanner,
         like_detector,
+        chat_bridge,
+        chatbot_launch,
         ExecuteProcess(
             cmd=[
                 'python3', '-m', 'streamlit', 'run', 

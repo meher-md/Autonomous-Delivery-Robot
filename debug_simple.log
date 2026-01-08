@@ -1,0 +1,285 @@
+[DEBUG] [1767867657.264154968] [rcl]: Initializing node 'chat_bridge' in namespace ''
+[DEBUG] [1767867657.264228476] [rcl]: Using domain ID of '0'
+[DEBUG] [1767867657.280735354] [rcl]: Initializing publisher for topic name '/rosout'
+[DEBUG] [1767867657.280894517] [rcl]: Expanded and remapped topic name '/rosout'
+[DEBUG] [1767867657.285258598] [rcl]: Publisher initialized
+[DEBUG] [1767867657.285332140] [rcl]: Node initialized
+[DEBUG] [1767867657.369314972] [rcl]: Initializing publisher for topic name '/parameter_events'
+[DEBUG] [1767867657.369523448] [rcl]: Expanded and remapped topic name '/parameter_events'
+[DEBUG] [1767867657.370879897] [rcl]: Publisher initialized
+[DEBUG] [1767867657.373258567] [rcl]: Initializing service for service name 'chat_bridge/describe_parameters'
+[DEBUG] [1767867657.373341608] [rcl]: Expanded and remapped service name '/chat_bridge/describe_parameters'
+[DEBUG] [1767867657.374385223] [rmw_fastrtps_cpp]: ************ Service Details *********
+[DEBUG] [1767867657.374459601] [rmw_fastrtps_cpp]: Sub Topic rq/chat_bridge/describe_parametersRequest
+[DEBUG] [1767867657.374470261] [rmw_fastrtps_cpp]: Pub Topic rr/chat_bridge/describe_parametersReply
+[DEBUG] [1767867657.374476449] [rmw_fastrtps_cpp]: ***********
+[DEBUG] [1767867657.374740060] [rcl]: Service initialized
+[DEBUG] [1767867657.375395251] [rcl]: Initializing service for service name 'chat_bridge/get_parameters'
+[DEBUG] [1767867657.375485956] [rcl]: Expanded and remapped service name '/chat_bridge/get_parameters'
+[DEBUG] [1767867657.378477678] [rmw_fastrtps_cpp]: ************ Service Details *********
+[DEBUG] [1767867657.378584610] [rmw_fastrtps_cpp]: Sub Topic rq/chat_bridge/get_parametersRequest
+[DEBUG] [1767867657.378595620] [rmw_fastrtps_cpp]: Pub Topic rr/chat_bridge/get_parametersReply
+[DEBUG] [1767867657.378601704] [rmw_fastrtps_cpp]: ***********
+[DEBUG] [1767867657.378816295] [rcl]: Service initialized
+[DEBUG] [1767867657.379317692] [rcl]: Initializing service for service name 'chat_bridge/get_parameter_types'
+[DEBUG] [1767867657.379369786] [rcl]: Expanded and remapped service name '/chat_bridge/get_parameter_types'
+[DEBUG] [1767867657.380713050] [rmw_fastrtps_cpp]: ************ Service Details *********
+[DEBUG] [1767867657.380782555] [rmw_fastrtps_cpp]: Sub Topic rq/chat_bridge/get_parameter_typesRequest
+[DEBUG] [1767867657.380789566] [rmw_fastrtps_cpp]: Pub Topic rr/chat_bridge/get_parameter_typesReply
+[DEBUG] [1767867657.380794390] [rmw_fastrtps_cpp]: ***********
+[DEBUG] [1767867657.381181477] [rcl]: Service initialized
+[DEBUG] [1767867657.381991332] [rcl]: Initializing service for service name 'chat_bridge/list_parameters'
+[DEBUG] [1767867657.382051768] [rcl]: Expanded and remapped service name '/chat_bridge/list_parameters'
+[DEBUG] [1767867657.383325751] [rmw_fastrtps_cpp]: ************ Service Details *********
+[DEBUG] [1767867657.383398972] [rmw_fastrtps_cpp]: Sub Topic rq/chat_bridge/list_parametersRequest
+[DEBUG] [1767867657.383405886] [rmw_fastrtps_cpp]: Pub Topic rr/chat_bridge/list_parametersReply
+[DEBUG] [1767867657.383410173] [rmw_fastrtps_cpp]: ***********
+[DEBUG] [1767867657.383584331] [rcl]: Service initialized
+[DEBUG] [1767867657.383954222] [rcl]: Initializing service for service name 'chat_bridge/set_parameters'
+[DEBUG] [1767867657.383978101] [rcl]: Expanded and remapped service name '/chat_bridge/set_parameters'
+[DEBUG] [1767867657.384955667] [rmw_fastrtps_cpp]: ************ Service Details *********
+[DEBUG] [1767867657.385029831] [rmw_fastrtps_cpp]: Sub Topic rq/chat_bridge/set_parametersRequest
+[DEBUG] [1767867657.385038707] [rmw_fastrtps_cpp]: Pub Topic rr/chat_bridge/set_parametersReply
+[DEBUG] [1767867657.385044761] [rmw_fastrtps_cpp]: ***********
+[DEBUG] [1767867657.385259670] [rcl]: Service initialized
+[DEBUG] [1767867657.385634818] [rcl]: Initializing service for service name 'chat_bridge/set_parameters_atomically'
+[DEBUG] [1767867657.385666132] [rcl]: Expanded and remapped service name '/chat_bridge/set_parameters_atomically'
+[DEBUG] [1767867657.388109063] [rmw_fastrtps_cpp]: ************ Service Details *********
+[DEBUG] [1767867657.388376927] [rmw_fastrtps_cpp]: Sub Topic rq/chat_bridge/set_parameters_atomicallyRequest
+[DEBUG] [1767867657.388397510] [rmw_fastrtps_cpp]: Pub Topic rr/chat_bridge/set_parameters_atomicallyReply
+[DEBUG] [1767867657.388403786] [rmw_fastrtps_cpp]: ***********
+[DEBUG] [1767867657.388974879] [rcl]: Service initialized
+[DEBUG] [1767867657.392202023] [rcl]: Initializing publisher for topic name '/app/chat/response'
+[DEBUG] [1767867657.392335927] [rcl]: Expanded and remapped topic name '/app/chat/response'
+[DEBUG] [1767867657.394318949] [rcl]: Publisher initialized
+[DEBUG] [1767867657.395423206] [rcl]: Initializing subscription for topic name '/app/chat/request'
+[DEBUG] [1767867657.395479124] [rcl]: Expanded and remapped topic name '/app/chat/request'
+[DEBUG] [1767867657.398072112] [rcl]: Subscription initialized
+[DEBUG] [1767867657.533196116] [rcl_action]: Initializing client for action name '/llama/generate_response'
+[DEBUG] [1767867657.533351353] [rcl]: Initializing client for service name '/llama/generate_response/_action/send_goal'
+[DEBUG] [1767867657.533370433] [rcl]: Expanded and remapped service name '/llama/generate_response/_action/send_goal'
+[DEBUG] [1767867657.536241951] [rmw_fastrtps_cpp]: ************ Client Details *********
+[DEBUG] [1767867657.536688293] [rmw_fastrtps_cpp]: Sub Topic rr/llama/generate_response/_action/send_goalReply
+[DEBUG] [1767867657.536783263] [rmw_fastrtps_cpp]: Pub Topic rq/llama/generate_response/_action/send_goalRequest
+[DEBUG] [1767867657.536792422] [rmw_fastrtps_cpp]: ***********
+[DEBUG] [1767867657.537551256] [rcl]: Client initialized
+[DEBUG] [1767867657.537605035] [rcl]: Initializing client for service name '/llama/generate_response/_action/cancel_goal'
+[DEBUG] [1767867657.537621537] [rcl]: Expanded and remapped service name '/llama/generate_response/_action/cancel_goal'
+[DEBUG] [1767867657.540205649] [rmw_fastrtps_cpp]: ************ Client Details *********
+[DEBUG] [1767867657.540375867] [rmw_fastrtps_cpp]: Sub Topic rr/llama/generate_response/_action/cancel_goalReply
+[DEBUG] [1767867657.540392960] [rmw_fastrtps_cpp]: Pub Topic rq/llama/generate_response/_action/cancel_goalRequest
+[DEBUG] [1767867657.540397791] [rmw_fastrtps_cpp]: ***********
+[DEBUG] [1767867657.541038860] [rcl]: Client initialized
+[DEBUG] [1767867657.541095454] [rcl]: Initializing client for service name '/llama/generate_response/_action/get_result'
+[DEBUG] [1767867657.541116540] [rcl]: Expanded and remapped service name '/llama/generate_response/_action/get_result'
+[DEBUG] [1767867657.542639706] [rmw_fastrtps_cpp]: ************ Client Details *********
+[DEBUG] [1767867657.542762300] [rmw_fastrtps_cpp]: Sub Topic rr/llama/generate_response/_action/get_resultReply
+[DEBUG] [1767867657.542772954] [rmw_fastrtps_cpp]: Pub Topic rq/llama/generate_response/_action/get_resultRequest
+[DEBUG] [1767867657.542778200] [rmw_fastrtps_cpp]: ***********
+[DEBUG] [1767867657.545021569] [rcl]: Client initialized
+[DEBUG] [1767867657.545102477] [rcl]: Initializing subscription for topic name '/llama/generate_response/_action/feedback'
+[DEBUG] [1767867657.545119769] [rcl]: Expanded and remapped topic name '/llama/generate_response/_action/feedback'
+[DEBUG] [1767867657.550607554] [rcl]: Subscription initialized
+[DEBUG] [1767867657.550688162] [rcl]: Initializing subscription for topic name '/llama/generate_response/_action/status'
+[DEBUG] [1767867657.550702330] [rcl]: Expanded and remapped topic name '/llama/generate_response/_action/status'
+[DEBUG] [1767867657.555336980] [rcl]: Subscription initialized
+[DEBUG] [1767867657.555884140] [rcl_action]: Action client initialized
+[INFO] [1767867657.612696381] [chat_bridge]: Chat Bridge started with Llama AI support
+[INFO] [1767867657.613170136] [chat_bridge]: Chat Bridge ready: /app/chat/request -> Llama -> /app/chat/response
+[DEBUG] [1767867657.613447877] [rcl]: Initializing subscription for topic name '/yolo/detections_str'
+[DEBUG] [1767867657.613485979] [rcl]: Expanded and remapped topic name '/yolo/detections_str'
+[DEBUG] [1767867657.615660119] [rcl]: Subscription initialized
+[DEBUG] [1767867657.616465856] [rcl]: Initializing publisher for topic name '/app/goal_name'
+[DEBUG] [1767867657.616514445] [rcl]: Expanded and remapped topic name '/app/goal_name'
+[DEBUG] [1767867657.618211896] [rcl]: Publisher initialized
+[DEBUG] [1767867657.621044283] [rcl]: Initializing publisher for topic name '/cmd_vel'
+[DEBUG] [1767867657.621212893] [rcl]: Expanded and remapped topic name '/cmd_vel'
+[DEBUG] [1767867657.623118617] [rcl]: Publisher initialized
+[DEBUG] [1767867657.623892530] [rcl]: Initializing wait set with '4' subscriptions, '2' guard conditions, '0' timers, '3' clients, '6' services
+[DEBUG] [1767867657.624225511] [rcl_action]: Taking action status
+[DEBUG] [1767867657.624260517] [rcl]: Subscription taking message
+[DEBUG] [1767867657.624379747] [rcl]: Subscription take succeeded: true
+[DEBUG] [1767867657.624388290] [rcl_action]: Action status taken
+[DEBUG] [1767867657.625271544] [rcl]: Initializing wait set with '4' subscriptions, '2' guard conditions, '0' timers, '3' clients, '6' services
+[DEBUG] [1767867657.625629242] [rcl]: Initializing wait set with '4' subscriptions, '2' guard conditions, '0' timers, '3' clients, '6' services
+[DEBUG] [1767867662.611454198] [rcl]: Subscription taking message
+[DEBUG] [1767867662.611584800] [rcl]: Subscription take succeeded: true
+[INFO] [1767867662.612626943] [chat_bridge]: Received chat request: Hello
+[INFO] [1767867662.627221851] [chat_bridge]: Sending PROMPT: Hello
+[DEBUG] [1767867662.628328971] [rcl_action]: Sending action goal request
+[DEBUG] [1767867662.628397425] [rcl]: Client sending service request
+[DEBUG] [1767867662.628541751] [rcl_action]: Action goal request sent
+[DEBUG] [1767867662.630865997] [rcl]: Initializing wait set with '4' subscriptions, '2' guard conditions, '0' timers, '3' clients, '6' services
+[DEBUG] [1767867662.631618732] [rcl]: Initializing wait set with '4' subscriptions, '2' guard conditions, '0' timers, '3' clients, '6' services
+[DEBUG] [1767867662.632412927] [rcl_action]: Taking action goal response
+[DEBUG] [1767867662.632489309] [rcl]: Client taking service response
+[DEBUG] [1767867662.632606707] [rcl]: Client take response succeeded: true
+[DEBUG] [1767867662.632622556] [rcl_action]: Action goal response taken
+[DEBUG] [1767867662.632784969] [rcl_action]: Taking action status
+[DEBUG] [1767867662.632801570] [rcl]: Subscription taking message
+[DEBUG] [1767867662.632833665] [rcl]: Subscription take succeeded: true
+[DEBUG] [1767867662.632842863] [rcl_action]: Action status taken
+[DEBUG] [1767867662.633635443] [rcl_action]: Sending action result request
+[DEBUG] [1767867662.633672685] [rcl]: Client sending service request
+[DEBUG] [1767867662.633740993] [rcl_action]: Action result request sent
+[DEBUG] [1767867662.634001290] [rcl]: Initializing wait set with '4' subscriptions, '2' guard conditions, '0' timers, '3' clients, '6' services
+[DEBUG] [1767867662.634495042] [rcl]: Initializing wait set with '4' subscriptions, '2' guard conditions, '0' timers, '3' clients, '6' services
+[DEBUG] [1767867663.241827784] [rcl_action]: Taking action feedback
+[DEBUG] [1767867663.241979526] [rcl]: Subscription taking message
+[DEBUG] [1767867663.242281606] [rcl]: Subscription take succeeded: true
+[DEBUG] [1767867663.242330464] [rcl_action]: Action feedback taken
+[DEBUG] [1767867663.244088134] [chat_bridge]: Token: Hello
+[DEBUG] [1767867663.245237838] [rcl]: Initializing wait set with '4' subscriptions, '2' guard conditions, '0' timers, '3' clients, '6' services
+[DEBUG] [1767867663.245950748] [rcl]: Initializing wait set with '4' subscriptions, '2' guard conditions, '0' timers, '3' clients, '6' services
+[DEBUG] [1767867663.301552533] [rcl_action]: Taking action feedback
+[DEBUG] [1767867663.301646518] [rcl]: Subscription taking message
+[DEBUG] [1767867663.301694412] [rcl]: Subscription take succeeded: true
+[DEBUG] [1767867663.301701075] [rcl_action]: Action feedback taken
+[DEBUG] [1767867663.302758364] [chat_bridge]: Token: !
+[DEBUG] [1767867663.303511109] [rcl]: Initializing wait set with '4' subscriptions, '2' guard conditions, '0' timers, '3' clients, '6' services
+[DEBUG] [1767867663.304021154] [rcl]: Initializing wait set with '4' subscriptions, '2' guard conditions, '0' timers, '3' clients, '6' services
+[DEBUG] [1767867663.366079572] [rcl_action]: Taking action feedback
+[DEBUG] [1767867663.366194071] [rcl]: Subscription taking message
+[DEBUG] [1767867663.366247047] [rcl]: Subscription take succeeded: true
+[DEBUG] [1767867663.366256024] [rcl_action]: Action feedback taken
+[DEBUG] [1767867663.367556575] [chat_bridge]: Token:  How
+[DEBUG] [1767867663.368604169] [rcl]: Initializing wait set with '4' subscriptions, '2' guard conditions, '0' timers, '3' clients, '6' services
+[DEBUG] [1767867663.369020939] [rcl]: Initializing wait set with '4' subscriptions, '2' guard conditions, '0' timers, '3' clients, '6' services
+[DEBUG] [1767867663.420012063] [rcl_action]: Taking action feedback
+[DEBUG] [1767867663.420136414] [rcl]: Subscription taking message
+[DEBUG] [1767867663.420216821] [rcl]: Subscription take succeeded: true
+[DEBUG] [1767867663.420223700] [rcl_action]: Action feedback taken
+[DEBUG] [1767867663.421371519] [chat_bridge]: Token:  can
+[DEBUG] [1767867663.421746409] [rcl]: Initializing wait set with '4' subscriptions, '2' guard conditions, '0' timers, '3' clients, '6' services
+[DEBUG] [1767867663.421981044] [rcl]: Initializing wait set with '4' subscriptions, '2' guard conditions, '0' timers, '3' clients, '6' services
+[DEBUG] [1767867663.469198468] [rcl_action]: Taking action feedback
+[DEBUG] [1767867663.469331599] [rcl]: Subscription taking message
+[DEBUG] [1767867663.469442271] [rcl]: Subscription take succeeded: true
+[DEBUG] [1767867663.469459350] [rcl_action]: Action feedback taken
+[DEBUG] [1767867663.472055680] [chat_bridge]: Token:  I
+[DEBUG] [1767867663.472917991] [rcl]: Initializing wait set with '4' subscriptions, '2' guard conditions, '0' timers, '3' clients, '6' services
+[DEBUG] [1767867663.473597260] [rcl]: Initializing wait set with '4' subscriptions, '2' guard conditions, '0' timers, '3' clients, '6' services
+[DEBUG] [1767867663.528271319] [rcl_action]: Taking action feedback
+[DEBUG] [1767867663.528396184] [rcl]: Subscription taking message
+[DEBUG] [1767867663.528462623] [rcl]: Subscription take succeeded: true
+[DEBUG] [1767867663.528470361] [rcl_action]: Action feedback taken
+[DEBUG] [1767867663.529892799] [chat_bridge]: Token:  assist
+[DEBUG] [1767867663.530867518] [rcl]: Initializing wait set with '4' subscriptions, '2' guard conditions, '0' timers, '3' clients, '6' services
+[DEBUG] [1767867663.531441136] [rcl]: Initializing wait set with '4' subscriptions, '2' guard conditions, '0' timers, '3' clients, '6' services
+[DEBUG] [1767867663.585985860] [rcl_action]: Taking action feedback
+[DEBUG] [1767867663.586093898] [rcl]: Subscription taking message
+[DEBUG] [1767867663.586164044] [rcl]: Subscription take succeeded: true
+[DEBUG] [1767867663.586176368] [rcl_action]: Action feedback taken
+[DEBUG] [1767867663.587315811] [chat_bridge]: Token:  you
+[DEBUG] [1767867663.587750290] [rcl]: Initializing wait set with '4' subscriptions, '2' guard conditions, '0' timers, '3' clients, '6' services
+[DEBUG] [1767867663.587975981] [rcl]: Initializing wait set with '4' subscriptions, '2' guard conditions, '0' timers, '3' clients, '6' services
+[DEBUG] [1767867663.648596438] [rcl_action]: Taking action feedback
+[DEBUG] [1767867663.648672819] [rcl]: Subscription taking message
+[DEBUG] [1767867663.648722333] [rcl]: Subscription take succeeded: true
+[DEBUG] [1767867663.648727865] [rcl_action]: Action feedback taken
+[DEBUG] [1767867663.649727578] [chat_bridge]: Token:  today
+[DEBUG] [1767867663.650389618] [rcl]: Initializing wait set with '4' subscriptions, '2' guard conditions, '0' timers, '3' clients, '6' services
+[DEBUG] [1767867663.650668796] [rcl]: Initializing wait set with '4' subscriptions, '2' guard conditions, '0' timers, '3' clients, '6' services
+[DEBUG] [1767867663.705183579] [rcl_action]: Taking action feedback
+[DEBUG] [1767867663.705271063] [rcl]: Subscription taking message
+[DEBUG] [1767867663.705329413] [rcl]: Subscription take succeeded: true
+[DEBUG] [1767867663.705336889] [rcl_action]: Action feedback taken
+[DEBUG] [1767867663.706493935] [chat_bridge]: Token: ?
+[DEBUG] [1767867663.706905140] [rcl]: Initializing wait set with '4' subscriptions, '2' guard conditions, '0' timers, '3' clients, '6' services
+[DEBUG] [1767867663.707094567] [rcl]: Initializing wait set with '4' subscriptions, '2' guard conditions, '0' timers, '3' clients, '6' services
+[DEBUG] [1767867663.759792936] [rcl_action]: Taking action result response
+[DEBUG] [1767867663.759880616] [rcl]: Client taking service response
+[DEBUG] [1767867663.760010706] [rcl]: Client take response succeeded: true
+[DEBUG] [1767867663.760023898] [rcl_action]: Action result response taken
+[DEBUG] [1767867663.760634174] [rcl_action]: Taking action status
+[DEBUG] [1767867663.760690758] [rcl]: Subscription taking message
+[DEBUG] [1767867663.760741532] [rcl]: Subscription take succeeded: true
+[DEBUG] [1767867663.760748355] [rcl_action]: Action status taken
+[INFO] [1767867663.762461013] [chat_bridge]: Final Llama response: Hello! How can I assist you today?...
+[INFO] [1767867663.764036698] [chat_bridge]: Published response: Hello! How can I assist you today?...
+[DEBUG] [1767867663.764906660] [rcl]: Initializing wait set with '4' subscriptions, '2' guard conditions, '0' timers, '3' clients, '6' services
+[DEBUG] [1767867663.766634772] [rcl]: Initializing wait set with '4' subscriptions, '2' guard conditions, '0' timers, '3' clients, '6' services
+[DEBUG] [1767867773.305952569] [rcl]: Shutting down ROS client library, for context at address: 0x581a5972ce00
+[DEBUG] [1767867773.306516657] [rcl]: Initializing wait set with '4' subscriptions, '2' guard conditions, '0' timers, '3' clients, '6' services
+[DEBUG] [1767867773.306993826] [rcl]: Finalizing event
+[DEBUG] [1767867773.307052335] [rcl]: Event finalized
+[DEBUG] [1767867773.307098277] [rcl]: Finalizing publisher
+[DEBUG] [1767867773.309281305] [rcl]: Publisher finalized
+[DEBUG] [1767867773.309532690] [rcl]: Finalizing event
+[DEBUG] [1767867773.309557005] [rcl]: Event finalized
+[DEBUG] [1767867773.309574101] [rcl]: Finalizing publisher
+[DEBUG] [1767867773.310952741] [rcl]: Publisher finalized
+[DEBUG] [1767867773.311167483] [rcl]: Finalizing event
+[DEBUG] [1767867773.311188094] [rcl]: Event finalized
+[DEBUG] [1767867773.311201391] [rcl]: Finalizing publisher
+[DEBUG] [1767867773.312052680] [rcl]: Publisher finalized
+[DEBUG] [1767867773.312157434] [rcl]: Finalizing event
+[DEBUG] [1767867773.312171852] [rcl]: Event finalized
+[DEBUG] [1767867773.312184368] [rcl]: Finalizing publisher
+[DEBUG] [1767867773.312836708] [rcl]: Publisher finalized
+[DEBUG] [1767867773.312947870] [rcl]: Finalizing event
+[DEBUG] [1767867773.312959995] [rcl]: Event finalized
+[DEBUG] [1767867773.312972090] [rcl]: Finalizing subscription
+[DEBUG] [1767867773.313744954] [rcl]: Subscription finalized
+[DEBUG] [1767867773.313845884] [rcl]: Finalizing event
+[DEBUG] [1767867773.313855234] [rcl]: Event finalized
+[DEBUG] [1767867773.313866190] [rcl]: Finalizing subscription
+[DEBUG] [1767867773.314567722] [rcl]: Subscription finalized
+[DEBUG] [1767867773.314674385] [rcl]: Finalizing service
+[DEBUG] [1767867773.315958598] [rcl]: Service finalized
+[DEBUG] [1767867773.316405767] [rcl]: Finalizing service
+[DEBUG] [1767867773.319893242] [rcl]: Service finalized
+[DEBUG] [1767867773.320174514] [rcl]: Finalizing service
+[DEBUG] [1767867773.323954653] [rcl]: Service finalized
+[DEBUG] [1767867773.324262538] [rcl]: Finalizing service
+[DEBUG] [1767867773.327691410] [rcl]: Service finalized
+[DEBUG] [1767867773.328025690] [rcl]: Finalizing service
+[DEBUG] [1767867773.331054703] [rcl]: Service finalized
+[DEBUG] [1767867773.331320230] [rcl]: Finalizing service
+[DEBUG] [1767867773.334172454] [rcl]: Service finalized
+[DEBUG] [1767867773.334473550] [rcl]: Shutting down ROS client library, for context at address: 0x581a5972ce00
+Traceback (most recent call last):
+  File "/home/mo/ws/install/deliverybot_bringup/lib/deliverybot_bringup/chat_bridge.py", line 289, in main
+    try:
+  File "/opt/ros/humble/local/lib/python3.10/dist-packages/rclpy/__init__.py", line 229, in spin
+    executor.spin_once()
+  File "/opt/ros/humble/local/lib/python3.10/dist-packages/rclpy/executors.py", line 773, in spin_once
+    self._spin_once_impl(timeout_sec)
+  File "/opt/ros/humble/local/lib/python3.10/dist-packages/rclpy/executors.py", line 762, in _spin_once_impl
+    handler, entity, node = self.wait_for_ready_callbacks(timeout_sec=timeout_sec)
+  File "/opt/ros/humble/local/lib/python3.10/dist-packages/rclpy/executors.py", line 745, in wait_for_ready_callbacks
+    return next(self._cb_iter)
+  File "/opt/ros/humble/local/lib/python3.10/dist-packages/rclpy/executors.py", line 618, in _wait_for_ready_callbacks
+    wait_set = _rclpy.WaitSet(
+rclpy._rclpy_pybind11.RCLError: failed to initialize wait set: the given context is not valid, either rcl_init() was not called or rcl_shutdown() was called., at ./src/rcl/wait.c:130
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/mo/ws/install/deliverybot_bringup/lib/deliverybot_bringup/chat_bridge.py", line 298, in <module>
+    if __name__ == '__main__':
+  File "/home/mo/ws/install/deliverybot_bringup/lib/deliverybot_bringup/chat_bridge.py", line 294, in main
+    node.destroy_node()
+  File "/opt/ros/humble/local/lib/python3.10/dist-packages/rclpy/__init__.py", line 130, in shutdown
+    _shutdown(context=context)
+  File "/opt/ros/humble/local/lib/python3.10/dist-packages/rclpy/utilities.py", line 58, in shutdown
+    return context.shutdown()
+  File "/opt/ros/humble/local/lib/python3.10/dist-packages/rclpy/context.py", line 102, in shutdown
+    self.__context.shutdown()
+rclpy._rclpy_pybind11.RCLError: failed to shutdown: rcl_shutdown already called on the given context, at ./src/rcl/init.c:241
+[DEBUG] [1767867773.569163628] [rcl_action]: Finalizing action client
+[DEBUG] [1767867773.569242772] [rcl]: Finalizing client
+[DEBUG] [1767867773.570695144] [rcl]: Client finalized
+[DEBUG] [1767867773.570766929] [rcl]: Finalizing client
+[DEBUG] [1767867773.572005432] [rcl]: Client finalized
+[DEBUG] [1767867773.572070136] [rcl]: Finalizing client
+[DEBUG] [1767867773.573298005] [rcl]: Client finalized
+[DEBUG] [1767867773.573355346] [rcl]: Finalizing subscription
+[DEBUG] [1767867773.574166518] [rcl]: Subscription finalized
+[DEBUG] [1767867773.574243395] [rcl]: Finalizing subscription
+[DEBUG] [1767867773.575591044] [rcl]: Subscription finalized
+[DEBUG] [1767867773.575729654] [rcl_action]: Action client finalized
+[DEBUG] [1767867773.575755981] [rcl]: Finalizing node
+[DEBUG] [1767867773.575774562] [rcl]: Finalizing publisher
+[DEBUG] [1767867773.577571525] [rcl]: Publisher finalized
+[DEBUG] [1767867773.594534212] [rcl]: Node finalized

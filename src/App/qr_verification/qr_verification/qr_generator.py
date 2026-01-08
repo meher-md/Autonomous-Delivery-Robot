@@ -20,9 +20,6 @@ class QrGenerator(Node):
         self.pub = self.create_publisher(String, '/app/qr/image', 10)
         # Subscribe to goal_name to track location changes
         self.goal_name_sub = self.create_subscription(String, '/app/goal_name', self.on_goal_name, 10)
-        self.qr_dir = os.path.expanduser(os.path.join('~/ws', 'generated_qr'))
-        os.makedirs(self.qr_dir, exist_ok=True)
-        
         # Track robot location to ensure QR is only generated when moving from R403
         # Assume robot starts at R403 (stock location)
         self.previous_location = 'R403'
@@ -87,14 +84,65 @@ class QrGenerator(Node):
             }
             
             # generate QR image
-            qr = qrcode.QRCode(version=1, box_size=10, border=4)
+            # Custom Color: Dark Blue (R=0, G=74, B=173) to match App Theme
+            qr = qrcode.QRCode(version=1, box_size=12, border=4, error_correction=qrcode.constants.ERROR_CORRECT_H)
             qr.add_data(json.dumps(payload))
             qr.make(fit=True)
-            img = qr.make_image(fill_color="black", back_color="white")
             
-            # save to file
+            # Create QR with Blue color and White background
+            img = qr.make_image(fill_color="#004AAD", back_color="white").convert('RGBA')
+
+            # Embed Logo
+            try:
+                logo_path = os.path.expanduser('~/ws/src/App/order_logger/dashboard/robot_logo_dashboard.png')
+                if os.path.exists(logo_path):
+                    from PIL import Image, ImageDraw
+                    logo = Image.open(logo_path).convert("RGBA")
+                    
+                    # Calculate logo size (25% of QR width)
+                    qr_width, qr_height = img.size
+                    logo_size = int(qr_width * 0.25)
+                    logo = logo.resize((logo_size, logo_size), Image.Resampling.LANCZOS)
+                    
+                    # Calculate position to center the logo
+                    pos = ((qr_width - logo_size) // 2, (qr_height - logo_size) // 2)
+                    
+                    # Create a white background box for the logo (to make it distinct like the example)
+                    # Size includes a small padding
+                    padding = 10
+                    bg_size = (logo_size + padding, logo_size + padding)
+                    bg_pos = (pos[0] - padding // 2, pos[1] - padding // 2)
+                    
+                    # Draw White Rectangle (Background)
+                    draw = ImageDraw.Draw(img)
+                    draw.rectangle(
+                        [bg_pos, (bg_pos[0] + bg_size[0], bg_pos[1] + bg_size[1])],
+                        fill="white"
+                    )
+                    
+                    # Paste logo on top of the white background
+                    img.paste(logo, pos, logo)
+                    
+                    # Convert back to RGB
+                    img = img.convert("RGB")
+                    self.get_logger().info("Logo embedded in QR code with white background")
+            except Exception as e:
+                self.get_logger().error(f"Failed to embed logo: {e}")
+            
+            # Create Mission Folder Structure: year/Month/day/mission_<order_id>
+            now = datetime.fromtimestamp(timestamp)
+            year_str = now.strftime("%Y")
+            month_str = now.strftime("%B")
+            day_str = now.strftime("%d")
+            mission_folder = f"mission_{order_id}"
+            
+            base_dir = os.path.expanduser("~/ws/mission_proof")
+            mission_dir = os.path.join(base_dir, year_str, month_str, day_str, mission_folder)
+            os.makedirs(mission_dir, exist_ok=True)
+            
+            # save to file directly in mission folder
             filename = f"qr_{order_id}.png"
-            filepath = os.path.join(self.qr_dir, filename)
+            filepath = os.path.join(mission_dir, filename)
             img.save(filepath)
             
             # prepare base64 PNG
@@ -114,7 +162,7 @@ class QrGenerator(Node):
             # Log to order history file
             self._log_to_order_history(order_id, address, timestamp, filename, filepath)
             
-            self.get_logger().info(f"Generated QR for order {order_id} (saved {filepath})")
+            self.get_logger().info(f"Generated QR for order {order_id} (saved to {filepath})")
         except Exception as e:
             self.get_logger().error(f"QR generation failed: {e}")
 

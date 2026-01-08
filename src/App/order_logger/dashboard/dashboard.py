@@ -235,7 +235,7 @@ def highlight_status(val):
 st.dataframe(
     filtered_df[['Time_Arrival', 'Order_ID', 'Target_Location', 'Order_Final_Status', 'Date_Full']]
     .sort_values(by='Time_Arrival', ascending=False)
-    .style.map(highlight_status, subset=['Order_Final_Status']),
+    .style.applymap(highlight_status, subset=['Order_Final_Status']),
     hide_index=True
 )
 

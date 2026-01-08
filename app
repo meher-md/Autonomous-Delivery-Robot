@@ -2,7 +2,7 @@
 
 # ---------- Kill stale rosbridge port FIRST ----------
 echo "⚙️  Killing any process on port 9090..."
-fuser -k 9090/tcp 2>/dev/null || true
+sudo fuser -k 9090/tcp 2>/dev/null || true
 sleep 0.5
 
 set -e  # don't use -u to avoid ROS env var issues

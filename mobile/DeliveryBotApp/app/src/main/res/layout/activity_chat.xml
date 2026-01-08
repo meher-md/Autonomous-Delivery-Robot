@@ -136,6 +136,7 @@
             android:layout_marginStart="10dp"
             android:background="@drawable/bg_control_button_cyan"
             android:src="@drawable/ic_mic"
+            android:tint="#00D9FF"
             android:padding="12dp"
             android:scaleType="fitCenter"
             android:contentDescription="Voice Input" />

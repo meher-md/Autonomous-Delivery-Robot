@@ -10,10 +10,15 @@ import cv2
 import numpy as np
 import onnxruntime as ort
 import yaml
-from gtts import gTTS
 import pygame
 import time
 import json
+from rclpy.action import ActionClient
+try:
+    from audio_common_msgs.action import TTS
+    TTS_AVAILABLE = True
+except ImportError:
+    TTS_AVAILABLE = False
 
 
 class LikeDetectorNode(Node):
@@ -21,6 +26,7 @@ class LikeDetectorNode(Node):
         super().__init__('pipeline_ros_bridge')
         
         self.publisher_ = self.create_publisher(Bool, '/like_detected', 10)
+        self.detections_pub = self.create_publisher(String, '/yolo/detections_str', 10)
         self.get_logger().info("ROS 2 Publisher for /like_detected is ready.")
 
         # Subscriptions
@@ -78,6 +84,14 @@ class LikeDetectorNode(Node):
         # Countdown Timer (Requested by User)
         self.target_start_time = 0.0
         
+        # PIPER TTS CLIENT
+        if TTS_AVAILABLE:
+            self.tts_client = ActionClient(self, TTS, '/piper_node/say')
+            self.get_logger().info("Connected to Piper TTS Action Server")
+        else:
+            self.tts_client = None
+            self.get_logger().warn("Audio Common Msgs not found - Piper disabled")
+
         self.get_logger().info("Like Detector Node (Passive) ready. Waiting for QR Verification...")
     
     def load_class_names(self):
@@ -195,6 +209,13 @@ class LikeDetectorNode(Node):
             
             msg_out.data = like_detected
             self.publisher_.publish(msg_out)
+            
+            # Publish Detected Objects Names
+            detected_names = [d['class_name'] for d in detections]
+            if detected_names:
+                det_msg = String()
+                det_msg.data = ", ".join(set(detected_names)) # Unique names
+                self.detections_pub.publish(det_msg)
             
             if like_detected and not self.detection_made:
                 like_dets = [d for d in detections if d['class_name'].lower() == 'like']
@@ -326,24 +347,15 @@ class LikeDetectorNode(Node):
         return image
     
     def play_thank_you_message(self):
-        try:
-            message = "We're so glad your order arrived! Thank you for being a valued customer."
-            tts = gTTS(text=message, lang='en', slow=False)
-            
-            audio_file = "/tmp/thank_you_message.mp3"
-            tts.save(audio_file)
-            
-            pygame.mixer.music.load(audio_file)
-            pygame.mixer.music.play()
-            
-            while pygame.mixer.music.get_busy():
-                pygame.time.Clock().tick(10)
-            
-            os.remove(audio_file)
-            self.get_logger().info("Audio message played successfully")
-            
-        except Exception as e:
-            self.get_logger().error(f"Error playing audio: {e}")
+        message = "Thank you! I am really glad you like it!"
+        
+        if self.tts_client and self.tts_client.wait_for_server(timeout_sec=1.0):
+            goal = TTS.Goal()
+            goal.text = message
+            self.tts_client.send_goal_async(goal)
+            self.get_logger().info(f"Sent TTS request: {message}")
+        else:
+            self.get_logger().warn("Piper TTS not available, fallback to silence (or check /piper_node/say)")
     
     def destroy_node(self):
         cv2.destroyAllWindows()

@@ -11,8 +11,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="48dp"
-        android:background="@android:drawable/editbox_background"
-        android:backgroundTint="#B39DDB"
+        android:background="@drawable/bg_neon_user"
         android:orientation="vertical"
         android:padding="12dp"
         android:elevation="2dp"
@@ -35,7 +34,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="12:30 PM"
-            android:textColor="#E0E0E0"
+            android:textColor="#00FFFF"
             android:textSize="10sp"
             android:layout_marginTop="4dp"
             android:gravity="end" />
@@ -49,8 +48,7 @@
         android:text="👤"
         android:textSize="24sp"
         android:gravity="center"
-        android:background="@android:drawable/presence_online"
-        android:backgroundTint="#424242"
+        android:background="@drawable/bg_circle_dark"
         android:elevation="1dp" />
 
 </LinearLayout>

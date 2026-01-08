@@ -20,6 +20,70 @@ class ChatbotEngine {
     )
 
     private val responses = listOf(
+        // Chatbot Architecture
+        BotResponse(
+            keywords = listOf("chatbot", "llama", "ai model", "talk", "voice", "architect", "consist", "how do you work", "components", "inside"),
+            response = "🧠 **Advanced Chatbot Architecture:**\n\n" +
+                    "My intelligence is powered by a sophisticated ROS 2 pipeline running locally on the robot:\n\n" +
+                    "👂 **Hearing (Speech-to-Text):**\n" +
+                    "• **`whisper_ros`**: Uses OpenAI's **Whisper** model to convert your voice into text with high accuracy.\n" +
+                    "• **`audio_common`**: Handles raw audio capture and processing.\n\n" +
+                    "🧠 **Thinking (Generative AI):**\n" +
+                    "• **`llama_ros`**: Runs **Llama 3.2**, a powerful Large Language Model (LLM), to understand context and generate intelligent answers.\n" +
+                    "• **`chatbot_ros`**: The core node managing conversation flow.\n\n" +
+                    "🗣️ **Speaking (Text-to-Speech):**\n" +
+                    "• **`piper_ros`**: Uses **Piper**, a fast neural TTS system, to speak back to you naturally.\n\n" +
+                    "⚙️ **Orchestration:**\n" +
+                    "• **`yasmin`**: (Yet Another State MachINe) manages complex robot behaviors and states.\n" +
+                    "• **ROSBridge**: Connects this Android app to the robot via WebSocket.\n\n" +
+                    "I am a fully offline, privacy-focused AI running on the Edge! 🚀",
+            priority = 3
+        ),
+
+        // Gesture Recognition (YOLO)
+        BotResponse(
+            keywords = listOf("gesture", "yolo", "ai", "like", "thumbs up", "recognition", "sign"),
+            response = "👍 **Gesture Recognition AI:**\n\n" +
+                    "I use a YOLOv6 AI model to see and understand you!\n\n" +
+                    "**How it works:**\n" +
+                    "1. When I arrive with your delivery...\n" +
+                    "2. Show me a **'Thumbs Up' (Like)** gesture 👍\n" +
+                    "3. I will detect it instantly!\n" +
+                    "4. This confirms you received the order\n" +
+                    "5. I'll automatically return to home base\n\n" +
+                    "No need to touch the screen, just give me a Like! ✨",
+            priority = 3
+        ),
+
+        // QR Verification
+        BotResponse(
+            keywords = listOf("qr", "code", "scan", "verification", "security", "verify"),
+            response = "🔐 **Secure QR Verification:**\n\n" +
+                    "I ensure packages go to the right person!\n\n" +
+                    "**The Process:**\n" +
+                    "1. When I arrive, I show a camera preview\n" +
+                    "2. Show your unique **Order QR Code** from the app\n" +
+                    "3. I scan and verify it securely\n" +
+                    "4. If valid, the locker unlocks!\n\n" +
+                    "Safety and security first! 🛡️",
+            priority = 3
+        ),
+
+        // Obstacle Avoidance
+        BotResponse(
+            keywords = listOf("obstacle", "avoid", "collision", "safety", "lidar", "sensor"),
+            response = "🚧 **Obstacle Avoidance System:**\n\n" +
+                    "I navigate safely around people and objects!\n\n" +
+                    "**Sensors:**\n" +
+                    "• **Lidar:** 360-degree laser scanning\n" +
+                    "• **Ultrasonic:** Close-range detection\n\n" +
+                    "**Behavior:**\n" +
+                    "• I stop for dynamic obstacles (people)\n" +
+                    "• I planned paths around static objects\n" +
+                    "• I constantly update my local costmap\n\n" +
+                    "We can share the hallway safely! 🤝",
+            priority = 3
+        ),
         // Greetings and Introduction
         BotResponse(
             keywords = listOf("hello", "hi", "hey", "greetings", "good morning", "good evening"),
@@ -33,180 +97,184 @@ class ChatbotEngine {
             priority = 2
         ),
 
-        // About the Project
+        // About the Project and Team
         BotResponse(
-            keywords = listOf("project", "graduation", "team", "hti", "about"),
+            keywords = listOf("project", "graduation", "team", "hti", "about", "creators", "made", "who are you"),
             response = "🎓 **HTI Mechatronics Graduation Project**\n\n" +
-                    "This is an Autonomous Mobile Delivery Robot developed by Mechatronics Engineering students from Higher Technological Institute.\n\n" +
-                    "🔧 **Technology Stack:**\n" +
-                    "• ROS 2 Humble framework\n" +
-                    "• SLAM for mapping & localization\n" +
-                    "• Autonomous navigation\n" +
-                    "• Android mobile application\n" +
-                    "• Real-time communication via WebSocket\n\n" +
-                    "Our goal is to create a reliable, autonomous delivery solution!",
+                    "Developed by Mechatronics Engineering students:\n\n" +
+                    "💻 **Software Team:**\n" +
+                    "• Mohammed Nasser Abdelhady\n" +
+                    "• Abdulrahman Muhammad Muhammad\n" +
+                    "• Jack Isaac Boshra\n" +
+                    "• Reem Sayed Saad\n\n" +
+                    "⚙️ **Mechanical Team:**\n" +
+                    "• Kareem Ahmed Taha\n" +
+                    "• Seif Ayman Hassan\n" +
+                    "• Eslam Tohamy Shaaban\n\n" +
+                    "👨‍🏫 **Supervisors:**\n" +
+                    "• Prof. Dr. Amal Ibrahim\n" +
+                    "• Dr. Ahmed El-Sayed\n\n" +
+                    "Powered by ROS 2 Humble & Android!",
             priority = 2
         ),
 
         // About the Robot
         BotResponse(
-            keywords = listOf("robot", "autonomous", "delivery", "capabilities", "what can"),
-            response = "🤖 **Autonomous Delivery Robot**\n\n" +
-                    "Our robot is designed for autonomous package delivery with these capabilities:\n\n" +
-                    "✅ **Autonomous Navigation** - Moves independently to destinations\n" +
-                    "✅ **SLAM Mapping** - Creates and updates maps in real-time\n" +
-                    "✅ **Obstacle Avoidance** - Safely navigates around obstacles\n" +
-                    "✅ **Live Camera Feed** - Real-time video streaming\n" +
-                    "✅ **Remote Control** - Manual teleop when needed\n" +
-                    "✅ **Order Tracking** - Complete delivery management\n\n" +
-                    "Built on the Andino platform with ROS 2 Humble!",
+            keywords = listOf("robot", "autonomous", "delivery", "capabilities", "what can", "specs", "hardware"),
+            response = "🤖 **Autonomous Delivery Robot Specs:**\n\n" +
+                    "Built on the **Andino** open-source platform:\n\n" +
+                    "🧠 **Brain:** Raspberry Pi 4 (ROS 2 Humble)\n" +
+                    "👁️ **Vision:** Raspberry Pi Camera V2\n" +
+                    "📡 **Sensors:**\n" +
+                    "• **RPLIDAR A1:** 360° Laser Scanning for SLAM\n" +
+                    "• **Ultrasonic:** Short-range obstacle detection\n" +
+                    "• **Odometry:** Wheel encoders for position tracking\n\n" +
+                    "⚡ **Actuation:**\n" +
+                    "• Differential Drive System\n" +
+                    "• High-torque DC Motors with encoders\n\n" +
+                    "A robust mechatronics system designed for indoor logistics! 🏭",
             priority = 3
         ),
 
         // App Features Overview
         BotResponse(
-            keywords = listOf("app", "features", "application", "what can i do", "functions"),
-            response = "📱 **App Features:**\n\n" +
-                    "🗺️ **Map Viewer** - Visualize SLAM maps in real-time\n" +
-                    "📹 **Camera Stream** - Live video feed from robot\n" +
-                    "🎮 **Teleop Control** - Manual robot control\n" +
-                    "📦 **Order Management** - Create and track deliveries\n" +
-                    "⚙️ **Settings** - Customize app preferences\n" +
-                    "🔌 **Robot Connection** - WebSocket via ROSBridge\n\n" +
-                    "Which feature would you like to learn more about?",
+            keywords = listOf("app", "features", "application", "android", "tech stack"),
+            response = "📱 **Mobile App Architecture:**\n\n" +
+                    "A Native Android application built with **Kotlin**:\n\n" +
+                    "� **Connectivity:**\n" +
+                    "• Uses **ROSBridgeClient** (WebSocket) to talk to ROS 2.\n" +
+                    "• Port: 9090 (JSON commands)\n\n" +
+                    "�️ **UI/UX:**\n" +
+                    "• **WebView:** For Map & Camera visualization.\n" +
+                    "• **RecyclerView:** For Chat & Logs.\n" +
+                    "• **Neon Theme:** Custom XML drawables.\n\n" +
+                    "🧠 **AI Integration:**\n" +
+                    "• **Text-to-Speech (TTS):** Native Android API.\n" +
+                    "• **Speech Recognition:** Android Intent API.\n\n" +
+                    "The perfect interface for human-robot interaction! 🤝",
             priority = 2
         ),
 
         // Map and Navigation
         BotResponse(
-            keywords = listOf("map", "mapping", "slam", "navigate", "navigation", "location"),
-            response = "🗺️ **Mapping & Navigation:**\n\n" +
-                    "The robot uses **SLAM (Simultaneous Localization and Mapping)** to:\n\n" +
-                    "1. **Create Maps** - Builds environment maps autonomously\n" +
-                    "2. **Localize** - Knows its exact position\n" +
-                    "3. **Navigate** - Plans optimal paths to destinations\n" +
-                    "4. **Update** - Continuously refines maps\n\n" +
-                    "📍 **In the App:**\n" +
-                    "• View real-time map updates\n" +
-                    "• See robot's current position\n" +
-                    "• Monitor navigation progress\n\n" +
-                    "Open 'Map Viewer' to see it in action!",
-            priority = 2
+            keywords = listOf("map", "mapping", "slam", "navigate", "navigation", "costmap", "planner"),
+            response = "🗺️ **Navigation Stack (Nav2):**\n\n" +
+                    "We use the industry-standard **ROS 2 Navigation Stack**:\n\n" +
+                    "📍 **Mapping (SLAM):**\n" +
+                    "• **Pkg:** `slam_toolbox`\n" +
+                    "• **Algo:** Graph-based SLAM\n" +
+                    "• Builds map from Lidar scans + Odometry\n\n" +
+                    "🧭 **Localization:**\n" +
+                    "• **Pkg:** `nav2_amcl`\n" +
+                    "• Uses particle filter to find position\n\n" +
+                    "�️ **Path Planning:**\n" +
+                    "• **Global:** A* / Dijkstra (finds best route)\n" +
+                    "• **Local:** DWB Controller (avoids dynamic obstacles)\n" +
+                    "• **Costmaps:** Layers for static/dynamic obstacles\n\n" +
+                    "State-of-the-art autonomous movement! 🚀",
+            priority = 3
         ),
 
         // Camera Feature
         BotResponse(
-            keywords = listOf("camera", "video", "stream", "feed", "watch", "see"),
-            response = "📹 **Live Camera Stream:**\n\n" +
-                    "View real-time video from the robot's camera:\n\n" +
-                    "✅ High-quality video feed\n" +
-                    "✅ Low latency streaming\n" +
-                    "✅ Monitor robot's view\n" +
-                    "✅ Useful for supervision\n\n" +
-                    "📱 **How to Use:**\n" +
-                    "1. Ensure robot is connected\n" +
-                    "2. Tap 'Camera Stream' button\n" +
-                    "3. Wait for stream to load\n" +
-                    "4. View robot's perspective\n\n" +
-                    "Perfect for monitoring deliveries!",
+            keywords = listOf("camera", "video", "stream", "mjpeg", "view", "watch"),
+            response = "📹 **Video Streaming Pipeline:**\n\n" +
+                    "Low-latency streaming for real-time monitoring:\n\n" +
+                    "1. **Capture:** `v4l2_camera` node reads raw frames.\n" +
+                    "2. **Compression:** Converted to JPEG to save bandwidth.\n" +
+                    "3. **Server:** `web_video_server` ROS node.\n" +
+                    "4. **Protocol:** HTTP MJPEG Stream.\n" +
+                    "5. **Display:** Android WebView renders the stream URL.\n\n" +
+                    "Optimized for speed and minimal lag! ⚡",
             priority = 2
         ),
 
         // Teleop Control
         BotResponse(
-            keywords = listOf("control", "teleop", "drive", "move", "manual", "joystick"),
-            response = "🎮 **Manual Control (Teleop):**\n\n" +
-                    "Take manual control of the robot when needed:\n\n" +
-                    "⬆️ **Forward** - Move robot ahead\n" +
-                    "⬇️ **Backward** - Move robot back\n" +
-                    "⬅️ **Turn Left** - Rotate left\n" +
-                    "➡️ **Turn Right** - Rotate right\n" +
-                    "⏹️ **Stop** - Emergency stop\n\n" +
-                    "📱 **How to Use:**\n" +
-                    "1. Open 'Teleop Control'\n" +
-                    "2. Ensure robot is connected\n" +
-                    "3. Use arrow buttons to control\n" +
-                    "4. Robot responds in real-time\n\n" +
-                    "⚠️ Use carefully in manual mode!",
+            keywords = listOf("control", "teleop", "drive", "twist", "cmd_vel", "manual"),
+            response = "🎮 **Control Logic:**\n\n" +
+                    "Manual control bypasses the autonomous planner:\n\n" +
+                    "1. **Input:** You press buttons on the App.\n" +
+                    "2. **Publish:** App sends JSON to `/cmd_vel` topic.\n" +
+                    "3. **Message Type:** `geometry_msgs/Twist`\n" +
+                    "   • `linear.x` (Speed)\n" +
+                    "   • `angular.z` (Turn)\n" +
+                    "4. **Hardware:** Microcontroller receives Twist -> PWM -> Motors.\n\n" +
+                    "Direct control at your fingertips! 🕹️",
             priority = 2
         ),
 
         // Orders and Delivery
         BotResponse(
-            keywords = listOf("order", "delivery", "package", "deliver", "send", "create order"),
-            response = "📦 **Order Management:**\n\n" +
-                    "Create and manage delivery orders:\n\n" +
-                    "**Creating New Order:**\n" +
-                    "1. Tap 'Create New Order'\n" +
-                    "2. Enter delivery address\n" +
-                    "3. Add order details\n" +
-                    "4. Confirm order\n" +
-                    "5. Robot navigates autonomously!\n\n" +
-                    "**Order History:**\n" +
-                    "• View all past deliveries\n" +
-                    "• Check order status\n" +
-                    "• Track completion times\n\n" +
-                    "📍 Robot automatically navigates to the destination!",
+            keywords = listOf("order", "delivery", "mission", "goal", "waypoint"),
+            response = "📦 **Delivery Mission Logic:**\n\n" +
+                    "How a delivery executes technically:\n\n" +
+                    "1. **Goal:** You select 'Cafeteria' (Coordinates x,y,yaw).\n" +
+                    "2. **Action:** App sends `NavigateToPose` action goal.\n" +
+                    "3. **Plan:** Nav2 computes global path.\n" +
+                    "4. **Execution:** Robot follows path using local controller.\n" +
+                    "5. **Arrival:** Robot enters 'Waiting' state for QR/Gesture.\n\n" +
+                    "Fully autonomous state-machine behavior! 🤖",
             priority = 2
         ),
 
         // Connection and Setup
         BotResponse(
-            keywords = listOf("connect", "connection", "setup", "rosbridge", "websocket", "link"),
-            response = "🔌 **Robot Connection:**\n\n" +
-                    "The app connects to the robot via **WebSocket (ROSBridge)**:\n\n" +
-                    "**Connection Process:**\n" +
-                    "1. Robot runs ROSBridge server\n" +
-                    "2. App connects via WebSocket\n" +
-                    "3. Real-time bidirectional communication\n" +
-                    "4. Send commands & receive data\n\n" +
-                    "**Connection Status:**\n" +
-                    "• 🟢 Green = Connected\n" +
-                    "• 🔴 Red = Disconnected\n\n" +
-                    "**Troubleshooting:**\n" +
-                    "• Check robot is powered on\n" +
-                    "• Verify network connection\n" +
-                    "• Ensure ROSBridge is running\n" +
-                    "• Check IP address in settings",
+            keywords = listOf("connect", "rosbridge", "websocket", "network", "ip"),
+            response = "🔌 **Communication Bridge:**\n\n" +
+                    "The detailed link between Android and ROS 2:\n\n" +
+                    "• **Package:** `rosbridge_suite`\n" +
+                    "• **Protocol:** WebSocket (TCP)\n" +
+                    "• **Format:** JSON Serialization\n" +
+                    "• **Topics:**\n" +
+                    "   - Subscribes to: `/cmd_vel`, `/move_base_simple/goal`\n" +
+                    "   - Publishes to: `/app/chat/status`, `/odom`\n\n" +
+                    "Reliable, real-time, bidirectional data link! 🌐",
+            priority = 3
+        ),
+
+        // Dashboard and Analytics
+        BotResponse(
+            keywords = listOf("dashboard", "analytics", "stats", "statistics", "report", "pdf", "csv", "data", "dataframe"),
+            response = "📊 **Smart Dashboard & Analytics:**\n\n" +
+                    "A powerful **Streamlit** dashboard for data-driven insights:\n\n" +
+                    "🔄 **Live Updates:**\n" +
+                    "• The DataFrame updates automatically with every new order.\n" +
+                    "• Real-time visualization of mission success rates.\n\n" +
+                    "📉 **Advanced Analytics:**\n" +
+                    "• Filter data by Date, Location, or Status.\n" +
+                    "• View delivery trends and performance metrics.\n\n" +
+                    "📥 **Export Reports:**\n" +
+                    "• **PDF Reports:** Download professional mission summaries.\n" +
+                    "• **CSV Data:** Export raw datasets for external analysis.\n" +
+                    "• Select any custom time range for specific reports.\n\n" +
+                    "Turning raw robot data into actionable intelligence! 🧠",
+            priority = 3
+        ),
+
+        // Settings (Simple UI, no complex tech)
+        BotResponse(
+            keywords = listOf("settings", "preferences", "config"),
+            response = "⚙️ **App Configuration:**\n\n" +
+                    "• **Shared Preferences:** Stores your robot IP and dark mode setting locally on the phone.\n" +
+                    "• **Dynamic UI:** Layouts update instantly without app restart.\n\n" +
+                    "Simple and persistent! 💾",
             priority = 2
         ),
 
-        // Settings
+        // Connection and Setup
         BotResponse(
-            keywords = listOf("settings", "preferences", "dark mode", "theme", "customize", "configure"),
-            response = "⚙️ **App Settings:**\n\n" +
-                    "Customize your app experience:\n\n" +
-                    "🌙 **Dark Mode** - Toggle dark/light theme\n" +
-                    "🔔 **Notifications** - Enable/disable alerts\n" +
-                    "🔌 **Connection** - Configure robot IP\n" +
-                    "📊 **Display** - Adjust UI preferences\n\n" +
-                    "📱 **How to Access:**\n" +
-                    "1. Tap menu icon (≡)\n" +
-                    "2. Select 'Settings'\n" +
-                    "3. Adjust preferences\n" +
-                    "4. Changes apply immediately\n\n" +
-                    "Your preferences are saved automatically!",
+            keywords = listOf("simulation", "gazebo", "sim", "virtual"),
+            response = "🖥️ **Simulation Environment:**\n\n" +
+                    "Used for testing without hardware:\n\n" +
+                    "• **Simulator:** Gazebo Fortress / Ignition\n" +
+                    "• **Package:** `andino_gz`\n" +
+                    "• **World:** Custom 'Office' world (.sdf)\n" +
+                    "• **Physics:** Real-time physics engine for collisions and gravity.\n\n" +
+                    "Digital twin technology for safe validation! 🧪",
             priority = 2
         ),
 
-        // ROS 2 and Technical
-        BotResponse(
-            keywords = listOf("ros", "ros2", "humble", "packages", "andino", "technical", "how it works"),
-            response = "⚙️ **Technical Details:**\n\n" +
-                    "**ROS 2 Humble Framework:**\n\n" +
-                    "📦 **Key Packages:**\n" +
-                    "• **andino** - Base robot platform\n" +
-                    "• **deliverybot_bringup** - Launch configurations\n" +
-                    "• **app** - Custom ROS nodes\n" +
-                    "• **andino_gz** - Gazebo simulation\n\n" +
-                    "🔧 **Components:**\n" +
-                    "• SLAM for mapping\n" +
-                    "• Nav2 for autonomous navigation\n" +
-                    "• ROSBridge for app communication\n" +
-                    "• Camera drivers for video\n\n" +
-                    "🐧 Running on Linux with ROS 2 Humble!",
-            priority = 2
-        ),
 
         // How to Use App
         BotResponse(

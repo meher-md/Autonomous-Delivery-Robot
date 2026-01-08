@@ -7,24 +7,24 @@
     android:padding="8dp">
 
     <!-- Bot Icon -->
-    <TextView
+    <ImageView
         android:layout_width="36dp"
         android:layout_height="36dp"
-        android:text="🤖"
-        android:textSize="24sp"
-        android:gravity="center"
-        android:background="@android:drawable/presence_online"
-        android:backgroundTint="#1a1a1a"
-        android:elevation="1dp"
-        android:layout_marginEnd="8dp" />
+        android:src="@drawable/ic_robot"
+        android:padding="4dp"
+        android:background="@drawable/bg_circle_dark"
+        android:layout_marginEnd="8dp" 
+        android:contentDescription="Bot Icon"/>
 
     <!-- Bot Message Bubble -->
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="48dp"
-        android:background="@android:drawable/editbox_background"
-        android:backgroundTint="#2a2a2a"
+        android:background="@drawable/bg_neon_bot"
+        android:orientation="vertical"
+        android:padding="12dp"
+        android:elevation="2dp">
         android:orientation="vertical"
         android:padding="12dp"
         android:elevation="2dp">
