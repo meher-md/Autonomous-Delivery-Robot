@@ -27,8 +27,9 @@ class QrGenerator(Node):
         self.has_moved_from_R403 = False  # Flag to track if robot has moved from R403
         
         # Order history file in main project folder
-        self.project_root = os.path.expanduser('~/ws')
-        self.order_history_file = os.path.join(self.project_root, 'order_history.txt')
+        # Order history file in order_logger dashboard folder
+        self.dashboard_dir = os.path.expanduser('~/ws/src/App/order_logger/dashboard')
+        self.order_history_file = os.path.join(self.dashboard_dir, 'order_history.txt')
         
         self.get_logger().info(f'qr_generator ready (order history: {self.order_history_file})')
 
