@@ -12,10 +12,6 @@
         "source": "/home/mo/.gradle/daemon/8.7/com.example.deliverybot.app-main-37:/drawable/bg_card_purple.xml"
     },
     {
-        "merged": "com.example.deliverybot.app-debug-35:/drawable_ic_app_logo_new.png.flat",
-        "source": "com.example.deliverybot.app-main-37:/drawable/ic_app_logo_new.png"
-    },
-    {
         "merged": "/home/mo/.gradle/daemon/8.7/com.example.deliverybot.app-debug-35:/drawable_ic_robot_foreground.xml.flat",
         "source": "/home/mo/.gradle/daemon/8.7/com.example.deliverybot.app-main-37:/drawable/ic_robot_foreground.xml"
     },
@@ -32,12 +28,12 @@
         "source": "/home/mo/.gradle/daemon/8.7/com.example.deliverybot.app-main-37:/drawable/bg_neon_bot.xml"
     },
     {
-        "merged": "/home/mo/.gradle/daemon/8.7/com.example.deliverybot.app-debug-35:/layout_activity_phone.xml.flat",
-        "source": "/home/mo/.gradle/daemon/8.7/com.example.deliverybot.app-main-37:/layout/activity_phone.xml"
-    },
-    {
         "merged": "/home/mo/.gradle/daemon/8.7/com.example.deliverybot.app-debug-35:/layout_activity_main.xml.flat",
         "source": "/home/mo/.gradle/daemon/8.7/com.example.deliverybot.app-main-37:/layout/activity_main.xml"
+    },
+    {
+        "merged": "/home/mo/.gradle/daemon/8.7/com.example.deliverybot.app-debug-35:/layout_activity_phone.xml.flat",
+        "source": "/home/mo/.gradle/daemon/8.7/com.example.deliverybot.app-main-37:/layout/activity_phone.xml"
     },
     {
         "merged": "/home/mo/.gradle/daemon/8.7/com.example.deliverybot.app-debug-35:/layout_activity_map.xml.flat",
@@ -156,6 +152,10 @@
         "source": "/home/mo/.gradle/daemon/8.7/com.example.deliverybot.app-main-37:/mipmap-mdpi/va_launcher.png"
     },
     {
+        "merged": "com.example.deliverybot.app-debug-35:/layout_activity_robot_assistant.xml.flat",
+        "source": "com.example.deliverybot.app-main-37:/layout/activity_robot_assistant.xml"
+    },
+    {
         "merged": "/home/mo/.gradle/daemon/8.7/com.example.deliverybot.app-debug-35:/layout_activity_camera.xml.flat",
         "source": "/home/mo/.gradle/daemon/8.7/com.example.deliverybot.app-main-37:/layout/activity_camera.xml"
     },
@@ -164,12 +164,20 @@
         "source": "/home/mo/.gradle/daemon/8.7/com.example.deliverybot.app-main-37:/drawable/ic_mic.xml"
     },
     {
+        "merged": "/home/mo/.gradle/daemon/8.7/com.example.deliverybot.app-debug-35:/drawable_ic_app_logo_new.png.flat",
+        "source": "/home/mo/.gradle/daemon/8.7/com.example.deliverybot.app-main-37:/drawable/ic_app_logo_new.png"
+    },
+    {
         "merged": "/home/mo/.gradle/daemon/8.7/com.example.deliverybot.app-debug-35:/mipmap-xxxhdpi_va_launcher.png.flat",
         "source": "/home/mo/.gradle/daemon/8.7/com.example.deliverybot.app-main-37:/mipmap-xxxhdpi/va_launcher.png"
     },
     {
         "merged": "/home/mo/.gradle/daemon/8.7/com.example.deliverybot.app-debug-35:/mipmap-mdpi_ic_launcher_round.png.flat",
         "source": "/home/mo/.gradle/daemon/8.7/com.example.deliverybot.app-main-37:/mipmap-mdpi/ic_launcher_round.png"
+    },
+    {
+        "merged": "/home/mo/.gradle/daemon/8.7/com.example.deliverybot.app-debug-35:/drawable_robot_logo.png.flat",
+        "source": "/home/mo/.gradle/daemon/8.7/com.example.deliverybot.app-main-37:/drawable/robot_logo.png"
     },
     {
         "merged": "/home/mo/.gradle/daemon/8.7/com.example.deliverybot.app-debug-35:/drawable_bg_neon_user.xml.flat",
@@ -206,6 +214,10 @@
     {
         "merged": "/home/mo/.gradle/daemon/8.7/com.example.deliverybot.app-debug-35:/mipmap-xhdpi_va_launcher_round.png.flat",
         "source": "/home/mo/.gradle/daemon/8.7/com.example.deliverybot.app-main-37:/mipmap-xhdpi/va_launcher_round.png"
+    },
+    {
+        "merged": "com.example.deliverybot.app-debug-35:/layout_activity_chatbot.xml.flat",
+        "source": "com.example.deliverybot.app-main-37:/layout/activity_chatbot.xml"
     },
     {
         "merged": "/home/mo/.gradle/daemon/8.7/com.example.deliverybot.app-debug-35:/mipmap-xhdpi_ic_launcher_foreground.png.flat",

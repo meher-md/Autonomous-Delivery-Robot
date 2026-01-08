@@ -12,6 +12,8 @@ from rclpy.node import Node
 from rclpy.action import ActionClient
 from std_msgs.msg import String
 from geometry_msgs.msg import Twist
+from sensor_msgs.msg import LaserScan
+import math
 import pandas as pd
 import os
 import time
@@ -74,6 +76,11 @@ class ChatBridge(Node):
         self.cmd_pub = self.create_publisher(String, '/app/goal_name', 10)
         self.vel_pub = self.create_publisher(Twist, '/cmd_vel', 10)
         
+        # LIDAR Safety
+        self.latest_scan = None
+        self.scan_sub = self.create_subscription(LaserScan, '/scan', self.on_scan, 10)
+        self.OBSTACLE_THRESHOLD = 0.5  # meters - stop if obstacle closer than this
+        
         # Streaming response accumulator
         self._accumulated_response = ""
         self._is_generating = False
@@ -82,6 +89,10 @@ class ChatBridge(Node):
         self.latest_vision = msg.data
 
     def execute_command(self, response_text):
+        # 2. MOTION (Move Forward, Stop, etc)
+        # Initialize action variable here to be used by both detections
+        action = None
+
         # 1. NAVIGATION (Go to X)
         if "[COMMAND:" in response_text:
             try:
@@ -89,49 +100,146 @@ class ChatBridge(Node):
                 end = response_text.find("]", start)
                 if end != -1:
                     cmd_val = response_text[start:end].strip()
-                    self.get_logger().info(f"🤖 NAV CMD: Go to {cmd_val}")
-                    msg = String()
-                    msg.data = cmd_val
-                    self.cmd_pub.publish(msg)
-                    return True
+                    
+                    # CORRECTION: Check if LLM confused COMMAND with ACTION
+                    motion_keywords = ["FORWARD", "BACKWARD", "LEFT", "RIGHT", "STOP"]
+                    if cmd_val.upper() in motion_keywords:
+                        self.get_logger().info(f"🔄 Redirecting COMMAND:{cmd_val} to MOTION logic")
+                        action = cmd_val.upper()
+                    else:
+                        # Real Navigation Command
+                        self.get_logger().info(f"🤖 NAV CMD: Go to {cmd_val}")
+                        msg = String()
+                        msg.data = cmd_val
+                        self.cmd_pub.publish(msg)
+                        return True
             except Exception as e:
                 self.get_logger().error(f"Nav parsing error: {e}")
 
         # 2. MOTION (Move Forward, Stop, etc)
-        if "[ACTION:" in response_text:
-            try:
-                start = response_text.find("[ACTION:") + 8
-                end = response_text.find("]", start)
-                if end != -1:
-                    action = response_text[start:end].strip().upper()
-                    self.get_logger().info(f"🤖 MOTION CMD: {action}")
-                    
-                    twist = Twist()
-                    if action == "FORWARD":
-                        twist.linear.x = 0.2
-                    elif action == "BACKWARD":
-                        twist.linear.x = -0.2
-                    elif action == "LEFT":
-                        twist.angular.z = 0.5
-                    elif action == "RIGHT":
-                        twist.angular.z = -0.5
-                    elif action == "STOP":
-                        twist.linear.x = 0.0
-                        twist.angular.z = 0.0
-                    
-                    # Publish a burst to ensure movement
-                    for _ in range(5):
-                        self.vel_pub.publish(twist)
-                        time.sleep(0.1)
-                        
+        try:
+            # action variable is already initialized at top of function
+            pass
+            
+            # Check standard format [ACTION: XXX]
+            if "[ACTION:" in response_text:
+                try:
+                    start = response_text.find("[ACTION:") + 8
+                    end = response_text.find("]", start)
+                    if end != -1:
+                        action = response_text[start:end].strip().upper()
+                except:
+                    pass
+            
+            # Fallback: Check if message STARTS with motion keyword
+            if not action:
+                upper_resp = response_text.upper()
+                if upper_resp.startswith("FORWARD"): action = "FORWARD"
+                elif upper_resp.startswith("BACKWARD"): action = "BACKWARD"
+                elif upper_resp.startswith("LEFT"): action = "LEFT"
+                elif upper_resp.startswith("RIGHT"): action = "RIGHT"
+                elif upper_resp.startswith("STOP"): action = "STOP"
+                
+                # Arabic Fallback
+                elif response_text.startswith("تحرك"): action = "FORWARD"
+                elif response_text.startswith("إرجع") or response_text.startswith("ارجع"): action = "BACKWARD"
+                elif response_text.startswith("يمين") or response_text.startswith("لف يمين"): action = "RIGHT"
+                elif response_text.startswith("يسار") or response_text.startswith("لف يسار"): action = "LEFT"
+                elif response_text.startswith("توقف") or response_text.startswith("قف"): action = "STOP"
+
+            if action:
+                self.get_logger().info(f"🤖 MOTION CMD: {action}")
+                
+                # SAFETY CHECK: Check LIDAR before moving
+                obstacle_warning = self.check_obstacle(action)
+                if obstacle_warning:
+                    self.get_logger().warn(f"⚠️ Motion blocked: {obstacle_warning}")
+                    self.publish_response(f"⚠️ Cannot move! {obstacle_warning}")
                     return True
-            except Exception as e:
-                self.get_logger().error(f"Motion parsing error: {e}")
+                
+                twist = Twist()
+                if action == "FORWARD":
+                    twist.linear.x = 0.2
+                elif action == "BACKWARD":
+                    twist.linear.x = -0.2
+                elif action == "LEFT":
+                    twist.angular.z = 0.5
+                elif action == "RIGHT":
+                    twist.angular.z = -0.5
+                elif action == "STOP":
+                    twist.linear.x = 0.0
+                    twist.angular.z = 0.0
+                
+                # Publish a burst to ensure movement
+                for _ in range(5):
+                    self.vel_pub.publish(twist)
+                    time.sleep(0.1)
+                    
+                return True
+        except Exception as e:
+            self.get_logger().error(f"Motion parsing error: {e}")
+            return False
         
         return False
 
+    def on_scan(self, msg: LaserScan):
+        """Store latest LIDAR scan data."""
+        self.latest_scan = msg
+
+    def check_obstacle(self, action: str):
+        """
+        Check LIDAR for obstacles in the direction of movement.
+        Returns warning message if obstacle detected, None if safe to move.
+        """
+        if self.latest_scan is None:
+            return None  # No LIDAR data yet, allow movement
+        
+        scan = self.latest_scan
+        num_readings = len(scan.ranges)
+        
+        if num_readings == 0:
+            return None
+        
+        # Define angle ranges for each direction (in terms of array indices)
+        # Assuming 360 degree LIDAR with readings from -180 to +180 degrees
+        # Index 0 = directly behind, num_readings/2 = directly ahead
+        
+        front_start = int(num_readings * 0.4)  # ~144 degrees to right
+        front_end = int(num_readings * 0.6)    # ~216 degrees to left
+        back_start = 0
+        back_end = int(num_readings * 0.1)
+        back_start2 = int(num_readings * 0.9)
+        left_start = int(num_readings * 0.6)
+        left_end = int(num_readings * 0.75)
+        right_start = int(num_readings * 0.25)
+        right_end = int(num_readings * 0.4)
+        
+        def check_range(start, end):
+            """Check if any reading in range is below threshold."""
+            for i in range(start, end):
+                if i < len(scan.ranges):
+                    r = scan.ranges[i]
+                    if r > 0.1 and r < self.OBSTACLE_THRESHOLD:  # Valid reading and too close
+                        return True
+            return False
+        
+        if action == "FORWARD":
+            if check_range(front_start, front_end):
+                return "Obstacle detected ahead!"
+        elif action == "BACKWARD":
+            if check_range(back_start, back_end) or check_range(back_start2, num_readings):
+                return "Obstacle detected behind!"
+        elif action == "LEFT":
+            if check_range(left_start, left_end):
+                return "Obstacle detected on the left!"
+        elif action == "RIGHT":
+            if check_range(right_start, right_end):
+                return "Obstacle detected on the right!"
+        
+        return None  # Safe to move
+
     def get_robot_stats(self):
-        """Reads CSV and returns the last 5 deliveries."""
+        """Reads CSV and returns the last 5 deliveries in simple format."""
         csv_path = os.path.expanduser('~/ws/src/App/order_logger/dashboard/delivery_log.csv')
         if not os.path.exists(csv_path):
             return "No history available."
@@ -141,11 +249,16 @@ class ChatBridge(Node):
             if df.empty:
                 return "History is empty."
             
-            # Get last 5 rows
+            # Get last 5 rows - simple format
             last_5 = df.tail(5)
-            history_str = "HISTORY (Last 5 trips):\n"
-            for _, row in last_5.iterrows():
-                history_str += f"- {row['Date_Full']} {row['Time_Arrival']}: To {row.get('Target_Location', 'Unknown')} ({row.get('Order_Final_Status', 'Unknown')})\n"
+            
+            history_str = "DELIVERY HISTORY:\n"
+            for idx, (_, row) in enumerate(last_5.iterrows(), 1):
+                date = row.get('Date_Full', '?')
+                loc = row.get('Target_Location', '?')
+                duration = row.get('Trip_Duration_Min', 0)
+                distance = row.get('Distance_Traveled_M', 0)
+                history_str += f"{idx}. {date} to {loc}, {duration}min, {distance}m\n"
                 
             return history_str
         except Exception as e:
@@ -159,6 +272,31 @@ class ChatBridge(Node):
         
         self.get_logger().info(f'Received chat request: {user_text}')
         
+        # CHECK FOR COMPARISON REQUEST (Manual Table Generation)
+        comparison_keywords = ['مقارن', 'قارن', 'compare', 'comparison', 'طلبات', 'trips', 'orders', 'آخر']
+        is_comparison = any(kw in user_text.lower() for kw in comparison_keywords)
+        
+        if is_comparison:
+            table_response = self.generate_comparison_table(user_text)
+            if table_response:
+                self.publish_response(table_response)
+                return
+        
+        # CHECK FOR SELF-INTRODUCTION REQUEST
+        intro_keywords = ['عرف', 'نفسك', 'من أنت', 'من انت', 'مين انت', 'who are you', 'introduce', 'yourself', 'about you', 'ما هو', 'ماهو']
+        is_intro = any(kw in user_text.lower() for kw in intro_keywords)
+        
+        if is_intro:
+            intro_response = self.get_self_introduction()
+            self.publish_response(intro_response)
+            return
+        
+        # CHECK FOR ANALYTICS QUERIES (Manual Computation)
+        analytics_response = self.handle_analytics_query(user_text)
+        if analytics_response:
+            self.publish_response(analytics_response)
+            return
+        
         # Skip busy check - let Llama handle queuing
         if self._is_generating:
             self.get_logger().warn('Previous request still processing, will queue this one')
@@ -167,6 +305,149 @@ class ChatBridge(Node):
             self.send_to_llama(user_text)
         else:
             self.publish_response(f'Echo: {user_text}')
+
+    def get_self_introduction(self):
+        """Return detailed self-introduction for Rafiq."""
+        intro = (
+            "🤖 Hello! I am Rafiq (رفيق), your smart delivery robot assistant!\n\n"
+            "📍 About Me:\n"
+            "I was created by a team of Mechatronics Engineers from the Higher Technological Institute (HTI) "
+            "in 10th of Ramadan City, Egypt. I was born in January 2026 as a graduation project.\n\n"
+            "⚡ My Features:\n"
+            "• Autonomous Navigation: I can navigate to any location on the map\n"
+            "• QR Verification: I verify deliveries using QR codes\n"
+            "• Vision System: I can see and detect gestures (thumbs up!)\n"
+            "• Voice Interaction: I can speak and understand commands\n"
+            "• Smart Analytics: I can analyze delivery history and statistics\n"
+            "• Dual Language: I understand both Arabic and English\n\n"
+            "I'm here to make deliveries faster and smarter! How can I help you today? 😊"
+        )
+        return intro
+
+    def generate_comparison_table(self, user_text: str):
+        """Generate a formatted comparison table from CSV data."""
+        csv_path = os.path.expanduser('~/ws/src/App/order_logger/dashboard/delivery_log.csv')
+        if not os.path.exists(csv_path):
+            return None
+            
+        try:
+            df = pd.read_csv(csv_path)
+            if df.empty:
+                return "لا توجد بيانات للمقارنة. ||| No data available for comparison."
+            
+            # Extract number from request (default 4)
+            import re
+            numbers = re.findall(r'\d+', user_text)
+            requested_count = int(numbers[0]) if numbers else 4
+            
+            # Check available records
+            available_count = len(df)
+            
+            # Apply limits: can't exceed available OR max display limit
+            MAX_TABLE_ROWS = 10  # Prevent table from being too long
+            actual_count = min(requested_count, available_count, MAX_TABLE_ROWS)
+            
+            # Track which limit was hit
+            exceeded_available = requested_count > available_count
+            exceeded_max = requested_count > MAX_TABLE_ROWS and available_count > MAX_TABLE_ROWS
+            
+            last_n = df.tail(actual_count)
+            
+            # Build Simple List Format (Mobile Friendly)
+            table = f"📊 Last {actual_count} Orders:\n\n"
+            
+            for idx, (_, row) in enumerate(last_n.iterrows(), 1):
+                date = str(row.get('Date_Full', '?'))[:10]
+                loc = str(row.get('Target_Location', '?'))
+                duration = row.get('Trip_Duration_Min', 0)
+                distance = row.get('Distance_Traveled_M', 0)
+                
+                table += f"{idx}. {date}\n"
+                table += f"   📍 {loc}\n"
+                table += f"   ⏱️ {duration:.1f} min | 📏 {distance:.1f} m\n\n"
+            
+            # Add note if any limit was exceeded
+            if exceeded_max:
+                table += f"⚠️ Max limit: {MAX_TABLE_ROWS}\n"
+            elif exceeded_available:
+                table += f"⚠️ Only {available_count} available.\n"
+            
+            # Mark as NO_VOICE to skip TTS
+            table = "[NO_VOICE]" + table
+            
+            self.get_logger().info(f"Generated comparison table for {actual_count} orders")
+            return table
+            
+        except Exception as e:
+            self.get_logger().error(f"Table generation error: {e}")
+            return None
+
+    def handle_analytics_query(self, user_text: str):
+        """Handle analytical queries like longest/shortest/average trip."""
+        text_lower = user_text.lower()
+        
+        # Keywords for different analytics
+        longest_kw = ['أطول', 'longest', 'اطول', 'الأطول']
+        shortest_kw = ['أقصر', 'shortest', 'اقصر', 'الأقصر', 'fastest', 'اسرع', 'أسرع']
+        average_kw = ['متوسط', 'average', 'mean', 'المتوسط']
+        total_kw = ['إجمالي', 'total', 'كم', 'عدد', 'how many', 'count']
+        
+        # Check which type of query
+        is_longest = any(kw in text_lower for kw in longest_kw)
+        is_shortest = any(kw in text_lower for kw in shortest_kw)
+        is_average = any(kw in text_lower for kw in average_kw)
+        is_total = any(kw in text_lower for kw in total_kw)
+        
+        if not (is_longest or is_shortest or is_average or is_total):
+            return None
+        
+        # Load CSV
+        csv_path = os.path.expanduser('~/ws/src/App/order_logger/dashboard/delivery_log.csv')
+        if not os.path.exists(csv_path):
+            return "No delivery history available."
+            
+        try:
+            df = pd.read_csv(csv_path)
+            if df.empty:
+                return "No deliveries recorded yet."
+            
+            # Determine if asking about duration or distance
+            about_distance = any(kw in text_lower for kw in ['مسافة', 'distance', 'بعد', 'أبعد', 'ابعد'])
+            
+            if is_longest:
+                if about_distance:
+                    idx = df['Distance_Traveled_M'].idxmax()
+                    row = df.loc[idx]
+                    return f"📏 Longest Distance: {row['Distance_Traveled_M']:.1f}m to {row['Target_Location']} on {row['Date_Full']}"
+                else:
+                    idx = df['Trip_Duration_Min'].idxmax()
+                    row = df.loc[idx]
+                    return f"⏱️ Longest Trip: {row['Trip_Duration_Min']:.1f} min to {row['Target_Location']} on {row['Date_Full']}"
+            
+            elif is_shortest:
+                if about_distance:
+                    idx = df['Distance_Traveled_M'].idxmin()
+                    row = df.loc[idx]
+                    return f"📏 Shortest Distance: {row['Distance_Traveled_M']:.1f}m to {row['Target_Location']} on {row['Date_Full']}"
+                else:
+                    idx = df['Trip_Duration_Min'].idxmin()
+                    row = df.loc[idx]
+                    return f"⚡ Fastest Trip: {row['Trip_Duration_Min']:.1f} min to {row['Target_Location']} on {row['Date_Full']}"
+            
+            elif is_average:
+                avg_duration = df['Trip_Duration_Min'].mean()
+                avg_distance = df['Distance_Traveled_M'].mean()
+                return f"📊 Averages:\n- Duration: {avg_duration:.1f} min\n- Distance: {avg_distance:.1f} m"
+            
+            elif is_total:
+                total = len(df)
+                return f"📦 Total Deliveries: {total} orders completed."
+                
+        except Exception as e:
+            self.get_logger().error(f"Analytics error: {e}")
+            return None
+        
+        return None
 
     def send_to_llama(self, prompt: str):
         if not self.llama_client.wait_for_server(timeout_sec=10.0):
@@ -188,13 +469,14 @@ class ChatBridge(Node):
         time_context = f"CURRENT DATETIME: {now.strftime('%A, %Y-%m-%d %H:%M:%S')}"
         
         system_instr = (
-            "You are a smart robot assistant managing deliveries. "
+            "You are Rafiq (رفيق), a smart delivery robot assistant. "
             "1. NAVIGATION: Only if user asks to go to a specific place, output [COMMAND: LocationName]. "
             "   Example: 'Go to Kitchen' -> '[COMMAND: Kitchen] Going to Kitchen.' "
             "2. MOTION: [ACTION: FORWARD], [ACTION: BACKWARD], [ACTION: LEFT], [ACTION: RIGHT], [ACTION: STOP]. "
-            "3. INFO: Use the HISTORY below to answer questions about past deliveries. "
-            "4. VISION: I will provide LIVE VISION data. Use it to answer 'What do you see?'. "
-            "5. OUTPUT FORMAT: Check the user's language. "
+            "3. INFO: Use the DELIVERY HISTORY table below to answer questions about past deliveries. "
+            "4. COMPARISON: When user asks to compare trips, summarize the table data (Location, Duration, Distance). "
+            "5. VISION: I will provide LIVE VISION data. Use it to answer 'What do you see?'. "
+            "6. OUTPUT FORMAT: Check the user's language. "
             "   - IF USER SPEAKS ENGLISH: Reply in English. DO NOT use '|||'. "
             "   - IF USER SPEAKS ARABIC: Reply in Arabic, then YOU MUST append '|||' followed by the English translation. "
             "     Example: 'مرحباً ||| Hello there.'"
@@ -281,6 +563,11 @@ class ChatBridge(Node):
         self.publish_response(chat_text, voice_text)
 
     def publish_response(self, chat_text: str, voice_text: str = None):
+        # Check for NO_VOICE marker (skip TTS for tables, etc.)
+        skip_voice = chat_text.startswith("[NO_VOICE]")
+        if skip_voice:
+            chat_text = chat_text.replace("[NO_VOICE]", "")
+        
         if voice_text is None:
             voice_text = chat_text
             
@@ -290,12 +577,13 @@ class ChatBridge(Node):
         self.response_pub.publish(msg)
         self.get_logger().info(f'Published chat: {chat_text[:50]}...')
         
-        # 2. Voice Response (English Only)
-        if self.tts_client:
-            self.speak(voice_text)
+        # 2. Voice Response - DISABLED for chat (mobile app handles TTS)
+        # TTS is only used in qr_scanner.py for delivery announcements
+        # if self.tts_client and not skip_voice:
+        #     self.speak(voice_text)
 
     def speak(self, text: str):
-        if not self.tts_client.wait_for_server(timeout_sec=0.5):
+        if not self.tts_client.wait_for_server(timeout_sec=2.0):
             # Don't block too long for voice
             self.get_logger().warn("TTS server taking too long, skipping voice")
             return

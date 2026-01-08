@@ -183,17 +183,17 @@ class QrScanner(Node):
             arrived = 'arrived' in payload or 'succeeded' in payload
 
         if arrived and not self.scanning:
-            # Check if destination is Garage - don't start scanning or timer at Garage
-            if self.current_destination and self.current_destination == 'Garage':
+            # Check if destination is PKG - don't start scanning or timer at PKG
+            if self.current_destination and self.current_destination == 'PKG':
                 self.get_logger().info(
-                    '🚫 Robot arrived at Garage - skipping QR scan (waiting for new order)'
+                    '🚫 Robot arrived at PKG - skipping QR scan (waiting for new order)'
                 )
                 
                 # FINAL MISSION DEBRIEF (Requested by User)
                 # Print what happened during the trip we just returned from
                 report = (
                     "\n================ MISSION REPORT (FINAL) ================\n"
-                    f"Previous Destination: {self.current_destination} (Arrived at Garage)\n"
+                    f"Previous Destination: {self.current_destination} (Arrived at PKG)\n"
                     f"QR Code Scanned:    {'[YES] ✅' if self.mission_qr_scanned else '[NO] ❌'}\n"
                     f"YOLO Like Detected: {'[YES] 👍' if self.mission_yolo_detected else '[NO] ❌'}\n"
                     "========================================================"
@@ -202,7 +202,7 @@ class QrScanner(Node):
 
                 self._publish_status(
                     'skipped',
-                    'Arrived at Garage - scanner not started (waiting for new order)'
+                    'Arrived at PKG - scanner not started (waiting for new order)'
                 )
             else:
                 destination_str = (
@@ -610,7 +610,7 @@ class QrScanner(Node):
             def _do_return():
                 try:
                     goal_msg = String()
-                    goal_msg.data = 'Garage'
+                    goal_msg.data = 'PKG'
                     self.app_goal_pub.publish(goal_msg)
                     
                     # LOG MISSION REPORT

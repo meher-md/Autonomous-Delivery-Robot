@@ -65,16 +65,42 @@
                     android:layout_marginTop="2dp" />
             </LinearLayout>
 
-            <!-- Robot Assistant Button -->
+            <!-- Robot Assistant Button with Label -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:layout_marginEnd="8dp">
+
+                <ImageButton
+                    android:id="@+id/btnRobotAssistant"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="@drawable/bg_circle_dark"
+                    android:src="@drawable/robot_logo"
+                    android:scaleType="centerCrop"
+                    android:contentDescription="Robot Assistant" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Robot Assistant"
+                    android:textColor="#B0BEC5"
+                    android:textSize="7sp" />
+
+            </LinearLayout>
+
+            <!-- Voice Toggle Button -->
             <ImageButton
-                android:id="@+id/btnRobotAssistant"
+                android:id="@+id/btnVoiceToggle"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:background="@drawable/bg_circle_dark"
-                android:src="@mipmap/va_launcher"
-                android:scaleType="centerCrop"
+                android:src="@android:drawable/ic_lock_silent_mode_off"
+                android:tint="#00FF88"
                 android:layout_marginEnd="8dp"
-                android:contentDescription="Robot Assistant" />
+                android:contentDescription="Toggle voice" />
 
             <!-- History Drawer Toggle -->
             <ImageButton

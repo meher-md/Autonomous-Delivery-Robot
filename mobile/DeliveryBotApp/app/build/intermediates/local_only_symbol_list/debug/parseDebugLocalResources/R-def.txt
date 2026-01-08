@@ -51,6 +51,7 @@ drawable ic_robot
 drawable ic_robot_foreground
 drawable ic_settings_gear
 drawable qr_section_bg
+drawable robot_logo
 drawable virtual_assistant
 id btnAddLocation
 id btnAddMap
@@ -84,6 +85,7 @@ id btnStop
 id btnTogglePanel
 id btnUp
 id btnVoice
+id btnVoiceToggle
 id btn_confirm_delivery_like
 id cameraPreview
 id cameraRoot

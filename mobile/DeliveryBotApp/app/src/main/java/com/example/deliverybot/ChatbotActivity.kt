@@ -42,6 +42,7 @@ class ChatbotActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private lateinit var txtChatTitle: TextView
     private lateinit var txtConnectionStatus: TextView
     private lateinit var btnRobotAssistant: ImageButton
+    private lateinit var btnVoiceToggle: ImageButton
 
     // Chat Components
     private lateinit var chatAdapter: ChatAdapter
@@ -56,6 +57,7 @@ class ChatbotActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     // Text-to-Speech
     private lateinit var tts: TextToSpeech
     private var wasVoiceInput = false
+    private var isTtsEnabled = true  // Voice toggle state
 
     // SharedPreferences keys
     private val PREFS_NAME = "chat_history"
@@ -83,12 +85,11 @@ class ChatbotActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         setupRosSubscription()
 
         // Load conversations and start new or resume
+        // Load conversations history
         loadConversations()
-        if (conversations.isEmpty()) {
-            startNewConversation()
-        } else {
-            loadConversation(conversations.first().id)
-        }
+        
+        // Always start a new chat when opening app (User Request)
+        startNewConversation()
 
         // Update connection status
         updateConnectionStatus()
@@ -114,6 +115,7 @@ class ChatbotActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         txtChatTitle = findViewById(R.id.txtChatTitle)
         txtConnectionStatus = findViewById(R.id.txtConnectionStatus)
         btnRobotAssistant = findViewById(R.id.btnRobotAssistant)
+        btnVoiceToggle = findViewById(R.id.btnVoiceToggle)
     }
 
     private fun setupRecyclerView() {
@@ -197,6 +199,13 @@ class ChatbotActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             startActivity(Intent(this, RobotAssistantActivity::class.java))
         }
 
+        btnVoiceToggle.setOnClickListener {
+            isTtsEnabled = !isTtsEnabled
+            updateVoiceToggleIcon()
+            val status = if (isTtsEnabled) "Voice ON" else "Voice OFF"
+            Toast.makeText(this, status, Toast.LENGTH_SHORT).show()
+        }
+
         editTextMessage.setOnEditorActionListener { _, _, _ ->
             sendMessage()
             true
@@ -237,10 +246,13 @@ class ChatbotActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         responseCallback = { response: String ->
             runOnUiThread {
                 addBotMessage(response)
-                if (wasVoiceInput) {
-                    tts.speak(response, TextToSpeech.QUEUE_FLUSH, null, "response")
-                    wasVoiceInput = false
+                val isTable = response.contains("📊") || response.startsWith("#") 
+                if (isTtsEnabled && !isTable) {
+                    // Strip emojis and Speak
+                    val cleanText = response.replace(Regex("[^\\p{L}\\p{N}\\p{P}\\p{Z}]"), "")
+                    tts.speak(cleanText, TextToSpeech.QUEUE_FLUSH, null, "response")
                 }
+                wasVoiceInput = false
             }
         }
         com.example.deliverybot.net.RosBridgeClient.subscribe("/app/chat/response", responseCallback!!)
@@ -249,8 +261,19 @@ class ChatbotActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun updateConnectionStatus() {
         val connected = com.example.deliverybot.net.RosBridgeClient.isConnected()
         val symbol = if (connected) "🟢" else "🔴"
-        txtConnectionStatus.text = "$symbol Powered by Llama AI"
-        txtConnectionStatus.setTextColor(0xFFB0BEC5.toInt()) // Blue-Gray
+        txtConnectionStatus.text = "$symbol Powered by Rafiq AI"
+        txtConnectionStatus.setTextColor(0xFFB0BEC5.toInt())
+    }
+
+    private fun updateVoiceToggleIcon() {
+        val iconRes = if (isTtsEnabled) 
+            android.R.drawable.ic_lock_silent_mode_off
+        else 
+            android.R.drawable.ic_lock_silent_mode
+        btnVoiceToggle.setImageResource(iconRes)
+        btnVoiceToggle.imageTintList = android.content.res.ColorStateList.valueOf(
+            if (isTtsEnabled) 0xFF00FF88.toInt() else 0xFFFF5555.toInt()
+        )
     }
 
     private fun sendMessage() {

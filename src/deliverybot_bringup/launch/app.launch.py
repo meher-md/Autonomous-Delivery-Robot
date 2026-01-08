@@ -205,8 +205,7 @@ def generate_launch_description():
         qr_generator,
         qr_scanner,
         like_detector,
-        chat_bridge,
-        chatbot_launch,
+        # Chatbot removed - use ./chat script separately
         ExecuteProcess(
             cmd=[
                 'python3', '-m', 'streamlit', 'run', 

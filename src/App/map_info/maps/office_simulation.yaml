@@ -1,4 +1,14 @@
 waypoints:
+  Cafeteria:
+    orientation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 9.715147972106934
+      y: 6.994909286499023
+      z: 0.0
   Lab:
     orientation:
       w: 1.0
@@ -29,13 +39,13 @@ waypoints:
       x: 0.1009753867983818
       y: 2.973092555999756
       z: 0.0
-  Cafeteria:
+  PKG:
     orientation:
       w: 1.0
       x: 0.0
       y: 0.0
       z: 0.0
     position:
-      x: 9.715147972106934
-      y: 6.994909286499023
+      x: 0.15473118424415588
+      y: 5.731552600860596
       z: 0.0
