@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import android.widget.Toast // Import for Toast messages
 import androidx.appcompat.app.AppCompatActivity
 
 class MapActivity : AppCompatActivity() {
@@ -16,10 +15,15 @@ class MapActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         // Get the ROS WebSocket URL from the project's configuration
-        val wsUrl = ConnectionConfig.rosbridgeWs(this)
+        // Create ROS WebSocket URL dynamically
+        val wsUrl = try { 
+             com.example.deliverybot.ConnectionConfig.rosbridgeWs(this) 
+        } catch (e: Throwable) {
+             "ws://10.42.0.1:9090" // Fallback
+        }
 
         web = WebView(this).apply {
-            // Enable JavaScript for ROS communication and button functionality
+            // Enable JavaScript for ROS communication
             settings.javaScriptEnabled = true
             settings.cacheMode = WebSettings.LOAD_NO_CACHE
             settings.domStorageEnabled = true
@@ -35,114 +39,140 @@ class MapActivity : AppCompatActivity() {
         }
         setContentView(web)
 
-        // The full HTML content for the WebView, including the map and the new button
+        // The full HTML content for the WebView, displaying ONLY the map
         val html = """
             <!doctype html>
             <html>
             <head>
               <meta name='viewport' content='width=device-width, initial-scale=1.0'>
               <style>
-                /* Full screen fill and center content */
+                /* Full screen fill */
                 html, body {
                   height: 100vh; width: 100vw;
                   margin: 0; background: #000;
-                  display: flex; flex-direction: column; /* Use column layout */
-                  align-items: center; justify-content: flex-end; /* Align content to the bottom */
-                }
-                /* Container for the map, taking up most of the screen */
-                .map-wrap {
-                  flex-grow: 1; /* Allows map container to take remaining space */
-                  width: 100vw;
                   display: flex; align-items: center; justify-content: center;
                 }
                 /* Map Canvas */
                 #c {
-                  max-width: 90vw;
-                  max-height: 80vh; /* Allow more height for the map */
+                  max-width: 95vw;
+                  max-height: 95vh;
                   width: auto; height: auto;
-                  image-rendering: pixelated;
+                  image-rendering: pixelated; /* Crisp map pixels */
                   background: #111;
-                }
-                /* Style for the new button */
-                #confirm-btn {
-                  background-color: #4CAF50; /* Green color */
-                  color: white;
-                  padding: 15px 32px;
-                  text-align: center;
-                  text-decoration: none;
-                  display: inline-block;
-                  font-size: 16px;
-                  margin: 20px 0; /* Margin above and below the button */
-                  cursor: pointer;
-                  border: none;
-                  border-radius: 8px;
-                  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
-                  position: relative; /* Position relative to the flow */
-                  z-index: 10; /* Ensure button is above map if they overlap */
                 }
               </style>
             </head>
             <body>
-              <div class="map-wrap"><canvas id="c"></canvas></div>
-              
-              <button id="confirm-btn">CONFIRM DELIVERY (LIKE GESTURE)</button>
+              <canvas id="c"></canvas>
               
               <script>
                 const wsUrl = ${'"'}$wsUrl${'"'};
                 const mapTopic = "/map";
-                const controlTopic = "/delivery_commands"; // ROS topic to send the command to
-                const commandPayload = "START_LIKE_DETECTION"; // The specific command to start the Python script
+                const waypointsTopic = "/app/map/waypoints";
 
                 const ws = new WebSocket(wsUrl.replace(/^http/i, "ws"));
                 
-                // ---------------- ROS MAP HANDLING LOGIC (Your existing code) ----------------
+                let mapInfo = null; // Store map resolution/origin
+                let waypoints = []; // Store waypoints data
+                let mapImage = null; // Store map image data
+                
+                // ---------------- ROS MAP HANDLING LOGIC ----------------
                 ws.onopen = () => {
                     // Subscribe to the map topic
                     ws.send(JSON.stringify({op:"subscribe", topic: mapTopic, type:"nav_msgs/OccupancyGrid"}));
-                    // Optional: Log connection status
-                    console.log("ROS WebSocket connected and subscribed to map.");
+                    // Subscribe to Waypoints from ChatBridge
+                    ws.send(JSON.stringify({op:"subscribe", topic: waypointsTopic, type:"std_msgs/String"}));
+                    console.log("ROS WebSocket connected.");
                 };
                 
                 ws.onmessage = (ev) => {
                   const m = JSON.parse(ev.data);
-                  if (m.op !== "publish" || m.topic !== mapTopic) return;
-                  const msg = m.msg, w = msg.info.width|0, h = msg.info.height|0;
-                  const data = msg.data;
-                  const c = document.getElementById("c");
-                  if (c.width !== w || c.height !== h) { c.width = w; c.height = h; }
-                  const ctx = c.getContext("2d");
-                  const img = ctx.createImageData(w, h);
-                  for (let y=0; y<h; y++) for (let x=0; x<w; x++) {
-                    const v = data[y*w + x];
-                    const g = (v < 0) ? 127 : Math.max(0, Math.min(255, 255 - Math.round(255*(v/100))));
-                    const yy = (h-1-y), i = (yy*w + x)*4;
-                    img.data[i]=g; img.data[i+1]=g; img.data[i+2]=g; img.data[i+3]=255;
+                  // HANDLE WAYPOINTS
+                  if (m.topic === waypointsTopic) {
+                      waypoints = JSON.parse(m.msg.data);
+                      draw(); // Redraw with new waypoints
+                      return;
                   }
-                  ctx.putImageData(img, 0, 0);
+                  
+                  // HANDLE MAP
+                  if (m.topic === mapTopic) {
+                      const msg = m.msg;
+                      const w = msg.info.width|0;
+                      const h = msg.info.height|0;
+                      
+                      // Normalize Origin (Handle negative zeros or missing fields)
+                      mapInfo = {
+                          res: msg.info.resolution,
+                          originX: msg.info.origin.position.x,
+                          originY: msg.info.origin.position.y,
+                          width: w,
+                          height: h
+                      };
+
+                      const data = msg.data;
+                      const c = document.getElementById("c");
+                      if (c.width !== w || c.height !== h) { c.width = w; c.height = h; }
+                      
+                      const ctx = c.getContext("2d");
+                      // Store raw image data to redraw later
+                      mapImage = ctx.createImageData(w, h);
+                      
+                      for (let y=0; y<h; y++) for (let x=0; x<w; x++) {
+                        const v = data[y*w + x];
+                        const g = (v < 0) ? 127 : Math.max(0, Math.min(255, 255 - Math.round(255*(v/100))));
+                        // Flip Y axis for Canvas (ROS 0,0 is bottom-left, Canvas 0,0 is top-left)
+                        const yy = (h-1-y), i = (yy*w + x)*4;
+                        mapImage.data[i]=g; mapImage.data[i+1]=g; mapImage.data[i+2]=g; mapImage.data[i+3]=255;
+                      }
+                      draw();
+                  }
                 };
-                // ---------------- END OF ROS MAP HANDLING LOGIC ----------------
-
                 
-                // ---------------- NEW BUTTON LOGIC ----------------
-                document.getElementById('confirm-btn').addEventListener('click', () => {
-                    // Create the ROS message to publish
-                    const cmdMsg = {
-                        op: "publish",
-                        topic: controlTopic,
-                        type: "std_msgs/String", // Assuming the command topic uses the standard String message type
-                        msg: { data: commandPayload }
-                    };
-
-                    if (ws.readyState === WebSocket.OPEN) {
-                        ws.send(JSON.stringify(cmdMsg));
-                        console.log('Command Sent:', commandPayload, 'to', controlTopic);
-                        alert("Gesture detection started. Please show the 'Like' sign to the robot's camera.");
-                    } else {
-                        console.error('WebSocket is not open. Cannot send command.');
-                        alert("Error: Robot connection is not ready.");
+                function draw() {
+                    const c = document.getElementById("c");
+                    const ctx = c.getContext("2d");
+                    
+                    // 1. Draw Map
+                    if (mapImage) {
+                        ctx.putImageData(mapImage, 0, 0);
                     }
-                });
-                // ---------------- END OF NEW BUTTON LOGIC ----------------
+                    
+                    // 2. Draw Waypoints
+                    if (mapInfo && waypoints.length > 0) {
+                        // Dynamic sizing based on map width (heuristic)
+                        // If map is 2000px wide, we want ~20px text.
+                        const scale = Math.max(1, mapInfo.width / 100); 
+                        const fontSize = Math.max(15, scale * 1.5);
+                        const radius = Math.max(5, scale * 0.4);
+
+                        ctx.font = `bold ${'$'}{fontSize}px Arial`;
+                        ctx.fillStyle = "red";
+                        ctx.textAlign = "center";
+                        ctx.textBaseline = "bottom"; // Text above dot
+                        
+                        waypoints.forEach(wp => {
+                            // Convert World -> Pixel
+                            const px = (wp.x - mapInfo.originX) / mapInfo.res;
+                            const py = mapInfo.height - ((wp.y - mapInfo.originY) / mapInfo.res);
+                            
+                            // Draw Dot
+                            ctx.beginPath();
+                            ctx.arc(px, py, radius, 0, 2 * Math.PI);
+                            ctx.fill();
+                            
+                            // Draw Label
+                            ctx.fillStyle = "cyan";
+                            // Add stroke to make text readable on white/black
+                            ctx.strokeStyle = "black";
+                            ctx.lineWidth = radius / 4;
+                            ctx.strokeText(wp.name, px, py - radius);
+                            ctx.fillText(wp.name, px, py - radius);
+                            
+                            ctx.fillStyle = "red"; // Reset for next dot
+                        });
+                    }
+                }
+                // ---------------- END OF ROS MAP HANDLING LOGIC ----------------
 
               </script>
             </body>

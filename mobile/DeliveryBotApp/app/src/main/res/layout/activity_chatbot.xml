@@ -63,6 +63,8 @@
                     android:textColor="#B0BEC5"
                     android:textSize="12sp"
                     android:layout_marginTop="2dp" />
+
+                <!-- Status Chips Removed -->
             </LinearLayout>
 
             <!-- Robot Assistant Button with Label -->
@@ -90,6 +92,11 @@
                     android:textSize="7sp" />
 
             </LinearLayout>
+
+
+
+
+            <!-- Map Button REMOVED -->
 
             <!-- Voice Toggle Button -->
             <ImageButton
@@ -127,6 +134,21 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             tools:listitem="@layout/item_bot_message" />
+
+        <!-- Typing Indicator -->
+        <TextView
+            android:id="@+id/txtTypingIndicator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Rafiq AI is typing..."
+            android:textColor="#00FFFF"
+            android:textSize="12sp"
+            android:textStyle="italic"
+            android:visibility="gone"
+            android:paddingStart="24dp"
+            android:layout_marginBottom="4dp"
+            app:layout_constraintBottom_toTopOf="@+id/inputContainer"
+            app:layout_constraintStart_toStartOf="parent" />
 
         <!-- Input Container -->
         <LinearLayout

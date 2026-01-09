@@ -218,8 +218,6 @@ class LikeDetectorNode(Node):
                 self.detections_pub.publish(det_msg)
             
             if like_detected and not self.detection_made:
-                like_dets = [d for d in detections if d['class_name'].lower() == 'like']
-                self.get_logger().info(f"Like detected! Count: {len(like_dets)}")
                 self.detection_made = True
                 self.play_thank_you_message()
             

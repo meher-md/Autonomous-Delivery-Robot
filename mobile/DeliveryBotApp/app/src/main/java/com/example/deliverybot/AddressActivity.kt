@@ -201,8 +201,12 @@ class AddressActivity : AppCompatActivity() {
     }
 
     private fun setupSpinner() {
-        // Save current selection if valid
-        val currentSelectionName = if (maps.isNotEmpty() && currentMapIndex < maps.size) maps[currentMapIndex].name else null
+        val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
+        // Load saved index
+        val savedIndex = prefs.getInt("selected_map_index", 0)
+        if (savedIndex >= 0 && savedIndex < maps.size) {
+            currentMapIndex = savedIndex
+        }
 
         val mapNames = maps.map { it.name }
         val adapter = ArrayAdapter(this, R.layout.spinner_item, mapNames)
@@ -210,17 +214,13 @@ class AddressActivity : AppCompatActivity() {
         spinnerMaps.adapter = adapter
         
         // Restore selection
-        if (currentSelectionName != null) {
-            val newIndex = mapNames.indexOf(currentSelectionName)
-            if (newIndex != -1) {
-                spinnerMaps.setSelection(newIndex)
-                currentMapIndex = newIndex
-            }
-        }
+        spinnerMaps.setSelection(currentMapIndex)
         
         spinnerMaps.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 currentMapIndex = position
+                // Save selection
+                prefs.edit().putInt("selected_map_index", position).apply()
                 refreshDestinationsHorizontal()
             }
             override fun onNothingSelected(parent: AdapterView<*>?) {}
@@ -239,8 +239,7 @@ class AddressActivity : AppCompatActivity() {
 
     private fun refreshDestinationsHorizontal() {
         containerDestinations.removeAllViews()
-        // Note: Don't clear selectedDestinationButton here to preserve state if possible, 
-        // but for simplicity we reset if map changes or search happens
+        // Note: Reset selection if map changes
         selectedDestinationButton = null
         selectedAddress = null
         
@@ -250,22 +249,25 @@ class AddressActivity : AppCompatActivity() {
         val searchQuery = etSearch.text.toString().lowercase()
         
         val filteredLocations = currentMap.locations.filter { loc ->
-            val matchesSearch = searchQuery.isEmpty() || loc.name.lowercase().contains(searchQuery)
-            matchesSearch
+            searchQuery.isEmpty() || loc.name.lowercase().contains(searchQuery)
         }
 
-        // Chunk into groups of 3 to create 3 rows (Vertical columns in a Horizontal container)
+        // Create ROWS (Horizontal LinearLayouts)
+        // Chunk into groups of 3 (3 buttons per row)
         val chunkedLocations = filteredLocations.chunked(3)
 
         for (chunk in chunkedLocations) {
-            val columnLayout = LinearLayout(this)
-            columnLayout.orientation = LinearLayout.VERTICAL
-            val columnParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
+            val rowLayout = LinearLayout(this)
+            rowLayout.orientation = LinearLayout.HORIZONTAL
+            // Distribute weight evenly
+            rowLayout.weightSum = 3f
+            
+            val rowParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
-            columnParams.setMargins(4, 0, 4, 0) // Spacing between columns
-            columnLayout.layoutParams = columnParams
+            rowParams.setMargins(0, 8, 0, 8) // Spacing between rows
+            rowLayout.layoutParams = rowParams
 
             for (location in chunk) {
                 val btn = Button(this)
@@ -275,26 +277,30 @@ class AddressActivity : AppCompatActivity() {
                 btn.isAllCaps = false
                 btn.background = resources.getDrawable(R.drawable.bg_destination_button, theme)
                 
-                // Bigger buttons
+                // Use weight to fill width evenly
                 val btnParams = LinearLayout.LayoutParams(
-                    TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 110f, resources.displayMetrics).toInt(),
-                    TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 80f, resources.displayMetrics).toInt()
+                    0, 
+                    TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 60f, resources.displayMetrics).toInt(),
+                    1f // Weight 1
                 )
-                btnParams.setMargins(0, 4, 0, 4) // Spacing between rows
+                btnParams.setMargins(4, 0, 4, 0) // Spacing between buttons
                 btn.layoutParams = btnParams
                 
                 btn.setOnClickListener {
                     if (selectedDestinationButton == btn) {
-                        // Toggle OFF (Deselect)
+                        // Toggle OFF
                         btn.isSelected = false
                         btn.background = resources.getDrawable(R.drawable.bg_destination_button, theme)
                         selectedDestinationButton = null
                         selectedAddress = null
                     } else {
-                        // Toggle ON (Select new)
-                        selectedDestinationButton?.isSelected = false
-                        selectedDestinationButton?.background = resources.getDrawable(R.drawable.bg_destination_button, theme)
+                        // Update Previous
+                        selectedDestinationButton?.let { prev ->
+                            prev.isSelected = false
+                            prev.background = resources.getDrawable(R.drawable.bg_destination_button, theme)
+                        }
                         
+                        // Toggle ON
                         btn.isSelected = true
                         btn.background = resources.getDrawable(R.drawable.bg_destination_selected, theme)
                         selectedDestinationButton = btn
@@ -302,9 +308,14 @@ class AddressActivity : AppCompatActivity() {
                     }
                 }
                 
-                columnLayout.addView(btn)
+                rowLayout.addView(btn)
             }
-            containerDestinations.addView(columnLayout)
+            
+            // Fill empty slots in last row to keep alignment? 
+            // With weights, if we have 1 item in a row of 3, it might stretch to fill the whole row if we don't handle it.
+            // But we set weightSum=3f. So 1 item with weight=1 will take 1/3 width. Correct.
+            
+            containerDestinations.addView(rowLayout)
         }
     }
 

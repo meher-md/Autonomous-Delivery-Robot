@@ -40,6 +40,18 @@
             android:lineSpacingExtra="2dp"
             android:maxWidth="280dp" />
 
+        <!-- Bot Image Snapshot -->
+        <ImageView
+            android:id="@+id/imageBotSnapshot"
+            android:layout_width="200dp"
+            android:layout_height="150dp"
+            android:layout_marginTop="8dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_image_placeholder"
+            android:visibility="gone"
+            android:background="@drawable/rounded_image_bg" 
+            android:clipToOutline="true" />
+
         <!-- Timestamp -->
         <TextView
             android:id="@+id/textBotTime"

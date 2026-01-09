@@ -111,8 +111,12 @@ class QrScanner(Node):
         
         # PIPER CLIENT
         if TTS_AVAILABLE:
-            self.tts_client = ActionClient(self, TTS, '/piper_node/say')
-            self.get_logger().info('Scanner connected to Piper TTS')
+            self.tts_client = ActionClient(self, TTS, '/say')
+            # Wait for server briefly to confirm connection
+            if self.tts_client.wait_for_server(timeout_sec=5.0):
+                self.get_logger().info('✅ Connected to Piper TTS Action Server (/say)')
+            else:
+                self.get_logger().error('❌ Failed to connect to Piper TTS Action Server')
         else:
             self.tts_client = None
 

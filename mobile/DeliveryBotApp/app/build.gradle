@@ -61,4 +61,7 @@ dependencies {
 
     // GridLayout
     implementation "androidx.gridlayout:gridlayout:1.0.0"
+
+    // OSMDroid (OpenStreetMap)
+    implementation 'org.osmdroid:osmdroid-android:6.1.16'
 }

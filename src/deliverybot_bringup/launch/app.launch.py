@@ -44,8 +44,9 @@ def generate_launch_description():
     # Use map_info package for named poses instead of andino_gz
     pkg_share_map_info = get_package_share_directory('map_info')
 
-    # YAML is installed into the share/map_info directory
-    default_yaml = os.path.join(pkg_share_map_info, 'named_poses.yaml')
+    # CRITICAL FIX: Use SOURCE path so edits from manual goal_name are seen immediately
+    # (Pointing to installed share directory causes "stale" data issues)
+    default_yaml = os.path.expanduser('~/ws/src/App/map_info/maps/office_simulation.yaml')
     yaml_path           = LaunchConfiguration('yaml_path', default=default_yaml)
     frame_id            = LaunchConfiguration('frame_id', default='map')
     topic_goal_name     = LaunchConfiguration('topic_goal_name', default='/app/goal_name')
@@ -138,11 +139,23 @@ def generate_launch_description():
 
     # NEW: YOLO Like Detector Node
     like_detector = Node(
-        package='yolo_like_detector',       # اسم حزمة YOLO
-        executable='like_detector_node',    # اسم executable (كما في like_detector.py)
+        package='yolo_like_detector',
+        executable='like_detector_node',
         name='like_detector_node',
         output='screen'
     )
+    
+    # NEW: Goal Name Node (Publishes Markers from YAML)
+    # goal_name_node = Node(
+    #     package='map_info',
+    #     executable='goal_name', 
+    #     name='goal_name',
+    #     parameters=[{
+    #         'yaml_path': yaml_path,
+    #         'frame_id': frame_id,
+    #     }],
+    #     output='screen'
+    # )
 
     # NEW: Chat Bridge - Connects Mobile App to Llama AI
     chat_bridge = Node(
@@ -151,12 +164,31 @@ def generate_launch_description():
         output='screen'
     )
 
+    # Order Logging Node
+    order_logger = Node(
+        package='order_logger',
+        executable='order_logger_node',
+        name='order_logger_node',
+        output='screen'
+    )
+
     # Chatbot Logic (Llama, Whisper, etc.)
-    chatbot_launch = IncludeLaunchDescription(
+    # Chatbot Logic (Llama, Whisper, etc.) - DISABLED per user request
+    # chatbot_launch = IncludeLaunchDescription(
+    #     PythonLaunchDescriptionSource(
+    #         os.path.join(
+    #             get_package_share_directory('chatbot_ros'),
+    #             'launch', 'chatbot.launch.py'
+    #         )
+    #     )
+    # )
+
+    # Include Piper TTS Launch
+    piper_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(
-                get_package_share_directory('chatbot_ros'),
-                'launch', 'chatbot.launch.py'
+                get_package_share_directory('piper_bringup'),
+                'launch', 'piper.launch.py'
             )
         )
     )
@@ -205,7 +237,13 @@ def generate_launch_description():
         qr_generator,
         qr_scanner,
         like_detector,
+        # goal_name_node,
+        chat_bridge,
+        order_logger,
+        piper_launch,
+        
         # Chatbot removed - use ./chat script separately
+        # Dashboard (Streamlit)
         ExecuteProcess(
             cmd=[
                 'python3', '-m', 'streamlit', 'run', 

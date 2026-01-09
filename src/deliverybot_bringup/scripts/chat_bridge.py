@@ -10,9 +10,14 @@ Uses:       /llama/generate_response action
 import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionClient
-from std_msgs.msg import String
+from std_msgs.msg import String, Bool
+from rclpy.qos import QoSProfile, QoSDurabilityPolicy, QoSReliabilityPolicy
 from geometry_msgs.msg import Twist
-from sensor_msgs.msg import LaserScan
+from nav_msgs.msg import Odometry
+import json
+from sensor_msgs.msg import LaserScan, CompressedImage
+from visualization_msgs.msg import MarkerArray # For reading map labels
+import base64
 import math
 import pandas as pd
 import os
@@ -49,6 +54,21 @@ class ChatBridge(Node):
         self.request_sub = self.create_subscription(
             String, '/app/chat/request', self.on_request, 10)
         
+        # Publisher for detailed status (Mobile Dashboard)
+        self.status_pub = self.create_publisher(String, '/app/status', 10)
+        self.status_timer = self.create_timer(1.0, self.publish_status) # 1Hz
+        
+        # Robot State variables
+        self.current_speed = 0.0
+        self.current_location = "Idle"
+        self.last_goal_name = "Unknown"
+        self.odom_sub = self.create_subscription(Odometry, '/odom', self.on_odom, 10)
+        
+        # Subscribe to Goal Status for Arrival Notifications
+        self.goal_status_sub = self.create_subscription(
+            String, '/app/goal_status', self.on_goal_status, 10
+        )
+        
         # TTS Action Client
         if TTS_AVAILABLE:
             self.tts_client = ActionClient(self, TTS, '/say')
@@ -72,6 +92,15 @@ class ChatBridge(Node):
         self.latest_vision = "Nothing detected yet"
         self.vision_sub = self.create_subscription(String, '/yolo/detections_str', self.on_vision, 10)
         
+        # Camera Snapshot
+        self.latest_image = None
+        self.image_sub = self.create_subscription(
+            CompressedImage, 
+            '/camera/image_raw/compressed', 
+            self.on_image, 
+            10
+        )
+        
         # COMMAND OUTPUT
         self.cmd_pub = self.create_publisher(String, '/app/goal_name', 10)
         self.vel_pub = self.create_publisher(Twist, '/cmd_vel', 10)
@@ -84,9 +113,48 @@ class ChatBridge(Node):
         # Streaming response accumulator
         self._accumulated_response = ""
         self._is_generating = False
+        
+        # Bridge Waypoints from goal_name.py node
+        self.waypoints_pub = self.create_publisher(String, '/app/map/waypoints', 10)
+        
+        # QoS to match goal_name's TransientLocal (Latched)
+        marker_qos = QoSProfile(depth=1)
+        marker_qos.durability = QoSDurabilityPolicy.TRANSIENT_LOCAL
+        marker_qos.reliability = QoSReliabilityPolicy.RELIABLE
+
+        self.marker_sub = self.create_subscription(
+            MarkerArray, 
+            '/named_poses/markers', 
+            self.on_map_markers, 
+            marker_qos
+        )
 
     def on_vision(self, msg: String):
         self.latest_vision = msg.data
+
+    def on_image(self, msg: CompressedImage):
+        """Store the latest compressed image msg."""
+        self.latest_image = msg
+
+    def on_goal_status(self, msg: String):
+        """Handle goal updates to trigger voice notifications."""
+        status = msg.data 
+        
+        if status.startswith("sending:"):
+            self.last_goal_name = status.split(":", 1)[1]
+            # Debug to chat
+            # self.publish_response(f"Refusing to fail silently. Tracking: {self.last_goal_name}")
+            self.get_logger().info(f"Tracking goal: {self.last_goal_name}")
+            
+        elif status == "succeeded":
+            self.get_logger().info("Goal succeeded! Triggering arrival notification.")
+            arrival_msg = f"I have arrived at {self.last_goal_name}. Waiting for order verification."
+            # Force publish
+            self.publish_response(arrival_msg)
+            # self.speak(arrival_msg) # Actually we rely on app TTS for chat responses
+            
+        elif status == "not_found":
+            self.publish_response(f"I could not find the location {self.last_goal_name}.")
 
     def execute_command(self, response_text):
         # 2. MOTION (Move Forward, Stop, etc)
@@ -109,6 +177,7 @@ class ChatBridge(Node):
                     else:
                         # Real Navigation Command
                         self.get_logger().info(f"🤖 NAV CMD: Go to {cmd_val}")
+                        self.current_location = f"Going to {cmd_val}" 
                         msg = String()
                         msg.data = cmd_val
                         self.cmd_pub.publish(msg)
@@ -140,6 +209,9 @@ class ChatBridge(Node):
                 elif upper_resp.startswith("RIGHT"): action = "RIGHT"
                 elif upper_resp.startswith("STOP"): action = "STOP"
                 
+                # Follow Commands
+                # Removed
+                
                 # Arabic Fallback
                 elif response_text.startswith("تحرك"): action = "FORWARD"
                 elif response_text.startswith("إرجع") or response_text.startswith("ارجع"): action = "BACKWARD"
@@ -169,6 +241,10 @@ class ChatBridge(Node):
                 elif action == "STOP":
                     twist.linear.x = 0.0
                     twist.angular.z = 0.0
+                    self.current_location = "Stopped"
+                
+                # Update status
+                self.current_speed = abs(twist.linear.x)
                 
                 # Publish a burst to ensure movement
                 for _ in range(5):
@@ -238,6 +314,23 @@ class ChatBridge(Node):
         
         return None  # Safe to move
 
+    def on_odom(self, msg: Odometry):
+        """Update speed from odometry."""
+        vx = msg.twist.twist.linear.x
+        vy = msg.twist.twist.linear.y
+        self.current_speed = math.sqrt(vx**2 + vy**2)
+
+    def publish_status(self):
+        """Publish JSON status for mobile app."""
+        status = {
+            "speed": f"{self.current_speed:.2f} m/s",
+            "location": self.current_location,
+            "battery": "85%" # Mock battery for now
+        }
+        msg = String()
+        msg.data = json.dumps(status)
+        self.status_pub.publish(msg)
+
     def get_robot_stats(self):
         """Reads CSV and returns the last 5 deliveries in simple format."""
         csv_path = os.path.expanduser('~/ws/src/App/order_logger/dashboard/delivery_log.csv')
@@ -271,6 +364,29 @@ class ChatBridge(Node):
             return
         
         self.get_logger().info(f'Received chat request: {user_text}')
+        
+        # CHECK FOR SNAPSHOT REQUEST
+        snapshot_keywords = ['snapshot', 'image', 'photo', 'picture', 'camera', 'see', 'صورة', 'تري', 'شايف', 'كاميرا']
+        is_snapshot = any(kw in user_text.lower() for kw in snapshot_keywords)
+        
+        if is_snapshot and ('what' in user_text.lower() or 'can' in user_text.lower() or 'ماذا' in user_text.lower() or 'وريني' in user_text.lower() or 'send' in user_text.lower()):
+            if self.latest_image:
+                try:
+                    # CompressedImage data is already jpg/png bytes
+                    # Encode to Base64 string for transport
+                    b64_str = base64.b64encode(self.latest_image.data).decode('utf-8')
+                    
+                    # Create response with hidden image tag
+                    response = f"[IMAGE:{b64_str}] Here is what I see right now!"
+                    self.publish_response(response)
+                    return
+                except Exception as e:
+                    self.get_logger().error(f"Snapshot error: {e}")
+                    self.publish_response("Sorry, I failed to process the image.")
+                    return
+            else:
+                self.publish_response("I cannot see anything yet (Camera inactive).")
+                return
         
         # CHECK FOR COMPARISON REQUEST (Manual Table Generation)
         comparison_keywords = ['مقارن', 'قارن', 'compare', 'comparison', 'طلبات', 'trips', 'orders', 'آخر']
@@ -581,6 +697,34 @@ class ChatBridge(Node):
         # TTS is only used in qr_scanner.py for delivery announcements
         # if self.tts_client and not skip_voice:
         #     self.speak(voice_text)
+
+    def on_map_markers(self, msg: MarkerArray):
+        """Receive markers from goal_name.py and forward to mobile app."""
+        waypoints_data = []
+        try:
+            for marker in msg.markers:
+                # We only care about Text markers for the names (Type 9)
+                if marker.type == 9:
+                    waypoints_data.append({
+                        "name": marker.text,
+                        "x": marker.pose.position.x,
+                        "y": marker.pose.position.y
+                    })
+            
+            if waypoints_data:
+                json_msg = String()
+                json_msg.data = json.dumps(waypoints_data)
+                self.waypoints_pub.publish(json_msg)
+                
+        except Exception as e:
+            self.get_logger().error(f"Error bridging markers: {e}")
+
+        # Log success for debugging
+        if waypoints_data:
+            count = len(waypoints_data)
+            self.get_logger().info(f"Bridged {count} waypoints to app.")
+            # Debug: Show on UI Status Chip
+            self.current_location = f"Markers Loaded: {count}"
 
     def speak(self, text: str):
         if not self.tts_client.wait_for_server(timeout_sec=2.0):

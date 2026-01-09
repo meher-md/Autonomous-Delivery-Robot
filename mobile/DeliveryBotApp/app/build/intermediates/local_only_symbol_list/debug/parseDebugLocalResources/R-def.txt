@@ -45,6 +45,7 @@ drawable ic_app_logo_new
 drawable ic_connect
 drawable ic_dashboard_grid
 drawable ic_gamepad
+drawable ic_image_placeholder
 drawable ic_map_flag
 drawable ic_mic
 drawable ic_robot
@@ -52,6 +53,7 @@ drawable ic_robot_foreground
 drawable ic_settings_gear
 drawable qr_section_bg
 drawable robot_logo
+drawable rounded_image_bg
 drawable virtual_assistant
 id btnAddLocation
 id btnAddMap
@@ -60,6 +62,7 @@ id btnCancel
 id btnClearHistory
 id btnClose
 id btnCloseDialog
+id btnCloseSettings
 id btnConfirmPhone
 id btnConnect
 id btnCreateOrder
@@ -86,7 +89,6 @@ id btnTogglePanel
 id btnUp
 id btnVoice
 id btnVoiceToggle
-id btn_confirm_delivery_like
 id cameraPreview
 id cameraRoot
 id cardChatbot
@@ -109,6 +111,7 @@ id etSearch
 id gridContainer
 id headerBar
 id historyContainer
+id imageBotSnapshot
 id img
 id inputContainer
 id inputSection
@@ -117,8 +120,6 @@ id lblSwipeHint
 id locationsContainer
 id logScroll
 id logText
-id mapRoot
-id mapView
 id mapsContainer
 id messageInput
 id panelInclude
@@ -132,8 +133,8 @@ id recyclerDevices
 id recyclerViewChat
 id recyclerViewHistory
 id rgLocations
-id scrollDestinations
 id seekBarSpeed
+id sliderPitch
 id speedSection
 id speedText
 id spinnerMaps
@@ -163,6 +164,7 @@ id txtConversationTitle
 id txtOffline
 id txtOfflineNotice
 id txtStatus
+id txtTypingIndicator
 id txtVideoError
 id videoClickOverlay
 id videoContainer
@@ -176,13 +178,13 @@ layout activity_chat
 layout activity_chatbot
 layout activity_dashboard
 layout activity_main
-layout activity_map
 layout activity_orders
 layout activity_phone
 layout activity_robot_assistant
 layout activity_scan
 layout activity_settings
 layout dialog_map_management
+layout dialog_voice_settings
 layout fragment_chatbot_dialog
 layout fragment_dashboard
 layout fragment_video

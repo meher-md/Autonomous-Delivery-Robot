@@ -101,8 +101,17 @@ class AppGoalGateway(Node):
         # self.last_feedback_time = 0.0
 
         self.get_logger().info(
-            f'Loaded {len(self.named_poses)} waypoints from {self.yaml_path} | frame={self.frame_id}'
+            f'Attempting to load waypoints from: {self.yaml_path}'
         )
+        self.named_poses = load_named_poses(self.yaml_path)
+        
+        # Debug: Print loaded keys
+        keys = list(self.named_poses.keys())
+        self.get_logger().info(f'Loaded {len(keys)} waypoints: {keys}')
+        
+        if not keys:
+             self.get_logger().error(f"WARNING: No waypoints loaded! Check path: {self.yaml_path}")
+             
         self._status('ready')
 
     # ---------- App interactions ----------
@@ -113,7 +122,9 @@ class AppGoalGateway(Node):
             return
 
         # Hot-reload YAML so changes are picked up
+        self.get_logger().info(f"Reloading map from: {self.yaml_path}")
         self.named_poses = load_named_poses(self.yaml_path)
+        self.get_logger().info(f"Keys available after reload: {list(self.named_poses.keys())}")
 
         resolved = self._resolve_name(name)
         if not resolved:

@@ -21,6 +21,11 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.*
+import android.os.Vibrator
+import android.os.VibrationEffect
+import android.graphics.BitmapFactory
+import android.util.Base64
+import android.widget.ImageView
 
 /**
  * AI Chat Activity - ROS Llama-powered Chatbot
@@ -42,7 +47,15 @@ class ChatbotActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private lateinit var txtChatTitle: TextView
     private lateinit var txtConnectionStatus: TextView
     private lateinit var btnRobotAssistant: ImageButton
+    // private lateinit var btnMap: ImageButton
     private lateinit var btnVoiceToggle: ImageButton
+    private lateinit var txtTypingIndicator: TextView 
+    
+    // Status Chips
+
+
+    // Haptic
+    private lateinit var vibrator: Vibrator
 
     // Chat Components
     private lateinit var chatAdapter: ChatAdapter
@@ -76,6 +89,9 @@ class ChatbotActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         // Initialize TTS
         tts = TextToSpeech(this, this)
+        
+        // Initialize Vibrator
+        vibrator = getSystemService(VIBRATOR_SERVICE) as Vibrator
 
         // Initialize views
         initializeViews()
@@ -115,7 +131,10 @@ class ChatbotActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         txtChatTitle = findViewById(R.id.txtChatTitle)
         txtConnectionStatus = findViewById(R.id.txtConnectionStatus)
         btnRobotAssistant = findViewById(R.id.btnRobotAssistant)
+        // btnMap = findViewById(R.id.btnMap)
         btnVoiceToggle = findViewById(R.id.btnVoiceToggle)
+        txtTypingIndicator = findViewById(R.id.txtTypingIndicator)
+
     }
 
     private fun setupRecyclerView() {
@@ -199,11 +218,20 @@ class ChatbotActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             startActivity(Intent(this, RobotAssistantActivity::class.java))
         }
 
+        /* btnMap.setOnClickListener {
+            startActivity(Intent(this, MapActivity::class.java))
+        } */
+
         btnVoiceToggle.setOnClickListener {
+            showVoicePitchDialog()
+        }
+
+        btnVoiceToggle.setOnLongClickListener {
             isTtsEnabled = !isTtsEnabled
             updateVoiceToggleIcon()
             val status = if (isTtsEnabled) "Voice ON" else "Voice OFF"
             Toast.makeText(this, status, Toast.LENGTH_SHORT).show()
+            true
         }
 
         editTextMessage.setOnEditorActionListener { _, _, _ ->
@@ -253,9 +281,20 @@ class ChatbotActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     tts.speak(cleanText, TextToSpeech.QUEUE_FLUSH, null, "response")
                 }
                 wasVoiceInput = false
+                txtTypingIndicator.visibility = View.GONE  // Hide typing indicator
+                
+                // Haptic Feedback for Motion
+                if (response.contains("[ACTION:") || response.contains("FORWARD") || response.contains("BACKWARD") || response.contains("تحرك")) {
+                    vibratePhone()
+                }
             }
         }
         com.example.deliverybot.net.RosBridgeClient.subscribe("/app/chat/response", responseCallback!!)
+        
+        // Status Subscription (Chips Removed)
+        com.example.deliverybot.net.RosBridgeClient.subscribe("/app/status") { statusJson ->
+            // Logic removed per user request
+        }
     }
 
     private fun updateConnectionStatus() {
@@ -294,10 +333,19 @@ class ChatbotActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         // ROS Llama only - no offline fallback
         if (com.example.deliverybot.net.RosBridgeClient.isConnected()) {
+            txtTypingIndicator.visibility = View.VISIBLE // Show typing indicator
             com.example.deliverybot.net.RosBridgeClient.publish("/app/chat/request", messageText)
         } else {
             // Show not connected message
             addBotMessage("⚠️ Not connected to AI server. Please run ./app on your computer and ensure you're on the same network.")
+        }
+    }
+
+    private fun vibratePhone() {
+        if (android.os.Build.VERSION.SDK_INT >= 26) {
+            vibrator.vibrate(VibrationEffect.createOneShot(200, VibrationEffect.DEFAULT_AMPLITUDE))
+        } else {
+            vibrator.vibrate(200)
         }
     }
 
@@ -315,6 +363,28 @@ class ChatbotActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         chatAdapter.notifyItemInserted(messagesList.size - 1)
         scrollToBottom()
         saveCurrentConversation()
+    }
+
+    private fun showVoicePitchDialog() {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_voice_settings, null)
+        val slider = dialogView.findViewById<com.google.android.material.slider.Slider>(R.id.sliderPitch)
+        val btnClose = dialogView.findViewById<Button>(R.id.btnCloseSettings)
+        
+        // Default pitch 1.0
+        slider.value = 1.0f 
+        
+        slider.addOnChangeListener { _, value, _ ->
+            tts.setPitch(value)
+        }
+        
+        val dialog = androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("🤖 Robot Voice Settings")
+            .setView(dialogView)
+            .create()
+            
+        btnClose.setOnClickListener { dialog.dismiss() }
+        
+        dialog.show()
     }
 
     private fun scrollToBottom() {
@@ -472,8 +542,34 @@ class ChatbotActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         inner class BotViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             private val textMessage: TextView = itemView.findViewById(R.id.textBotMessage)
             private val textTime: TextView = itemView.findViewById(R.id.textBotTime)
+            private val imageSnapshot: ImageView = itemView.findViewById(R.id.imageBotSnapshot)
+
             fun bind(msg: ChatMessage) {
-                textMessage.text = msg.text
+                if (msg.text.startsWith("[IMAGE:")) {
+                    try {
+                        val base64 = msg.text.substringAfter("[IMAGE:").substringBefore("]")
+                        val decodedString = Base64.decode(base64, Base64.DEFAULT)
+                        val decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.size)
+                        imageSnapshot.setImageBitmap(decodedByte)
+                        imageSnapshot.visibility = View.VISIBLE
+                        
+                        val remainingText = msg.text.substringAfter("]").trim()
+                        if (remainingText.isNotEmpty()) {
+                            textMessage.text = remainingText
+                            textMessage.visibility = View.VISIBLE
+                        } else {
+                            textMessage.visibility = View.GONE
+                        }
+                    } catch (e: Exception) {
+                         textMessage.text = "⚠️ Error loading image"
+                         textMessage.visibility = View.VISIBLE
+                         imageSnapshot.visibility = View.GONE
+                    }
+                } else {
+                    imageSnapshot.visibility = View.GONE
+                    textMessage.visibility = View.VISIBLE
+                    textMessage.text = msg.text
+                }
                 textTime.text = msg.timestamp
             }
         }

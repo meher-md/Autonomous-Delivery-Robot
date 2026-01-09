@@ -67,21 +67,13 @@
 
 
 
-        <!-- Destinations Horizontal Scroll -->
-        <HorizontalScrollView
-            android:id="@+id/scrollDestinations"
+        <!-- Destinations Grid (Rows) -->
+        <LinearLayout
+            android:id="@+id/containerDestinations"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:scrollbars="none"
-            android:layout_marginBottom="16dp">
-
-            <LinearLayout
-                android:id="@+id/containerDestinations"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:paddingVertical="4dp"/>
-        </HorizontalScrollView>
+            android:orientation="vertical"
+            android:layout_marginBottom="16dp"/>
 
         <!-- Robot Status -->
         <TextView
