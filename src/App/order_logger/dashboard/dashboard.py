@@ -600,11 +600,11 @@ if st.sidebar.button("📄 Generate PDF Report"):
         except Exception as e:
             st.sidebar.error(f"Failed to generate PDF: {e}")
 
-# Auto-Refresh Logic (Experimental)
+# Auto-Refresh Logic
 st.sidebar.markdown("---")
-if st.sidebar.button("🔄 Refresh Data"):
+if st.sidebar.checkbox("✅ Auto-Refresh (5s)", value=True):
+    time.sleep(5)
     st.rerun()
 
-# Auto Refresh using sleep loop in older Streamlit versions or st.empty?
-# Streamlit reruns script on interaction. For auto-refresh we rely on user or st.autorefresh component (not installed).
-# We can use a simple sleep loop if running as a dedicated dashboard, but standard way is manual refresh or st.rerun
+if st.sidebar.button("🔄 Manual Refresh"):
+    st.rerun()

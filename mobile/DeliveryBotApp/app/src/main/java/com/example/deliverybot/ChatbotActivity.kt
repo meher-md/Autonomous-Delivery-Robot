@@ -71,6 +71,10 @@ class ChatbotActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private lateinit var tts: TextToSpeech
     private var wasVoiceInput = false
     private var isTtsEnabled = true  // Voice toggle state
+    
+    // TTS Queue
+    private var isTtsReady = false
+    private var pendingGreeting: String? = null
 
     // SharedPreferences keys
     private val PREFS_NAME = "chat_history"
@@ -114,6 +118,15 @@ class ChatbotActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
             tts.language = Locale.US
+            isTtsReady = true
+            
+            // Speak pending greeting if any
+            pendingGreeting?.let {
+                if (isTtsEnabled) {
+                    tts.speak(it, TextToSpeech.QUEUE_FLUSH, null, "greeting")
+                }
+                pendingGreeting = null
+            }
         }
     }
 
@@ -416,7 +429,20 @@ class ChatbotActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         saveConversations()
 
         // Welcome message
-        addBotMessage("Hi! 👋 How can I help you today?")
+        // Welcome message (Triggered only if truly new)
+        val arabicText = "مرحباً! أنا رفيق، مساعدك الذكي. كيف يمكنني مساعدتك اليوم؟"
+        val englishVoice = "Hello! I am Rafiq, your smart delivery assistant. How can I help you today?"
+        
+        addBotMessage(arabicText)
+        
+        // Speak English greeting
+        if (isTtsEnabled) {
+            if (isTtsReady) {
+                tts.speak(englishVoice, TextToSpeech.QUEUE_FLUSH, null, "greeting")
+            } else {
+                pendingGreeting = englishVoice
+            }
+        }
     }
 
     private fun loadConversation(id: String) {
@@ -443,22 +469,27 @@ class ChatbotActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
         val jsonArray = JSONArray()
         conversations.forEach { conv ->
-            val convObj = JSONObject().apply {
-                put("id", conv.id)
-                put("title", conv.title)
-                put("timestamp", conv.timestamp)
-                val messagesArray = JSONArray()
-                conv.messages.forEach { msg ->
-                    val msgObj = JSONObject().apply {
-                        put("text", msg.text)
-                        put("isBot", msg.isBot)
-                        put("timestamp", msg.timestamp)
+            // FILTER: Only save if there are user messages OR more than just the greeting
+            // We assume the first message is always the bot greeting.
+            // So if size <= 1 and that one message is from bot, consider it empty.
+            if (conv.messages.size > 1 || (conv.messages.isNotEmpty() && !conv.messages[0].isBot)) {
+               val convObj = JSONObject().apply {
+                    put("id", conv.id)
+                    put("title", conv.title)
+                    put("timestamp", conv.timestamp)
+                    val messagesArray = JSONArray()
+                    conv.messages.forEach { msg ->
+                        val msgObj = JSONObject().apply {
+                            put("text", msg.text)
+                            put("isBot", msg.isBot)
+                            put("timestamp", msg.timestamp)
+                        }
+                        messagesArray.put(msgObj)
                     }
-                    messagesArray.put(msgObj)
+                    put("messages", messagesArray)
                 }
-                put("messages", messagesArray)
+                jsonArray.put(convObj)
             }
-            jsonArray.put(convObj)
         }
         prefs.edit().putString(CONVERSATIONS_KEY, jsonArray.toString()).apply()
     }

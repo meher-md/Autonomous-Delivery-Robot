@@ -59,6 +59,8 @@ class ChatBridge(Node):
         self.status_timer = self.create_timer(1.0, self.publish_status) # 1Hz
         
         # Robot State variables
+        
+        # Robot State variables
         self.current_speed = 0.0
         self.current_location = "Idle"
         self.last_goal_name = "Unknown"
@@ -126,8 +128,12 @@ class ChatBridge(Node):
             MarkerArray, 
             '/named_poses/markers', 
             self.on_map_markers, 
-            marker_qos
+            10  # Changed to standard QoS 10 to accept both VOLATILE and TRANSIENT_LOCAL
         )
+        
+        # PERSISTENCE: Cache waypoints and republish periodically
+        self.cached_waypoints_msg = None
+        self.waypoints_timer = self.create_timer(2.0, self.publish_cached_waypoints)
 
     def on_vision(self, msg: String):
         self.latest_vision = msg.data
@@ -181,6 +187,7 @@ class ChatBridge(Node):
                         msg = String()
                         msg.data = cmd_val
                         self.cmd_pub.publish(msg)
+                        
                         return True
             except Exception as e:
                 self.get_logger().error(f"Nav parsing error: {e}")
@@ -412,6 +419,10 @@ class ChatBridge(Node):
         if analytics_response:
             self.publish_response(analytics_response)
             return
+
+        # DIRECT NAVIGATION COMMAND (Bypass AI for reliability)
+        if self.handle_direct_navigation(user_text):
+            return
         
         # Skip busy check - let Llama handle queuing
         if self._is_generating:
@@ -565,6 +576,32 @@ class ChatBridge(Node):
         
         return None
 
+    def handle_direct_navigation(self, user_text: str):
+        """Handle 'Go to X' commands directly without AI."""
+        # Simple regex for finding location
+        import re
+        match = re.search(r"(?:go to|drive to|navigate to|move to|روح|اذهب الى|اذهب ل) (.+)", user_text, re.IGNORECASE)
+        if match:
+            location = match.group(1).strip()
+            # Clean up punctuation
+            location = location.rstrip('.!?')
+            
+            self.get_logger().info(f"🚀 Direct Navigation Triggered: {location}")
+            self.current_location = f"Going to {location}"
+            
+            # 1. Publish Goal Name
+            msg = String()
+            msg.data = location
+            self.cmd_pub.publish(msg)
+            
+            # 2. Log Order (Handled by app_goal_gateway now)
+            # self.publish_new_order(location)
+            
+            # 3. Respond
+            self.publish_response(f"🚀 Heading to {location} (Direct Command)")
+            return True
+        return False
+
     def send_to_llama(self, prompt: str):
         if not self.llama_client.wait_for_server(timeout_sec=10.0):
             self.get_logger().warn('Llama action server not available')
@@ -716,6 +753,9 @@ class ChatBridge(Node):
                 json_msg.data = json.dumps(waypoints_data)
                 self.waypoints_pub.publish(json_msg)
                 
+                # Update Cache
+                self.cached_waypoints_msg = json_msg
+                
         except Exception as e:
             self.get_logger().error(f"Error bridging markers: {e}")
 
@@ -725,6 +765,11 @@ class ChatBridge(Node):
             self.get_logger().info(f"Bridged {count} waypoints to app.")
             # Debug: Show on UI Status Chip
             self.current_location = f"Markers Loaded: {count}"
+
+    def publish_cached_waypoints(self):
+        """Periodically republish waypoints to ensure UI persistence on reconnect."""
+        if self.cached_waypoints_msg:
+            self.waypoints_pub.publish(self.cached_waypoints_msg)
 
     def speak(self, text: str):
         if not self.tts_client.wait_for_server(timeout_sec=2.0):

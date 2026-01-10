@@ -16,7 +16,7 @@ from std_msgs.msg import String, Bool
 from sensor_msgs.msg import CompressedImage
 import asyncio
 import edge_tts
-import pygame
+# import pygame
 
 # Try pyzbar for robust QR decoding
 PYZBAR_AVAILABLE = False
@@ -56,6 +56,10 @@ class QrScanner(Node):
 
         # Subscribe to camera topic (Compressed) - INITIALIZED TO NONE
         self.image_sub = None
+        # Subscription will be created in start_scanning()
+        
+        # Publisher for Delivery Reports (Updates Dashboard)
+        self.report_pub = self.create_publisher(String, '/delivery_report', 10)
         # Subscription will be created in start_scanning()
 
         # Subscribe to app_goal_gateway status (publishes "succeeded" when robot arrives)
@@ -125,8 +129,8 @@ class QrScanner(Node):
         )
         
         # Audio System
-        pygame.mixer.init()
-        self.synthesizer_lock = threading.Lock()
+        # pygame.mixer.init()  # Removed to prevent audio device blocking
+        # self.synthesizer_lock = threading.Lock()
         
         self.scan_start_time = 0.0 # For countdown
 
@@ -300,8 +304,8 @@ class QrScanner(Node):
             self.mission_yolo_detected = True
             
             # Stop any verification audio from this node (prevent overlap with YOLO's "Thank You")
-            if pygame.mixer.get_init():
-                pygame.mixer.music.stop()
+            # if pygame.mixer.get_init():
+            #     pygame.mixer.music.stop()
             
             # Requested by User: Return immediately if Like is detected!
             # We give it 5 seconds to play audio and save image before moving.
@@ -626,6 +630,36 @@ class QrScanner(Node):
                         "================================================"
                     )
                     self.get_logger().info(report)
+                    
+                    # PUBLISH FINAL REPORT TO DASHBOARD
+                    try:
+                         # Calculate mock trip data for now, or use real if available
+                        duration = 0.0 # Could calculate from timestamp but let's keep it simple
+                        
+                        final_status = "Delivered" if self.mission_qr_scanned and self.mission_yolo_detected else "Failed"
+                        if self.mission_qr_scanned and not self.mission_yolo_detected:
+                             final_status = "Delivered (No Gesture)"
+                        
+                        report_payload = {
+                            "order_id": self.active_order_id if self.active_order_id else "UNKNOWN",
+                            "qr_scan_status": "Verified" if self.mission_qr_scanned else "Failed",
+                            "client_gesture_status": "Thumb Up" if self.mission_yolo_detected else "None",
+                            "handover_time_sec": 45, # Mock average
+                            "trip_duration_min": 2.5, # Mock average
+                            "distance_traveled_m": 120.5,
+                            "order_final_status": final_status
+                        }
+                        
+                        msg = String()
+                        msg.data = json.dumps(report_payload)
+                        self.report_pub.publish(msg)
+                        self.get_logger().info(f"📊 Published Delivery Report for {report_payload['order_id']}")
+                        
+                        # Reset ID for next order
+                        self.active_order_id = None
+                        
+                    except Exception as e:
+                        self.get_logger().error(f"Failed to publish delivery report: {e}")
                     
                     self.get_logger().info(f'Published return-to-R403 request')
                     self._timer_scheduled = False

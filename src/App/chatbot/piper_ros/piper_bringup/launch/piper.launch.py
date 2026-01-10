@@ -72,10 +72,11 @@ def generate_launch_description():
                 # namespace="audio",
                 parameters=[
                     {
-                        "channels": LaunchConfiguration("channels", default=2),
+                        "channels": LaunchConfiguration("channels", default=1),
                     }
                 ],
                 remappings=[("audio", "/piper/audio")],
+                output='screen',
                 condition=IfCondition(
                     PythonExpression(
                         [LaunchConfiguration("launch_audio_player", default=True)]

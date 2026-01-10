@@ -130,6 +130,10 @@ class GoalNameNode(Node):
             self.timer = self.create_timer(self.watch_interval, self.check_yaml_change)
 
         self.reload_srv = self.create_service(Trigger, 'reload', self.on_reload)
+        
+        # Periodic Republish (Ensures visibility)
+        self.publish_timer = self.create_timer(2.0, self.publish_all)
+        
         self.get_logger().info(f'YAML: {self.yaml_path} (schema: {self.schema}) | frame: {self.frame_id}')
 
     def select_map_interactive(self, current_path: str) -> str:

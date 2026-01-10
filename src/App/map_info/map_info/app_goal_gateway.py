@@ -12,6 +12,9 @@ from std_msgs.msg import String, Empty
 from geometry_msgs.msg import PoseStamped, Quaternion
 from nav2_msgs.action import NavigateToPose
 from action_msgs.msg import GoalStatus
+import json
+import time
+import uuid
 
 # Default YAML path for named poses (updated to map_info package)
 DEFAULT_YAML = os.path.expanduser('~/ws/src/App/map_info/named_poses.yaml')
@@ -89,7 +92,11 @@ class AppGoalGateway(Node):
         # I/O
         self.sub_name = self.create_subscription(String, self.topic_goal_name, self.on_name, 10)
         self.sub_cancel = self.create_subscription(Empty, self.topic_goal_cancel, self.on_cancel, 10)
+        self.sub_cancel = self.create_subscription(Empty, self.topic_goal_cancel, self.on_cancel, 10)
         self.pub_status = self.create_publisher(String, self.topic_status, 10)
+        
+        # Centralized Order Logger Publisher
+        self.order_pub = self.create_publisher(String, '/order/json', 10)
 
         # Action client
         self.client = ActionClient(self, NavigateToPose, 'navigate_to_pose')
@@ -137,6 +144,26 @@ class AppGoalGateway(Node):
             self._status(f'resolved:{name}->{resolved}')
 
         self._go_to(resolved)
+        
+        # Log the order centrally
+        self.publish_new_order(resolved)
+
+    def publish_new_order(self, location: str):
+        """Publish order event for Dashboard."""
+        try:
+            order_id = str(uuid.uuid4())[:8].upper()
+            payload = {
+                "order_id": order_id,
+                "target_location": location,
+                "timestamp": time.time(),
+                "status": "In Progress"
+            }
+            msg = String()
+            msg.data = json.dumps(payload)
+            self.order_pub.publish(msg)
+            self.get_logger().info(f"📦 Central Order Logged: {order_id} -> {location}")
+        except Exception as e:
+            self.get_logger().error(f"Failed to log order: {e}")
 
     def on_cancel(self, _):
         if self.current_handle:
