@@ -8,6 +8,7 @@ from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSDurabilityPolicy
 from geometry_msgs.msg import PointStamped, Point, Quaternion
 from visualization_msgs.msg import Marker, MarkerArray
 from std_srvs.srv import Trigger
+from std_msgs.msg import String
 from math import sin, cos
 
 # Default YAML path for named poses (updated to map_info package)
@@ -111,7 +112,9 @@ class GoalNameNode(Node):
         latched_qos.durability = QoSDurabilityPolicy.TRANSIENT_LOCAL
 
         self.marker_pub = self.create_publisher(MarkerArray, '/named_poses/markers', latched_qos)
+        self.marker_pub = self.create_publisher(MarkerArray, '/named_poses/markers', latched_qos)
         self.single_text_pub = self.create_publisher(Marker, '/place_labels', latched_qos)  # Optional compatibility
+        self.path_pub = self.create_publisher(String, '/app/map_path', latched_qos) # Publish selected map path
 
         if self.enable_click_input:
             self.click_sub = self.create_subscription(PointStamped, '/clicked_point', self.on_click, 10)
@@ -135,6 +138,9 @@ class GoalNameNode(Node):
         self.publish_timer = self.create_timer(2.0, self.publish_all)
         
         self.get_logger().info(f'YAML: {self.yaml_path} (schema: {self.schema}) | frame: {self.frame_id}')
+        
+        # Publish initial path
+        self.path_pub.publish(String(data=self.yaml_path))
 
     def select_map_interactive(self, current_path: str) -> str:
         """Present a menu to select an existing YAML map file or create a new one."""

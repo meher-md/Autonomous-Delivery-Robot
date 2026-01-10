@@ -10,6 +10,7 @@ from rclpy.action import ActionClient
 
 from std_msgs.msg import String, Empty
 from geometry_msgs.msg import PoseStamped, Quaternion
+from visualization_msgs.msg import MarkerArray
 from nav2_msgs.action import NavigateToPose
 from action_msgs.msg import GoalStatus
 import json
@@ -90,10 +91,9 @@ class AppGoalGateway(Node):
         self.fuzzy_cutoff = float(self.get_parameter('fuzzy_cutoff').get_parameter_value().double_value)
 
         # I/O
-        self.sub_name = self.create_subscription(String, self.topic_goal_name, self.on_name, 10)
-        self.sub_cancel = self.create_subscription(Empty, self.topic_goal_cancel, self.on_cancel, 10)
-        self.sub_cancel = self.create_subscription(Empty, self.topic_goal_cancel, self.on_cancel, 10)
-        self.pub_status = self.create_publisher(String, self.topic_status, 10)
+        
+        # Subscribe to Map Path (Sync with manual selection)
+        self.sub_map_path = self.create_subscription(String, '/app/map_path', self.on_map_path, 10)
         
         # Centralized Order Logger Publisher
         self.order_pub = self.create_publisher(String, '/order/json', 10)
@@ -171,6 +171,21 @@ class AppGoalGateway(Node):
             self.current_handle.cancel_goal_async()
         else:
             self._status('no_active_goal')
+
+    def on_map_path(self, msg: String):
+        """Reload map when goal_name_node publishes a new selected path."""
+        new_path = msg.data.strip()
+        if not new_path or new_path == self.yaml_path:
+            return
+
+        self.get_logger().info(f"🔄 Syncing Map: Switching to {new_path}")
+        self.yaml_path = new_path
+        
+        # Reload immediately
+        self.named_poses = load_named_poses(self.yaml_path)
+        keys = list(self.named_poses.keys())
+        self.get_logger().info(f'Loaded {len(keys)} waypoints from new map: {keys}')
+        self._status(f'map_loaded:{os.path.basename(new_path)}')
 
     # ---------- Internal helpers ----------
 
