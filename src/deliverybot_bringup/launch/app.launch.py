@@ -146,16 +146,16 @@ def generate_launch_description():
     )
     
     # NEW: Goal Name Node (Publishes Markers from YAML)
-    # goal_name_node = Node(
-    #     package='map_info',
-    #     executable='goal_name', 
-    #     name='goal_name',
-    #     parameters=[{
-    #         'yaml_path': yaml_path,
-    #         'frame_id': frame_id,
-    #     }],
-    #     output='screen'
-    # )
+    goal_name_node = Node(
+        package='map_info',
+        executable='goal_name', 
+        name='goal_name',
+        parameters=[{
+            'yaml_path': yaml_path,
+            'frame_id': frame_id,
+        }],
+        output='screen'
+    )
 
     # NEW: Chat Bridge - Connects Mobile App to Llama AI
     chat_bridge = Node(
@@ -237,7 +237,7 @@ def generate_launch_description():
         qr_generator,
         qr_scanner,
         like_detector,
-        # goal_name_node,
+        goal_name_node,
         chat_bridge,
         order_logger,
         piper_launch,
