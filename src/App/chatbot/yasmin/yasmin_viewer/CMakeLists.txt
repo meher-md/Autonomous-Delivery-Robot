@@ -52,9 +52,13 @@ install(DIRECTORY include/
   DESTINATION include/${PROJECT_NAME}
 )
 
-install(DIRECTORY yasmin_viewer_web_client/build/
-  DESTINATION share/yasmin_viewer/yasmin_viewer_web_client/
-)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/yasmin_viewer_web_client/build/")
+  install(DIRECTORY yasmin_viewer_web_client/build/
+    DESTINATION share/yasmin_viewer/yasmin_viewer_web_client/
+  )
+else()
+  message(WARNING "Web client build directory not found. Skipping installation of yasmin_viewer_web_client/build/. Run 'npm run build' inside yasmin_viewer_web_client to generate it.")
+endif()
 
 ament_export_include_directories("include/${PROJECT_NAME}")
 ament_export_libraries(${PROJECT_NAME})
