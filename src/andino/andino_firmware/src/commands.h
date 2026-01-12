@@ -86,6 +86,9 @@ struct Commands {
   static constexpr const char* kGetIsImuConnected{"h"};
   /// @brief Reads the encoders tick count values and IMU sensor data.
   static constexpr const char* kReadEncodersAndImu{"i"};
+  /// @brief Reads the ultrasonic sensor distance [m].
+  static constexpr const char* kReadSonar{"s"};
+  static constexpr const char* kReadImuStatus{"z"};
 };
 
 }  // namespace andino

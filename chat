@@ -38,7 +38,7 @@ fi
 : "${ROS_DOMAIN_ID:=0}"
 : "${ROS_LOCALHOST_ONLY:=0}"
 export ROS_DOMAIN_ID ROS_LOCALHOST_ONLY
-export CYCLONEDDS_URI="file://${WS_ROOT}/cyclonedds.xml"
+export CYCLONEDDS_URI="file://${WS_ROOT}/src/andino/andino_bringup/config/cyclonedds.xml"
 echo "Using ROS_DOMAIN_ID=${ROS_DOMAIN_ID}"
 
 # ---------- Launch Chatbot ----------

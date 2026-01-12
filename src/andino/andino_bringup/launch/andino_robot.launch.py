@@ -56,6 +56,12 @@ def generate_launch_description():
             description='Indicates whether to include rplidar launch.')
     rplidar =  LaunchConfiguration('include_rplidar')
 
+    ultrasonic_arg = DeclareLaunchArgument(
+            'include_ultrasonic',
+            default_value='True',
+            description='Indicates whether to include ultrasonic sensor launch.')
+    ultrasonic = LaunchConfiguration('include_ultrasonic')
+
     # Includes andino_description launch file
     include_andino_description = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -72,6 +78,7 @@ def generate_launch_description():
             os.path.join(pkg_andino_control, 'launch', 'andino_control.launch.py'),
         ),
         launch_arguments={
+            'use_ultrasonic': ultrasonic,
         }.items()
     )
 
@@ -91,6 +98,7 @@ def generate_launch_description():
             os.path.join(pkg_andino_bringup, 'launch', 'camera.launch.py'),
         ),
         launch_arguments={
+            "include_camera": camera,
         }.items(),
                 condition=IfCondition(camera)
     )
@@ -127,6 +135,14 @@ def generate_launch_description():
             output='screen',
             parameters=[config_file]
         )
+
+    range_converter = Node(
+            package='andino_bringup',
+            executable='range_to_laserscan.py',
+            name='range_converter_node',
+            output='screen',
+            condition=IfCondition(ultrasonic)
+        )
         
     # TODO(francocipollone): Improve concatenation of launch files.
     #
@@ -143,6 +159,8 @@ def generate_launch_description():
         camera_timer,
         rplidar_arg,
         rplidar_timer,
+        ultrasonic_arg,
         imu_filter,
         robot_localization,
+        range_converter,
     ])

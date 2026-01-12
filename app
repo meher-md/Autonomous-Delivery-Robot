@@ -60,7 +60,7 @@ fi
 : "${ROS_DOMAIN_ID:=0}"
 : "${ROS_LOCALHOST_ONLY:=0}"   # 0 = allow LAN; set to 1 manually if you want loopback-only
 export ROS_DOMAIN_ID ROS_LOCALHOST_ONLY
-export CYCLONEDDS_URI="file://${WS_ROOT}/cyclonedds.xml"
+export CYCLONEDDS_URI="file://${WS_ROOT}/src/andino/andino_bringup/config/cyclonedds.xml"
 echo "Using ROS_DOMAIN_ID=${ROS_DOMAIN_ID}, ROS_LOCALHOST_ONLY=${ROS_LOCALHOST_ONLY}"
 echo "Using CYCLONEDDS_URI=${CYCLONEDDS_URI}"
 

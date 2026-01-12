@@ -29,7 +29,8 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
-#include <Adafruit_BNO055.h>
+#include <Wire.h>
+#include <MPU6050.h>
 
 #include "digital_out_arduino.h"
 #include "encoder.h"
@@ -90,6 +91,8 @@ class App {
 
   /// Callback method for the `Commands::kReadEncodersAndImu` command.
   static void cmd_read_encoders_and_imu_cb(int argc, char** argv);
+  static void cmd_read_sonar_cb(int argc, char** argv);
+  static void cmd_read_imu_status_cb(int argc, char** argv);
 
   /// Serial stream.
   static SerialStreamArduino serial_stream_;
@@ -123,8 +126,8 @@ class App {
   static Pid left_pid_controller_;
   static Pid right_pid_controller_;
 
-  /// Adafruit BNO055 IMU sensor.
-  static Adafruit_BNO055 bno055_imu_;
+  /// MPU6050 IMU sensor.
+  static MPU6050 mpu_;
 
   /// Tracks the last time the PID computation was made.
   static unsigned long last_pid_computation_;
