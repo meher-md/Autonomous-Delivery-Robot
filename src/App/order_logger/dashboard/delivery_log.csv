@@ -74,4 +74,5 @@ Date_Full,Year,Month,Day_Name,Time_Arrival,Order_ID,Target_Location,QR_Scan_Stat
 ,,,,,UNKNOWN,,Failed,None,45,2.5,120.5,Failed
 2026-01-10,2026.0,January,Saturday,15:34:17,6F07A57E,Lab,Pending,Pending,0,0.0,0.0,In Progress
 2026-01-10,2026.0,January,Saturday,15:34:55,TEST_MANUAL,Manual Test,Pending,Pending,0,0.0,0.0,In Progress
-2026-01-10,2026,January,Saturday,15:50:46,4D72A96A,Lobby,Pending,Pending,0,0.0,0.0,In Progress
+2026-01-10,2026.0,January,Saturday,15:50:46,4D72A96A,Lobby,Pending,Pending,0,0.0,0.0,In Progress
+2026-01-13,2026,January,Tuesday,19:13:29,B729DE9A,Lobby,Pending,Pending,0,0.0,0.0,In Progress

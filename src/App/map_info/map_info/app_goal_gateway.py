@@ -94,9 +94,15 @@ class AppGoalGateway(Node):
         
         # Subscribe to Map Path (Sync with manual selection)
         self.sub_map_path = self.create_subscription(String, '/app/map_path', self.on_map_path, 10)
+
+        # Subscribe to Goal Name (The missing link!)
+        self.sub_goal_name = self.create_subscription(String, self.topic_goal_name, self.on_name, 10)
         
         # Centralized Order Logger Publisher
         self.order_pub = self.create_publisher(String, '/order/json', 10)
+
+        # Status Publisher
+        self.pub_status = self.create_publisher(String, self.topic_status, 10)
 
         # Action client
         self.client = ActionClient(self, NavigateToPose, 'navigate_to_pose')
