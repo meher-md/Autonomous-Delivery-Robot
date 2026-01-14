@@ -329,21 +329,36 @@ def create_pdf_charts(df):
         # Generate colors list based on index
         colors = [color_map.get(status, '#17a2b8') for status in status_counts.index]
         
+        # Define explode to separate slices slightly
+        explode = [0.05] * len(status_counts)
+        
+        # Function to hide extremely small percentages to avoid overlap
+        def make_autopct(pct):
+            return ('%1.1f%%' % pct) if pct > 5 else ''
+
         wedges, texts, autotexts = ax1.pie(
             status_counts, 
             labels=None, 
-            autopct='%1.1f%%', 
+            autopct=make_autopct, 
             startangle=90, 
             colors=colors,
-            pctdistance=0.5, 
-            radius=1.1       # Slightly smaller to avoid distinct overlap feeling
+            pctdistance=0.85, # Push labels further out
+            explode=explode,
+            radius=1.1
         )
+        
+        # Ensure text inside is legible
+        for text in autotexts:
+            text.set_color('white')
+            text.set_weight('bold')
         
         ax1.axis('equal')
         plt.title("Delivery Success Rate", fontsize=14, pad=10)
         
-        # Legend at BOTTOM 
-        legend_labels = status_counts.index
+        # Legend at BOTTOM with PERCENTAGES
+        total_count = status_counts.sum()
+        legend_labels = [f"{name} ({val/total_count*100:.1f}%)" for name, val in zip(status_counts.index, status_counts.values)]
+        
         ax1.legend(
             wedges, 
             legend_labels,
@@ -368,6 +383,9 @@ def create_pdf_charts(df):
         plt.title("Orders by Destination", fontsize=14)
         plt.xlabel("Location")
         plt.ylabel("Count")
+        
+        # Rotate x-axis labels to avoid overlapping
+        plt.xticks(rotation=45, ha='right')
         
         # Save
         with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp:
