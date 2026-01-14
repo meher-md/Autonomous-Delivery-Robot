@@ -16,6 +16,8 @@ pydantic
 huggingface_hub
 requests
 numpy>=1.22.4,<2.0.0
+empy==3.3.4
+pybind11
 
 # Optional for local speech/vision (if not covered by ROS vendor pkgs)
 Pillow
