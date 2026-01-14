@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+import rclpy
+from rclpy.node import Node
+from std_msgs.msg import String
 import os
 import json
 import time
@@ -6,12 +9,11 @@ import uuid
 import base64
 from io import BytesIO
 from datetime import datetime
-
-import rclpy
-from rclpy.node import Node
-from std_msgs.msg import String
-
 import qrcode
+from qrcode.image.styledpil import StyledPilImage
+from qrcode.image.styles.moduledrawers import CircleModuleDrawer
+from qrcode.image.styles.colormasks import SquareGradiantColorMask
+from PIL import Image, ImageDraw
 
 class QrGenerator(Node):
     def __init__(self):
@@ -85,19 +87,23 @@ class QrGenerator(Node):
             }
             
             # generate QR image
-            # Custom Color: Dark Blue (R=0, G=74, B=173) to match App Theme
             qr = qrcode.QRCode(version=1, box_size=12, border=4, error_correction=qrcode.constants.ERROR_CORRECT_H)
             qr.add_data(json.dumps(payload))
             qr.make(fit=True)
             
-            # Create QR with Blue color and White background
-            img = qr.make_image(fill_color="#004AAD", back_color="white").convert('RGBA')
+            # Create QR with Blue-Gray gradient color and White background
+            img = qr.make_image(image_factory=StyledPilImage,
+                                module_drawer=CircleModuleDrawer(),
+                                color_mask=SquareGradiantColorMask(
+                                    back_color=(255, 255, 255),
+                                    center_color=(0, 120, 215),
+                                    edge_color=(50, 50, 50)
+                                )).convert('RGBA')
 
             # Embed Logo
             try:
                 logo_path = os.path.expanduser('~/ws/src/App/order_logger/dashboard/robot_logo_dashboard.png')
                 if os.path.exists(logo_path):
-                    from PIL import Image, ImageDraw
                     logo = Image.open(logo_path).convert("RGBA")
                     
                     # Calculate logo size (25% of QR width)

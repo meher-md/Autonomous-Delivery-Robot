@@ -1,33 +1,28 @@
 #!/usr/bin/env python3
-import json
-import time
-import threading
-import traceback
-import sys
 import rclpy
 from rclpy.node import Node
+from rclpy.action import ActionClient
 from std_msgs.msg import String, Bool
 from sensor_msgs.msg import CompressedImage
-import cv2
-import numpy as np
+import json
 import os
+import threading
+import numpy as np
+import cv2
+import time
 import datetime
-from std_msgs.msg import String, Bool
-from sensor_msgs.msg import CompressedImage
-import asyncio
-import edge_tts
-# import pygame
+import traceback
+#import pygame
 
 # Try pyzbar for robust QR decoding
 PYZBAR_AVAILABLE = False
 try:
     from pyzbar import pyzbar
     PYZBAR_AVAILABLE = True
-except Exception:
+except ImportError:
     PYZBAR_AVAILABLE = False
 
 
-from rclpy.action import ActionClient
 try:
     from audio_common_msgs.action import TTS
     TTS_AVAILABLE = True
@@ -565,7 +560,6 @@ class QrScanner(Node):
                      
                  except Exception as e:
                      self.get_logger().error(f"Failed to save evidence: {e}")
-                     import traceback
                      traceback.print_exc()
             # -------------------------------------------
             
