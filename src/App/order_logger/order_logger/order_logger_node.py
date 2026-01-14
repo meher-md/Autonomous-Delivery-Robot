@@ -28,8 +28,11 @@ class OrderLogger(Node):
         )
         
         # CSV File Path (Inside Package/Dashboard)
-        # Using absolute path to source for persistence across rebuilds in this dev usage
-        self.csv_path = os.path.expanduser('~/ws/src/App/order_logger/dashboard/delivery_log.csv')
+        # Use relative path from this file to ensure portability
+        # Structure: .../src/App/order_logger/order_logger/order_logger_node.py
+        # Target:    .../src/App/order_logger/dashboard/delivery_log.csv
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        self.csv_path = os.path.join(base_dir, 'dashboard', 'delivery_log.csv')
         
         # Define Columns (Strict Order)
         self.columns = [

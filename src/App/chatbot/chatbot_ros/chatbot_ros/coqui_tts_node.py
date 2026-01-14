@@ -23,9 +23,16 @@ class CoquiTTSNode(Node):
         if not os.path.exists(service_script):
             self.get_logger().error(f'XTTS Service script not found at: {service_script}')
 
-        # Start persistent process in 'chat' conda env
-        # Use direct python path to avoid 'conda run' stdio buffering/signal issues
-        python_exe = '/home/mo/miniconda/envs/chat/bin/python3'
+        # Start persistent process
+        # Use simple 'python3' assuming dependencies are installed in the environment
+        # or allow user to configure via 'python_interpreter' parameter
+        self.declare_parameter('python_interpreter', 'python3')
+        python_exe = self.get_parameter('python_interpreter').get_parameter_value().string_value
+        
+        # If still using the hardcoded path for local dev, we can verify if it exists, else fallback
+        # But better to just default to 'python3' for portability.
+        # User's friends will use 'python3'. User can set param if they really need the conda env.
+        
         cmd = [python_exe, '-u', service_script]
         self.get_logger().info(f'Launching XTTS Service: {" ".join(cmd)}')
         

@@ -29,8 +29,10 @@ class QrGenerator(Node):
         self.has_moved_from_R403 = False  # Flag to track if robot has moved from R403
         
         # Order history file in main project folder
-        # Order history file in order_logger dashboard folder
-        self.dashboard_dir = os.path.expanduser('~/ws/src/App/order_logger/dashboard')
+        # Use relative path to find the dashboard directory in the sibling package
+        # .../src/App/qr_verification/qr_verification/qr_generator.py -> .../src/App/order_logger/dashboard
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        self.dashboard_dir = os.path.abspath(os.path.join(current_dir, '../../order_logger/dashboard'))
         self.order_history_file = os.path.join(self.dashboard_dir, 'order_history.txt')
         
         self.get_logger().info(f'qr_generator ready (order history: {self.order_history_file})')
@@ -102,7 +104,7 @@ class QrGenerator(Node):
 
             # Embed Logo
             try:
-                logo_path = os.path.expanduser('~/ws/src/App/order_logger/dashboard/robot_logo_dashboard.png')
+                logo_path = os.path.join(self.dashboard_dir, 'robot_logo_dashboard.png')
                 if os.path.exists(logo_path):
                     logo = Image.open(logo_path).convert("RGBA")
                     
@@ -143,7 +145,8 @@ class QrGenerator(Node):
             day_str = now.strftime("%d")
             mission_folder = f"mission_{order_id}"
             
-            base_dir = os.path.expanduser("~/ws/mission_proof")
+            # Use ~/mission_proof to be independent of workspace name
+            base_dir = os.path.expanduser("~/mission_proof")
             mission_dir = os.path.join(base_dir, year_str, month_str, day_str, mission_folder)
             os.makedirs(mission_dir, exist_ok=True)
             

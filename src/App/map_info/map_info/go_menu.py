@@ -9,7 +9,10 @@ from nav2_msgs.action import NavigateToPose
 from math import sin, cos
 
 # Default YAML path for named poses (updated to map_info)
-DEFAULT_YAML_PATH = os.path.expanduser('~/ws/src/App/map_info/named_poses.yaml')
+# DEFAULT_YAML_PATH = os.path.expanduser('~/ws/src/App/map_info/named_poses.yaml')
+# Use relative path for portability
+current_dir = os.path.dirname(os.path.abspath(__file__))
+DEFAULT_YAML_PATH = os.path.abspath(os.path.join(current_dir, '../named_poses.yaml'))
 
 
 def yaw_to_quat(yaw: float) -> Quaternion:

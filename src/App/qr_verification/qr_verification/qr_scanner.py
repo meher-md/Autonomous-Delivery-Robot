@@ -509,7 +509,7 @@ class QrScanner(Node):
                          
                      folder_name = f"mission_{mission_id}"
                      
-                     base_dir = os.path.expanduser("~/ws/mission_proof")
+                     base_dir = os.path.expanduser("~/mission_proof")
                      mission_dir = os.path.join(base_dir, year_str, month_str, day_str, folder_name)
                      os.makedirs(mission_dir, exist_ok=True)
                      

@@ -18,7 +18,10 @@ import time
 import uuid
 
 # Default YAML path for named poses (updated to map_info package)
-DEFAULT_YAML = os.path.expanduser('~/ws/src/App/map_info/named_poses.yaml')
+# DEFAULT_YAML = os.path.expanduser('~/ws/src/App/map_info/named_poses.yaml')
+# Use relative path for portability
+current_dir = os.path.dirname(os.path.abspath(__file__))
+DEFAULT_YAML = os.path.abspath(os.path.join(current_dir, '../named_poses.yaml'))
 
 
 def yaw_to_quat(yaw: float) -> Quaternion:

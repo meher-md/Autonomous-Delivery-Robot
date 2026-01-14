@@ -12,7 +12,10 @@ from std_msgs.msg import String
 from math import sin, cos
 
 # Default YAML path for named poses (updated to map_info package)
-DEFAULT_YAML_PATH = os.path.expanduser('~/ws/src/App/map_info/maps/hti.yaml')
+# DEFAULT_YAML_PATH = os.path.expanduser('~/ws/src/App/map_info/maps/hti.yaml')
+# Use relative path for portability
+current_dir = os.path.dirname(os.path.abspath(__file__))
+DEFAULT_YAML_PATH = os.path.abspath(os.path.join(current_dir, '../maps/hti.yaml'))
 
 
 def yaw_to_quat(yaw: float):
