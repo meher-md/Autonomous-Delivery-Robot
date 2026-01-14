@@ -5,17 +5,17 @@ watchdog
 plotly
 
 # Chatbot & AI
-langchain==0.3.27
-langchain-chroma==0.2.2
-langchain-community==0.3.27
-langchain-core==0.3.75
-langchain-openai==0.3.8
-langchain-text-splitters==0.3.11
-langgraph==0.4.5
-pydantic==2.12.5
+langchain
+langchain-chroma
+langchain-community
+langchain-core
+langchain-openai
+langchain-text-splitters
+langgraph
+pydantic
 huggingface_hub
 requests
-numpy==1.22.4
+numpy>=1.22.4,<2.0.0
 
 # Optional for local speech/vision (if not covered by ROS vendor pkgs)
 Pillow
