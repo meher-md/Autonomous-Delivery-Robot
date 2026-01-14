@@ -31,6 +31,7 @@
 
 #include <Wire.h>
 #include <MPU6050.h>
+#include <NewPing.h>
 
 #include "digital_out_arduino.h"
 #include "encoder.h"
@@ -137,6 +138,12 @@ class App {
 
   /// Tracks whether there is an IMU sensor connected.
   static bool is_imu_connected;
+
+  // NewPing Non-Blocking Members
+  static NewPing sonar_;
+  static unsigned long ping_timer_; // When to ping next
+  static volatile int current_distance_cm_; // Updated by ISR
+  static void echoCheck(); // ISR callback
 };
 
 }  // namespace andino

@@ -120,6 +120,13 @@ bool App::is_imu_connected{false};
 
 MPU6050 App::mpu_;
 
+// NewPing Init (Max Distance 400cm)
+NewPing App::sonar_(Hw::kSonarTriggerPin, Hw::kSonarEchoPin, 400);
+unsigned long App::ping_timer_{0};
+volatile int App::current_distance_cm_{0};
+
+
+
 void App::setup() {
   // Required by Arduino libraries to work.
   init();
@@ -152,11 +159,6 @@ void App::setup() {
   shell_.register_command(Commands::kReadSonar, cmd_read_sonar_cb);
   shell_.register_command(Commands::kReadImuStatus, cmd_read_imu_status_cb);
 
-  // Initialize Sonar
-  pinMode(Hw::kSonarTriggerPin, OUTPUT);
-  pinMode(Hw::kSonarEchoPin, INPUT);
-  digitalWrite(Hw::kSonarTriggerPin, LOW);
-
   // Initialize MPU6050
   Wire.begin();
   Wire.setClock(400000); // Fast Mode I2C
@@ -172,11 +174,20 @@ void App::setup() {
   } else {
     Serial.println("IMU Init: FAILED (MPU6050)");
   }
+  
+  // Init Ping Timer (Start 50ms from now)
+  ping_timer_ = millis() + 50;
 }
 
 void App::loop() {
   // Process command prompt input.
   shell_.process_input();
+
+  // Non-blocking Sonar Ping (Every 50ms)
+  if (millis() >= ping_timer_) {
+    ping_timer_ += 50;
+    sonar_.ping_timer(echoCheck);
+  }
 
   // Compute PID output at the configured rate.
   if ((millis() - last_pid_computation_) > Constants::kPidPeriod) {
@@ -193,6 +204,12 @@ void App::loop() {
   // Required by Arduino libraries to work.
   if (serialEventRun) {
     serialEventRun();
+  }
+}
+
+void App::echoCheck() {
+  if (sonar_.check_timer()) {
+    current_distance_cm_ = sonar_.ping_result / US_ROUNDTRIP_CM;
   }
 }
 
@@ -372,26 +389,12 @@ void App::cmd_read_imu_status_cb(int, char**) {
 }
 
 void App::cmd_read_sonar_cb(int, char**) {
-  // Clear trigger
-  digitalWrite(Hw::kSonarTriggerPin, LOW);
-  delayMicroseconds(2);
-  
-  // Trigger pulse
-  digitalWrite(Hw::kSonarTriggerPin, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(Hw::kSonarTriggerPin, LOW);
-  
-  // Read echo with ~2ms timeout (max range ~40cm) to prevent blocking
-  // 40cm * 58us/cm = 2320us. Round up to 2352us.
-  long duration = pulseIn(Hw::kSonarEchoPin, HIGH, 2352);
-  
-  if (duration == 0) {
-      Serial.println("-1.0"); // Timeout / No detection
+  // Return cached non-blocking value
+  // If 0, it means no echo (out of range) -> Return 5.0m (Free Space)
+  if (current_distance_cm_ == 0) {
+      Serial.println("5.0");
   } else {
-      // Calculate distance in meters
-      // speed of sound = 343 m/s = 0.0343 cm/us = 0.000343 m/us
-      float distance = (duration * 0.000343) / 2.0;
-      Serial.println(distance, 3);
+      Serial.println(current_distance_cm_ / 100.0, 3);
   }
 }
 

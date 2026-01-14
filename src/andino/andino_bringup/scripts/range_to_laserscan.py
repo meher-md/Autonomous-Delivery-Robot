@@ -19,7 +19,8 @@ class RangeToLaserScanNode(Node):
 
     def range_callback(self, msg):
         scan = LaserScan()
-        scan.header = msg.header
+        scan.header.stamp = self.get_clock().now().to_msg()
+        scan.header.frame_id = msg.header.frame_id
         
         # FOV of standard Ultrasonic is usually ~15-30 degrees.
         # msg.field_of_view should contain it.

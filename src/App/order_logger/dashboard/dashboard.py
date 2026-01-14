@@ -81,7 +81,9 @@ def load_data():
     try:
         df = pd.read_csv(CSV_FILE)
         # Parse Dates
-        df['Date_Full'] = pd.to_datetime(df['Date_Full'], errors='coerce').dt.date
+        df['Date_Full'] = pd.to_datetime(df['Date_Full'], errors='coerce')
+        df = df.dropna(subset=['Date_Full'])
+        df['Date_Full'] = df['Date_Full'].dt.date
         return df
     except Exception as e:
         st.error(f"Error loading data: {e}")
@@ -108,7 +110,8 @@ filtered_df = df.copy()
 today_date = datetime.now().date()
 
 # Convert Date_Full to datetime for comparison if not already
-filtered_df['Date_Full'] = pd.to_datetime(filtered_df['Date_Full']).dt.date
+filtered_df['Date_Full'] = pd.to_datetime(filtered_df['Date_Full'], errors='coerce').dt.date
+filtered_df = filtered_df.dropna(subset=['Date_Full'])
 
 if filter_option == "Today":
     filtered_df = filtered_df[filtered_df['Date_Full'] == today_date]

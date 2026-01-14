@@ -230,7 +230,7 @@ local_costmap:
         z_voxels: 16
         max_obstacle_height: 2.0
         mark_threshold: 0
-        observation_sources: scan ultrasonic
+        observation_sources: scan
         scan:
           topic: /scan
           max_obstacle_height: 2.0
@@ -249,7 +249,7 @@ local_costmap:
           data_type: "LaserScan"
           raytrace_max_range: 4.0
           raytrace_min_range: 0.0
-          obstacle_max_range: 3.5
+          obstacle_max_range: 1.5
           obstacle_min_range: 0.04
           inf_is_valid: true
       static_layer:
@@ -267,13 +267,13 @@ global_costmap:
       use_sim_time: True
       robot_radius: 0.25
       resolution: 0.05
-      track_unknown_space: true
       transform_tolerance: 2.0
+      track_unknown_space: true
       plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
         enabled: True
-        observation_sources: scan ultrasonic
+        observation_sources: scan
         scan:
           topic: /scan
           max_obstacle_height: 2.0
@@ -292,7 +292,7 @@ global_costmap:
           data_type: "LaserScan"
           raytrace_max_range: 4.0
           raytrace_min_range: 0.0
-          obstacle_max_range: 3.5
+          obstacle_max_range: 1.5
           obstacle_min_range: 0.04
           inf_is_valid: true
       static_layer:

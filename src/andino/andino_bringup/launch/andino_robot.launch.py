@@ -125,7 +125,8 @@ def generate_launch_description():
             remappings=[
                 ("/imu/data_raw", "/imu_sensor_broadcaster/imu"),  # input
                 ("/imu/data", "/imu/data")          # output
-            ]
+            ],
+            qos_profile_sensor_data=True
         )
        
     robot_localization = Node(

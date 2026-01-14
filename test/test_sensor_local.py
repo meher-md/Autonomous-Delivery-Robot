@@ -26,7 +26,7 @@ def main():
         print("Error: No serial ports found!")
         return
 
-    baud = 9600
+    baud = 57600
     
     print(f"Connecting to {port} at {baud} baud...")
     

@@ -10,6 +10,8 @@ PORT = 22
 
 FILES_TO_TRANSFER = [
     ('src/andino/andino_firmware/src/app.cpp', 'ws/src/andino/andino_firmware/src/app.cpp'),
+    ('src/andino/andino_firmware/src/app.h', 'ws/src/andino/andino_firmware/src/app.h'),
+    ('src/andino/andino_firmware/platformio.ini', 'ws/src/andino/andino_firmware/platformio.ini'),
     ('src/andino/andino_base/src/diffdrive_andino.cpp', 'ws/src/andino/andino_base/src/diffdrive_andino.cpp'),
     ('src/andino/andino_base/include/andino_base/wheel.h', 'ws/src/andino/andino_base/include/andino_base/wheel.h'),
     ('src/andino/andino_description/config/andino/hardware.yaml', 'ws/src/andino/andino_description/config/andino/hardware.yaml'),

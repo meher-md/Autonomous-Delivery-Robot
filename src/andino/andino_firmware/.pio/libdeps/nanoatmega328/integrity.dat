@@ -1,3 +1,4 @@
-electroniccats/MPU6050
-SPI
 Wire
+SPI
+electroniccats/MPU6050
+teckel12/NewPing

@@ -60,7 +60,7 @@ hardware_interface::CallbackReturn DiffDriveAndino::on_init(const hardware_inter
 
   for (const hardware_interface::ComponentInfo& joint : info.joints) {
     // Skip verification for ultrasonic sensor
-    if (joint.name == "ultrasonic_sensor") {
+    if (joint.name == "ultrasonic_joint") {
         continue;
     }
     // DiffDriveAndino has exactly two states and one command interface on each joint
@@ -133,7 +133,7 @@ std::vector<hardware_interface::StateInterface> DiffDriveAndino::export_state_in
   
   // Export Ultrasonic Interface
   state_interfaces.emplace_back(
-        hardware_interface::StateInterface("ultrasonic_sensor", "range", &sonar_distance_));
+        hardware_interface::StateInterface("ultrasonic_joint", "range", &sonar_distance_));
         
   return state_interfaces;
 }
