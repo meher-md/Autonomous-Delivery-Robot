@@ -1,10 +1,26 @@
-# Dashboard & Order Logger
-streamlit
+# Core & Utilities
+empy==3.3.4
+expiringdict
+lxml
+numpy>=1.22.4,<2.0.0
 pandas
+pybind11
+PyYAML
+requests
+tqdm
 watchdog
-plotly
 
-# Chatbot & AI
+# Web, Dashboard & Networking
+beautifulsoup4
+Flask
+Flask-SocketIO
+plotly
+streamlit
+waitress
+websockets
+
+# AI, ML & LLMs
+huggingface_hub
 langchain
 langchain-chroma
 langchain-community
@@ -12,12 +28,21 @@ langchain-core
 langchain-openai
 langchain-text-splitters
 langgraph
+onnxruntime
+openai
 pydantic
-huggingface_hub
-requests
-numpy>=1.22.4,<2.0.0
-empy==3.3.4
-pybind11
+torch
 
-# Optional for local speech/vision (if not covered by ROS vendor pkgs)
+# Computer Vision, Media & Audio
+fpdf
+matplotlib
+opencv-python
 Pillow
+pygame
+pyzbar
+qrcode
+TTS
+
+# GUI & Testing
+PyQt5
+pytest
