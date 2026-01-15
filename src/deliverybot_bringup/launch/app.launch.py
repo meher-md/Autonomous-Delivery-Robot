@@ -191,7 +191,11 @@ def generate_launch_description():
                 get_package_share_directory('piper_bringup'),
                 'launch', 'piper.launch.py'
             )
-        )
+        ),
+        launch_arguments={
+            'device': '15', # User confirmed 'default' worked. PortAudio ID 15 is 'default'.
+            'channels': '2', # Force Stereo output (Node will upmix Mono->Stereo)
+        }.items()
     )
 
     # ---------- LaunchDescription ----------

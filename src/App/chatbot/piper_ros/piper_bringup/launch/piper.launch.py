@@ -54,6 +54,7 @@ def generate_launch_description():
         ),
         "silence_phonemes": LaunchConfiguration("silence_phonemes", default="[0]"),
         "silence_seconds": LaunchConfiguration("silence_seconds", default="[0.0]"),
+        "device": LaunchConfiguration("device", default=-1),
     }
 
     return LaunchDescription(
@@ -73,6 +74,7 @@ def generate_launch_description():
                 parameters=[
                     {
                         "channels": LaunchConfiguration("channels", default=1),
+                        "device": LaunchConfiguration("device", default=-1),
                     }
                 ],
                 remappings=[("audio", "/piper/audio")],

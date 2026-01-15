@@ -58,6 +58,12 @@ class ChatBridge(Node):
         self.status_pub = self.create_publisher(String, '/app/status', 10)
         self.status_timer = self.create_timer(1.0, self.publish_status) # 1Hz
         
+        # Resolve CSV Path Dynamically (Relative to this script)
+        # Works for any user/workspace structure as long as packages are in 'src'
+        # Resolve CSV Path - Standard 'ws' workspace convention (Requested by User)
+        self.csv_path = os.path.expanduser('~/ws/src/App/order_logger/dashboard/delivery_log.csv')
+        self.get_logger().info(f"Stats CSV Path: {self.csv_path}")
+        
         # Robot State variables
         
         # Robot State variables
@@ -340,8 +346,7 @@ class ChatBridge(Node):
 
     def get_robot_stats(self):
         """Reads CSV and returns the last 5 deliveries in simple format."""
-        csv_path = os.path.expanduser('~/ws/src/App/order_logger/dashboard/delivery_log.csv')
-        if not os.path.exists(csv_path):
+        if not os.path.exists(self.csv_path):
             return "No history available."
             
         try:
@@ -453,12 +458,11 @@ class ChatBridge(Node):
 
     def generate_comparison_table(self, user_text: str):
         """Generate a formatted comparison table from CSV data."""
-        csv_path = os.path.expanduser('~/ws/src/App/order_logger/dashboard/delivery_log.csv')
-        if not os.path.exists(csv_path):
+        if not os.path.exists(self.csv_path):
             return None
             
         try:
-            df = pd.read_csv(csv_path)
+            df = pd.read_csv(self.csv_path)
             if df.empty:
                 return "لا توجد بيانات للمقارنة. ||| No data available for comparison."
             
@@ -529,12 +533,11 @@ class ChatBridge(Node):
             return None
         
         # Load CSV
-        csv_path = os.path.expanduser('~/ws/src/App/order_logger/dashboard/delivery_log.csv')
-        if not os.path.exists(csv_path):
+        if not os.path.exists(self.csv_path):
             return "No delivery history available."
             
         try:
-            df = pd.read_csv(csv_path)
+            df = pd.read_csv(self.csv_path)
             if df.empty:
                 return "No deliveries recorded yet."
             

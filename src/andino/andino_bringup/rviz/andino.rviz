@@ -6,12 +6,13 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /TF1
-        - /LaserScan1
         - /LaserScan1/Topic1
         - /LaserScan1/Autocompute Value Bounds1
         - /Map1/Topic1
+        - /ParticleCloud1
         - /ParticleCloud1/Topic1
+        - /Group1/local cost map1
+        - /Group1/globel costMap1
       Splitter Ratio: 0.5
     Tree Height: 719
   - Class: rviz_common/Selection
@@ -109,7 +110,7 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        imu_Link:
+        imu_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -179,7 +180,7 @@ Visualization Manager:
       Max Color: 255; 255; 255
       Max Intensity: 47
       Min Color: 0; 0; 0
-      Min Intensity: 0
+      Min Intensity: 47
       Name: LaserScan
       Position Transformer: XYZ
       Selectable: true
@@ -199,7 +200,7 @@ Visualization Manager:
     - Alpha: 1
       Class: rviz_default_plugins/Map
       Color Scheme: map
-      Draw Behind: true
+      Draw Behind: false
       Enabled: true
       Name: Map
       Topic:
@@ -238,7 +239,7 @@ Visualization Manager:
         - Alpha: 0.699999988079071
           Class: rviz_default_plugins/Map
           Color Scheme: map
-          Draw Behind: false
+          Draw Behind: true
           Enabled: true
           Name: local cost map
           Topic:
@@ -280,7 +281,7 @@ Visualization Manager:
         - Alpha: 1
           Buffer Length: 1
           Class: rviz_default_plugins/Path
-          Color: 25; 255; 0
+          Color: 237; 51; 59
           Enabled: true
           Head Diameter: 0.30000001192092896
           Head Length: 0.20000000298023224
@@ -365,16 +366,16 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 7.212899208068848
+      Distance: 3.697639226913452
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.9413164854049683
-        Y: -0.9126809239387512
-        Z: 1.0876952409744263
+        X: 0.5848904848098755
+        Y: -0.9881495237350464
+        Z: 0.8921238780021667
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false

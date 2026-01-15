@@ -7,6 +7,11 @@ from math import sin, cos
 import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionClient
+try:
+    from audio_common_msgs.action import TTS
+    TTS_AVAILABLE = True
+except ImportError:
+    TTS_AVAILABLE = False
 
 from std_msgs.msg import String, Empty
 from geometry_msgs.msg import PoseStamped, Quaternion
@@ -109,6 +114,14 @@ class AppGoalGateway(Node):
 
         # Action client
         self.client = ActionClient(self, NavigateToPose, 'navigate_to_pose')
+        
+        # TTS Client
+        if TTS_AVAILABLE:
+            self.tts_client = ActionClient(self, TTS, '/say')
+            self.get_logger().info("Connected to TTS Action Server")
+        else:
+            self.tts_client = None
+            self.get_logger().warn("Audio Common Msgs not found - TTS disabled")
 
         # Data
         self.named_poses = load_named_poses(self.yaml_path)
@@ -151,6 +164,14 @@ class AppGoalGateway(Node):
         if resolved != name:
             self.get_logger().info(f'Using closest match: {resolved} (from "{name}")')
             self._status(f'resolved:{name}->{resolved}')
+
+        # Speak Intent
+        # 'Office' or 'R403' or 'Garage' usually implies Home
+        lower_res = resolved.lower()
+        if 'office' in lower_res or 'garage' in lower_res or 'home' in lower_res or 'r403' in lower_res:
+            self.speak("I have finished. I am going to the garage.")
+        else:
+            self.speak("I received an order. I will deliver it and send a QR code to the customer.")
 
         self._go_to(resolved)
         
@@ -274,6 +295,13 @@ class AppGoalGateway(Node):
             self._status('finished:canceled')
         else:
             self._status(f'finished:{status}')
+
+
+    def speak(self, text):
+        if self.tts_client and self.tts_client.wait_for_server(timeout_sec=0.5):
+            goal = TTS.Goal()
+            goal.text = text
+            self.tts_client.send_goal_async(goal)
 
     def _status(self, text: str):
         self.pub_status.publish(String(data=text))

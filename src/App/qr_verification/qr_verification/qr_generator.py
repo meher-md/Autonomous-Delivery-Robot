@@ -145,8 +145,8 @@ class QrGenerator(Node):
             day_str = now.strftime("%d")
             mission_folder = f"mission_{order_id}"
             
-            # Use ~/mission_proof to be independent of workspace name
-            base_dir = os.path.expanduser("~/mission_proof")
+            # Use ~/ws/mission_proof to be inside workspace
+            base_dir = os.path.expanduser("~/ws/mission_proof")
             mission_dir = os.path.join(base_dir, year_str, month_str, day_str, mission_folder)
             os.makedirs(mission_dir, exist_ok=True)
             

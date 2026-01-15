@@ -4,6 +4,8 @@ project(llama_cpp_vendor)
 include(FetchContent)
 find_package(ament_cmake REQUIRED)
 
+set(LLAMA_CUDA OFF CACHE BOOL "Force disable deprecated option" FORCE)
+
 FetchContent_Declare(
   llama
   GIT_REPOSITORY https://github.com/ggerganov/llama.cpp.git
@@ -108,6 +110,10 @@ set(INSTALL_TARGETS
 if(GGML_CUDA)
   list(APPEND INSTALL_TARGETS ggml-cuda)
 endif()
+
+set_target_properties(ggml PROPERTIES PUBLIC_HEADER "")
+set_target_properties(llama PROPERTIES PUBLIC_HEADER "")
+
 
 install(
   TARGETS ${INSTALL_TARGETS}

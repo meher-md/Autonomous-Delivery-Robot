@@ -88,6 +88,9 @@ if(GGML_CUDA)
   list(APPEND INSTALL_TARGETS ggml-cuda)
 endif()
 
+set_target_properties(ggml PROPERTIES PUBLIC_HEADER "")
+set_target_properties(whisper PROPERTIES PUBLIC_HEADER "")
+
 install(
   TARGETS ${INSTALL_TARGETS}
   EXPORT export_whisper

@@ -222,7 +222,7 @@ class QrScanner(Node):
                 self.start_scanning()
                 
                 # SPEAK WELCOME MESSAGE (Friendly)
-                self.speak("Hello! I have arrived. Please scan the QR code I sent you.")
+                self.speak("Hi! I am Rafiq. I am here. Can you please scan the QR code I sent you?")
 
                 # Schedule return to R403 after a fixed delay
                 if not self._timer_scheduled:
@@ -348,6 +348,7 @@ class QrScanner(Node):
         
         # Close the UI window (Requested by User)
         cv2.destroyAllWindows()
+        cv2.waitKey(1) # Process the close event
 
     def image_callback(self, msg):
         """
@@ -472,11 +473,15 @@ class QrScanner(Node):
             is_verified = False
             # If we expected an ID, check it
             if self.active_order_id:
-                if str(payload_str).strip() == str(self.active_order_id).strip():
+                clean_payload = str(payload_str).strip()
+                clean_order_id = str(self.active_order_id).strip()
+                self.get_logger().info(f"🧐 COMPARING: QR='{clean_payload}' vs ORDER='{clean_order_id}'")
+                
+                if clean_payload == clean_order_id:
                     is_verified = True
-                    self.get_logger().info(f"🎉 Verification SUCCESS: QR '{payload_str}' matches Order '{self.active_order_id}'")
+                    self.get_logger().info(f"🎉 Verification SUCCESS: Match found!")
                 else:
-                    self.get_logger().warn(f"⚠️ Verification FAILED: QR '{payload_str}' != Order '{self.active_order_id}'")
+                    self.get_logger().warn(f"⚠️ Verification FAILED: '{clean_payload}' != '{clean_order_id}'")
             else:
                 # If no active order ID known, assume any QR is valid? 
                 # Or invalid? For this use case, let's allow it so user doesn't get stuck if they forgot to send order json.
@@ -509,7 +514,7 @@ class QrScanner(Node):
                          
                      folder_name = f"mission_{mission_id}"
                      
-                     base_dir = os.path.expanduser("~/mission_proof")
+                     base_dir = os.path.expanduser("~/ws/mission_proof")
                      mission_dir = os.path.join(base_dir, year_str, month_str, day_str, folder_name)
                      os.makedirs(mission_dir, exist_ok=True)
                      

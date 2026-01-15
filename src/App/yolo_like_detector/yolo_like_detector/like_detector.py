@@ -86,7 +86,7 @@ class LikeDetectorNode(Node):
         
         # PIPER TTS CLIENT
         if TTS_AVAILABLE:
-            self.tts_client = ActionClient(self, TTS, '/piper_node/say')
+            self.tts_client = ActionClient(self, TTS, '/say') # Corrected from /piper_node/say
             self.get_logger().info("Connected to Piper TTS Action Server")
         else:
             self.tts_client = None
@@ -249,6 +249,11 @@ class LikeDetectorNode(Node):
                  except Exception as e:
                      self.get_logger().error(f"Failed to save YOLO evidence: {e}")
             
+            # Close window immediately after success (Requested by User)
+            if like_detected:
+                 self.stop_detection()
+                 return
+            
         except Exception as e:
             self.get_logger().error(f"Error during inference: {e}")
 
@@ -345,7 +350,7 @@ class LikeDetectorNode(Node):
         return image
     
     def play_thank_you_message(self):
-        message = "Thank you! I am really glad you like it!"
+        message = "Thank you! I am glad you liked the service!"
         
         if self.tts_client and self.tts_client.wait_for_server(timeout_sec=1.0):
             goal = TTS.Goal()

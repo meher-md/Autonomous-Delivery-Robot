@@ -126,7 +126,7 @@ def generate_launch_description():
                 ("/imu/data_raw", "/imu_sensor_broadcaster/imu"),  # input
                 ("/imu/data", "/imu/data")          # output
             ],
-            qos_profile_sensor_data=True
+            arguments=['--ros-args', '--param', 'qos_overrides./imu/data_raw.reliability:=reliable']
         )
        
     robot_localization = Node(
