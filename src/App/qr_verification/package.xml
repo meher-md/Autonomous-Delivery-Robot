@@ -3,8 +3,8 @@
 <package format="3">
   <name>qr_verification</name>
   <version>0.0.1</version>
-  <description>QR Verification Package that generates and scans a QR Code</description>
-  <maintainer email="admin@jackoviic.qzz.io">Jack</maintainer>
+  <description>QR Verification Package that generates and scans a QR Code.</description>
+  <maintainer email="admin@jackisaac.qzz.io">Jack</maintainer>
   <license>MIT</license>
 
   <test_depend>ament_copyright</test_depend>
@@ -14,12 +14,12 @@
 
   <exec_depend>rclpy</exec_depend>
   <exec_depend>std_msgs</exec_depend>
-  <exec_depend>sensor_msgs</exec_depend>
   <exec_depend>audio_common_msgs</exec_depend>
   <exec_depend>python3-qrcode</exec_depend>
-  <exec_depend>python3-pil</exec_depend>
   <exec_depend>python3-opencv</exec_depend>
   <exec_depend>python3-numpy</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>python3-pil</exec_depend>
   <exec_depend>python3-pyzbar</exec_depend>
 
   <export>
