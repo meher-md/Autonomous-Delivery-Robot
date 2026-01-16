@@ -1,4 +1,0 @@
-Spider mode enabled. Check if remote file exists.
---2026-01-16 13:18:46--  https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx.json
-Resolving huggingface.co (huggingface.co)... 3.175.196.124, 3.175.196.23, 3.175.196.116, ...
-Connecting to huggingface.co (huggingface.co)|3.175.196.124|:443... connected.

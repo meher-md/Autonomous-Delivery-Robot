@@ -12,7 +12,12 @@ import cv2
 import time
 import datetime
 import traceback
-#import pygame
+import asyncio
+import edge_tts
+import tempfile
+import pygame
+
+# ... (Previous imports kept if possible, but tool replaces contiguous block)
 
 # Try pyzbar for robust QR decoding
 PYZBAR_AVAILABLE = False
@@ -108,14 +113,9 @@ class QrScanner(Node):
         # Monitoring: frame processing stats
         self._frames_processed = 0
         
-        # PIPER CLIENT
+        # PIPER CLIENT (Kept for compatibility, but unused for main voice)
         if TTS_AVAILABLE:
             self.tts_client = ActionClient(self, TTS, '/say')
-            # Wait for server briefly to confirm connection
-            if self.tts_client.wait_for_server(timeout_sec=5.0):
-                self.get_logger().info('✅ Connected to Piper TTS Action Server (/say)')
-            else:
-                self.get_logger().error('❌ Failed to connect to Piper TTS Action Server')
         else:
             self.tts_client = None
 
@@ -123,25 +123,70 @@ class QrScanner(Node):
             f'qr_scanner ready (listening to /image_raw/compressed). Pyzbar={PYZBAR_AVAILABLE}, OpenCV={cv2.__version__}'
         )
         
-        # Audio System
-        # pygame.mixer.init()  # Removed to prevent audio device blocking
-        # self.synthesizer_lock = threading.Lock()
-        
+        # EDGE TTS SETUP (Roger Voice)
+        # Initialize pygame mixer for audio playback
+        if not pygame.mixer.get_init():
+            try:
+                pygame.mixer.init()
+                self.get_logger().info('✅ Audio Mixer Initialized for Edge TTS')
+            except Exception as e:
+                self.get_logger().error(f'❌ Failed to initialize Audio Mixer: {e}')
+
         self.scan_start_time = 0.0 # For countdown
 
         self._publish_status('initialized', 'Scanner initialized, waiting for arrival...')
 
     # -------------------------------------------------------------------------
-    # AUDIO HELPER (Piper Action)
+    # AUDIO HELPER (Edge TTS - Roger)
     # -------------------------------------------------------------------------
     def speak(self, text):
-        if self.tts_client and self.tts_client.wait_for_server(timeout_sec=1.0):
-            goal = TTS.Goal()
-            goal.text = text
-            self.tts_client.send_goal_async(goal)
-            self.get_logger().info(f"🔊 Speaking (Piper): {text}")
-        else:
-            self.get_logger().warn("Piper not available for speech")
+        """
+        Speak text using Edge TTS (Roger Voice) in a separate thread.
+        This replaces the old Piper logic.
+        """
+        # Run in thread to not block the ROS loop
+        t = threading.Thread(target=self._run_async_tts, args=(text,))
+        t.start()
+        
+    def _run_async_tts(self, text):
+        try:
+            asyncio.run(self._generate_and_play(text))
+        except Exception as e:
+            self.get_logger().error(f"TTS Thread Error: {e}")
+
+    async def _generate_and_play(self, text):
+        VOICE = "en-US-RogerNeural"
+        try:
+            # Create a localized temporary file so we can play it
+            # We use a fixed filename or tempfile to avoid disk clutter?
+            # Let's use tempfile with context manager if possible, or manual delete
+            
+            # Using tempfile.NamedTemporaryFile is safer
+            with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as fp:
+                temp_filename = fp.name
+            
+            self.get_logger().info(f"🔊 Generating TTS: '{text}' using {VOICE}")
+            communicate = edge_tts.Communicate(text, VOICE)
+            await communicate.save(temp_filename)
+            
+            # Play
+            self.get_logger().info(f"▶️ Playing Audio...")
+            try:
+                 pygame.mixer.music.load(temp_filename)
+                 pygame.mixer.music.play()
+                 while pygame.mixer.music.get_busy():
+                     time.sleep(0.1)
+            except Exception as pe:
+                 self.get_logger().error(f"Playback error: {pe}")
+            
+            # Cleanup
+            try:
+                os.remove(temp_filename)
+            except:
+                pass
+                
+        except Exception as e:
+            self.get_logger().error(f"Edge TTS Generation Error: {e}")
 
     # -------------------------------------------------------------------------
     # Helper: Manual Image Conversion (NumPy 2.x compatible)
@@ -299,8 +344,8 @@ class QrScanner(Node):
             self.mission_yolo_detected = True
             
             # Stop any verification audio from this node (prevent overlap with YOLO's "Thank You")
-            # if pygame.mixer.get_init():
-            #     pygame.mixer.music.stop()
+            if pygame.mixer.get_init():
+                pygame.mixer.music.stop()
             
             # Requested by User: Return immediately if Like is detected!
             # We give it 5 seconds to play audio and save image before moving.

@@ -727,12 +727,21 @@ class ChatBridge(Node):
         if voice_text is None:
             voice_text = chat_text
             
-        # 1. Text Response (User Language)
-        msg = String()
-        msg.data = chat_text
-        self.response_pub.publish(msg)
-        self.get_logger().info(f'Published chat: {chat_text[:50]}...')
+        # Create JSON Payload
+        payload = {
+            "text": chat_text,
+            "voice": voice_text if not skip_voice else ""
+        }
         
+        try:
+            json_str = json.dumps(payload)
+            msg = String()
+            msg.data = json_str
+            self.response_pub.publish(msg)
+            self.get_logger().info(f'Published chat JSON: {json_str[:100]}...')
+        except Exception as e:
+            self.get_logger().error(f"Failed to publish JSON response: {e}")
+
         # 2. Voice Response - DISABLED for chat (mobile app handles TTS)
         # TTS is only used in qr_scanner.py for delivery announcements
         # if self.tts_client and not skip_voice:

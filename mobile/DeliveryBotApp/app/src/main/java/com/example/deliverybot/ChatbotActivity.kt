@@ -292,20 +292,51 @@ class ChatbotActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private fun setupRosSubscription() {
         responseCallback = { response: String ->
             runOnUiThread {
-                addBotMessage(response)
-                val isTable = response.contains("📊") || response.startsWith("#") 
-                if (isTtsEnabled && !isTable && OfflineTtsEngine.getSafeEngine() != null) {
-                    // Strip emojis and Speak using OfflineTtsEngine ONLY
-                    val cleanText = response.replace(Regex("[^\\p{L}\\p{N}\\p{P}\\p{Z}]"), "")
-                    OfflineTtsEngine.speak(cleanText, speed = 1.0f, pitch = 1.0f)
+                try {
+                    // Try to parse JSON for dual-language support
+                    val json = JSONObject(response)
+                    val displayText = json.getString("text")
+                    val voiceText = json.optString("voice", "") // Optional voice text
+                    
+                    addBotMessage(displayText)
+                    
+                    val isTable = displayText.contains("📊") || displayText.startsWith("#")
+                    
+                    if (isTtsEnabled && !isTable && voiceText.isNotEmpty() && OfflineTtsEngine.getSafeEngine() != null) {
+                        // Speak English Voice Text
+                        OfflineTtsEngine.speak(voiceText, speed = 1.0f, pitch = 1.0f)
+                    } else if (isTtsEnabled && !isTable && OfflineTtsEngine.getSafeEngine() != null) {
+                         // Fallback: Speak display text if no specific voice text
+                        val cleanText = displayText.replace(Regex("[^\\p{L}\\p{N}\\p{P}\\p{Z}]"), "")
+                        OfflineTtsEngine.speak(cleanText, speed = 1.0f, pitch = 1.0f)
+                    }
+                    
+                    // Haptic Feedback for Motion - check both texts
+                    if (displayText.contains("[ACTION:") || displayText.contains("FORWARD") || displayText.contains("BACKWARD") || displayText.contains("تحرك")) {
+                        vibratePhone()
+                    }
+                    
+                } catch (e: Exception) {
+                    // FALLBACK: Old format (Plain Text) or JSON parse error
+                    addBotMessage(response)
+                    
+                    val isTable = response.contains("📊") || response.startsWith("#")
+                    
+                    // SAFETY: Only speak if the text is English (ASCII). 
+                    // Speaking Arabic to the English model causes native crashes.
+                    val isEnglish = response.matches(Regex("^[\\x00-\\x7F]*$"))
+                    
+                    if (isTtsEnabled && !isTable && isEnglish && OfflineTtsEngine.getSafeEngine() != null) {
+                        OfflineTtsEngine.speak(response, speed = 1.0f, pitch = 1.0f)
+                    }
+                    
+                    if (response.contains("[ACTION:") || response.contains("FORWARD") || response.contains("BACKWARD")) {
+                        vibratePhone()
+                    }
                 }
+                
                 wasVoiceInput = false
                 txtTypingIndicator.visibility = View.GONE  // Hide typing indicator
-                
-                // Haptic Feedback for Motion
-                if (response.contains("[ACTION:") || response.contains("FORWARD") || response.contains("BACKWARD") || response.contains("تحرك")) {
-                    vibratePhone()
-                }
             }
         }
         com.example.deliverybot.net.RosBridgeClient.subscribe("/app/chat/response", responseCallback!!)

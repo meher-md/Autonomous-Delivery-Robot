@@ -112,6 +112,9 @@ class MainActivity : AppCompatActivity() {
                 )
             }
         }
+
+        // Start preloading TTS voices immediately so they are ready for Chatbot
+        OfflineTtsEngine.preloadBoth(this)
     }
 
     private fun bindViews() {

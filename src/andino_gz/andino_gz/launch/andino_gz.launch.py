@@ -46,6 +46,11 @@ def generate_launch_description():
         choices=['True', 'False'],
         description='If true, the simulation starts automatically.',
     )
+    use_webcam_arg = DeclareLaunchArgument(
+        'use_webcam',
+        default_value='True',
+        description='Use laptop webcam for compressed stream (QR/YOLO)',
+    )
 
     # Variables of launch file.
     rviz = LaunchConfiguration('rviz')
@@ -57,6 +62,7 @@ def generate_launch_description():
     nav2_flag = LaunchConfiguration('nav2')
     params_file = LaunchConfiguration('params_file')
     autostart = LaunchConfiguration('autostart')
+    use_webcam = LaunchConfiguration('use_webcam')
 
     # Obtains world path.
     world_path = PathJoinSubstitution([pkg_andino_gz, 'worlds', world_name])
@@ -81,6 +87,7 @@ def generate_launch_description():
             'world_name': world_name,
             'gui_config': gui_config,
             'autostart': autostart,
+            'use_webcam': use_webcam,
         },
         actions=[
             # Gazebo Sim
@@ -124,6 +131,7 @@ def generate_launch_description():
                 'rviz': rviz,
                 'ros_bridge': ros_bridge,
                 'nav2': nav2_flag,
+                'use_webcam': use_webcam,
             },
             actions=[
                 LogInfo(msg="Group for robot: " + robot_name),
@@ -176,6 +184,7 @@ def generate_launch_description():
                     ),
                     launch_arguments={
                         'entity': robot_name,
+                        'use_webcam': use_webcam,
                     }.items(),
                     condition=IfCondition(LaunchConfiguration('ros_bridge')),
                 ),
@@ -264,6 +273,7 @@ def generate_launch_description():
     ld.add_action(nav2_arg)
     ld.add_action(map_name_arg)
     ld.add_action(params_file_arg)
+    ld.add_action(use_webcam_arg)
     ld.add_action(autostart_arg)
     ld.add_action(log_world_path)
     ld.add_action(log_map_path)
