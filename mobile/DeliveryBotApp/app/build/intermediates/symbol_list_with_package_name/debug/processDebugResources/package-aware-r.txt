@@ -3050,11 +3050,13 @@ drawable btn_radio_off_to_on_mtrl_animation
 drawable btn_radio_on_mtrl
 drawable btn_radio_on_to_off_mtrl_animation
 drawable center
+drawable custom_progress_bar
 drawable design_fab_background
 drawable design_ic_visibility
 drawable design_ic_visibility_off
 drawable design_password_eye
 drawable design_snackbar_background
+drawable dialog_rounded_bg
 drawable edit_field_bg
 drawable et_dark
 drawable ic_app_logo_new
@@ -3089,6 +3091,8 @@ drawable ic_robot
 drawable ic_robot_foreground
 drawable ic_search_black_24
 drawable ic_settings_gear
+drawable ic_volume_off
+drawable ic_volume_up
 drawable indeterminate_static
 drawable m3_avd_hide_password
 drawable m3_avd_show_password
@@ -3185,6 +3189,7 @@ drawable tooltip_frame_dark
 drawable tooltip_frame_light
 drawable twotone_navigation_black_48
 drawable virtual_assistant
+drawable voice_option_bg
 drawable zoom_in
 drawable zoom_out
 id ALT
@@ -3291,6 +3296,7 @@ id btnAddLocation
 id btnAddMap
 id btnBack
 id btnCancel
+id btnCancelDownload
 id btnClearHistory
 id btnClose
 id btnCloseDialog
@@ -3399,6 +3405,7 @@ id disableIntraAutoTransition
 id disablePostScroll
 id disableScroll
 id disjoint
+id downloadProgressBar
 id dragAnticlockwise
 id dragClockwise
 id dragDown
@@ -3532,6 +3539,7 @@ id message
 id messageInput
 id middle
 id mini
+id modelNameUi
 id month_grid
 id month_navigation_bar
 id month_navigation_fragment_toggle
@@ -3618,6 +3626,7 @@ id position
 id postLayout
 id pressed
 id progressBar
+id progressTextUi
 id progress_circular
 id progress_horizontal
 id qrImage
@@ -3626,6 +3635,9 @@ id qrSection
 id quickActionsContainer
 id quickActionsScroll
 id radio
+id radioFemale
+id radioGroupVoice
+id radioMale
 id ratio
 id rectangles
 id recyclerDevices
@@ -3674,7 +3686,6 @@ id sin
 id skipCollapsed
 id skipped
 id slide
-id sliderPitch
 id snackbar_action
 id snackbar_text
 id snap
@@ -3707,6 +3718,7 @@ id submenuarrow
 id submit_area
 id supportScrollUp
 id switchDarkMode
+id switchMute
 id switchNotifications
 id tabMode
 id tag_accessibility_actions
@@ -3955,6 +3967,7 @@ layout design_navigation_menu
 layout design_navigation_menu_item
 layout design_text_input_end_icon
 layout design_text_input_start_icon
+layout dialog_download_progress
 layout dialog_map_management
 layout dialog_voice_settings
 layout fragment_chatbot_dialog
@@ -4030,8 +4043,10 @@ layout notification_template_part_time
 layout select_dialog_item_material
 layout select_dialog_multichoice_material
 layout select_dialog_singlechoice_material
+layout spinner_dropdown_dark
 layout spinner_dropdown_item
 layout spinner_item
+layout spinner_item_dark
 layout support_simple_spinner_dropdown_item
 mipmap ic_launcher
 mipmap ic_launcher_foreground

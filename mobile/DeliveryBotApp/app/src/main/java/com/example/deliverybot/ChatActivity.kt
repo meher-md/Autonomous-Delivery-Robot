@@ -199,10 +199,8 @@ class ChatActivity : AppCompatActivity() {
 
     private fun setupVideoFragment() {
         // Use VideoFragment - same as main screen
-        val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
-        val ip = prefs.getString("ip", "ws://10.42.0.1:9090") ?: "ws://10.42.0.1:9090"
-        val baseUrl = ip.replace("ws://", "http://").replace(":9090", ":8080")
-        val videoUrl = "$baseUrl/stream?topic=/camera/image_raw"
+        // Use ConnectionConfig to get correct camera URL (same as main screen)
+        val videoUrl = ConnectionConfig.cameraUrl(this)
         
         // Add VideoFragment to container - same as MainActivity
         videoFragment = VideoFragment.newInstance(videoUrl)

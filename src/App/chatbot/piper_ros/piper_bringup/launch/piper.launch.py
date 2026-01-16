@@ -35,14 +35,14 @@ def generate_launch_description():
         "model_path": LaunchConfiguration("model_path", default=""),
         "model_repo": LaunchConfiguration("model_repo", default="rhasspy/piper-voices"),
         "model_filename": LaunchConfiguration(
-            "model_filename", default="en/en_US/lessac/low/en_US-lessac-low.onnx"
+            "model_filename", default="en/en_US/lessac/medium/en_US-lessac-medium.onnx"
         ),
         "model_config_repo": LaunchConfiguration(
             "model_config_repo", default="rhasspy/piper-voices"
         ),
         "model_config_filename": LaunchConfiguration(
             "model_config_filename",
-            default="en/en_US/lessac/low/en_US-lessac-low.onnx.json",
+            default="en/en_US/lessac/medium/en_US-lessac-medium.onnx.json",
         ),
         "model_config_path": LaunchConfiguration("model_config_path", default=""),
         "speaker_id": LaunchConfiguration("speaker_id", default="0"),
@@ -66,24 +66,31 @@ def generate_launch_description():
                 parameters=[params],
                 remappings=[("audio", "/piper/audio")],
             ),
+            # Node(
+            #     package="audio_common",
+            #     executable="audio_player_node",
+            #     name="player_node",
+            #     # namespace="audio",
+            #     parameters=[
+            #         {
+            #             "channels": LaunchConfiguration("channels", default=1),
+            #             "device": LaunchConfiguration("device", default=-1),
+            #         }
+            #     ],
+            #     remappings=[("audio", "/piper/audio")],
+            #     output='screen',
+            #     condition=IfCondition(
+            #         PythonExpression(
+            #             [LaunchConfiguration("launch_audio_player", default=True)]
+            #         )
+            #     ),
+            # ),
             Node(
-                package="audio_common",
-                executable="audio_player_node",
-                name="player_node",
-                # namespace="audio",
-                parameters=[
-                    {
-                        "channels": LaunchConfiguration("channels", default=1),
-                        "device": LaunchConfiguration("device", default=-1),
-                    }
-                ],
-                remappings=[("audio", "/piper/audio")],
-                output='screen',
-                condition=IfCondition(
-                    PythonExpression(
-                        [LaunchConfiguration("launch_audio_player", default=True)]
-                    )
-                ),
+                package="piper_bringup",
+                executable="simple_player.py",
+                name="simple_player",
+                output="screen",
+                remappings=[("/piper/audio", "/piper/audio")]
             ),
         ]
     )

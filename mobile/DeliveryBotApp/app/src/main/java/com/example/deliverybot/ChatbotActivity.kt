@@ -104,29 +104,35 @@ class ChatbotActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         setupListeners()
         setupRosSubscription()
 
-        // Load conversations and start new or resume
         // Load conversations history
         loadConversations()
-        
-        // Always start a new chat when opening app (User Request)
-        startNewConversation()
 
         // Update connection status
         updateConnectionStatus()
+        
+        // Preload BOTH voices FIRST, then start conversation with greeting
+        preloadVoicesAndStartGreeting()
+    }
+    
+    /**
+     * Preload BOTH voice models at startup, then start conversation with greeting.
+     * This ensures voice is ready before speaking.
+     */
+    private fun preloadVoicesAndStartGreeting() {
+        OfflineTtsEngine.preloadBoth(this) {
+            runOnUiThread {
+                android.util.Log.d("ChatbotActivity", "Both voices preloaded - starting conversation!")
+                // NOW start conversation with greeting (voices are ready)
+                startNewConversation()
+            }
+        }
     }
 
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
             tts.language = Locale.US
             isTtsReady = true
-            
-            // Speak pending greeting if any
-            pendingGreeting?.let {
-                if (isTtsEnabled) {
-                    tts.speak(it, TextToSpeech.QUEUE_FLUSH, null, "greeting")
-                }
-                pendingGreeting = null
-            }
+            // Removed: pending greeting fallback - only OfflineTtsEngine speaks
         }
     }
 
@@ -288,10 +294,10 @@ class ChatbotActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             runOnUiThread {
                 addBotMessage(response)
                 val isTable = response.contains("📊") || response.startsWith("#") 
-                if (isTtsEnabled && !isTable) {
-                    // Strip emojis and Speak
+                if (isTtsEnabled && !isTable && OfflineTtsEngine.getSafeEngine() != null) {
+                    // Strip emojis and Speak using OfflineTtsEngine ONLY
                     val cleanText = response.replace(Regex("[^\\p{L}\\p{N}\\p{P}\\p{Z}]"), "")
-                    tts.speak(cleanText, TextToSpeech.QUEUE_FLUSH, null, "response")
+                    OfflineTtsEngine.speak(cleanText, speed = 1.0f, pitch = 1.0f)
                 }
                 wasVoiceInput = false
                 txtTypingIndicator.visibility = View.GONE  // Hide typing indicator
@@ -380,21 +386,58 @@ class ChatbotActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun showVoicePitchDialog() {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_voice_settings, null)
-        val slider = dialogView.findViewById<com.google.android.material.slider.Slider>(R.id.sliderPitch)
+        
+        // Voice selection
+        val radioGroup = dialogView.findViewById<android.widget.RadioGroup>(R.id.radioGroupVoice)
+        val radioMale = dialogView.findViewById<android.widget.RadioButton>(R.id.radioMale)
+        val radioFemale = dialogView.findViewById<android.widget.RadioButton>(R.id.radioFemale)
+        
+        // Mute switch
+        val switchMute = dialogView.findViewById<androidx.appcompat.widget.SwitchCompat>(R.id.switchMute)
+        
+        // Close button
         val btnClose = dialogView.findViewById<Button>(R.id.btnCloseSettings)
         
-        // Default pitch 1.0
-        slider.value = 1.0f 
+        // Load saved preferences
+        val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+        val selectedVoice = prefs.getString("selected_voice", "male") ?: "male"
+        val isMuted = prefs.getBoolean("voice_muted", false)
         
-        slider.addOnChangeListener { _, value, _ ->
-            tts.setPitch(value)
+        // Set initial state
+        if (selectedVoice == "female") {
+            radioFemale.isChecked = true
+        } else {
+            radioMale.isChecked = true
+        }
+        switchMute.isChecked = isMuted
+        isTtsEnabled = !isMuted
+        
+        // Voice selection change - INSTANT switching (models already preloaded)
+        radioGroup.setOnCheckedChangeListener { _, checkedId ->
+            val voice = if (checkedId == R.id.radioFemale) "female" else "male"
+            prefs.edit().putString("selected_voice", voice).apply()
+            
+            // Instant switch (no loading, just pointer change)
+            OfflineTtsEngine.setActiveVoice(voice)
+            val voiceName = if (voice == "female") "Rafiqa" else "Rafiq"
+            Toast.makeText(this, "Voice changed to $voiceName", Toast.LENGTH_SHORT).show()
+        }
+        
+        // Mute toggle
+        switchMute.setOnCheckedChangeListener { _, isChecked ->
+            isTtsEnabled = !isChecked
+            prefs.edit().putBoolean("voice_muted", isChecked).apply()
+            updateVoiceToggleIcon()
+            val msg = if (isChecked) "Voice muted" else "Voice enabled"
+            Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
         }
         
         val dialog = androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("🤖 Robot Voice Settings")
             .setView(dialogView)
             .create()
-            
+        
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        
         btnClose.setOnClickListener { dialog.dismiss() }
         
         dialog.show()
@@ -428,20 +471,28 @@ class ChatbotActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         historyAdapter.notifyDataSetChanged()
         saveConversations()
 
-        // Welcome message
-        // Welcome message (Triggered only if truly new)
-        val arabicText = "مرحباً! أنا رفيق، مساعدك الذكي. كيف يمكنني مساعدتك اليوم؟"
-        val englishVoice = "Hello! I am Rafiq, your smart delivery assistant. How can I help you today?"
+        // Get selected voice from preferences
+        val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+        val selectedVoice = prefs.getString("selected_voice", "male") ?: "male"
+        
+        // Set greeting based on selected voice
+        val (arabicText, englishVoice) = if (selectedVoice == "female") {
+            Pair(
+                "مرحباً! أنا رفيقة، مساعدتك الذكية. كيف يمكنني مساعدتك اليوم؟",
+                "Hello! I am Rafiqa, your smart delivery assistant. How can I help you today?"
+            )
+        } else {
+            Pair(
+                "مرحباً! أنا رفيق، مساعدك الذكي. كيف يمكنني مساعدتك اليوم؟",
+                "Hello! I am Rafiq, your smart delivery assistant. How can I help you today?"
+            )
+        }
         
         addBotMessage(arabicText)
         
-        // Speak English greeting
-        if (isTtsEnabled) {
-            if (isTtsReady) {
-                tts.speak(englishVoice, TextToSpeech.QUEUE_FLUSH, null, "greeting")
-            } else {
-                pendingGreeting = englishVoice
-            }
+        // Speak greeting using OfflineTtsEngine ONLY (no system TTS fallback)
+        if (isTtsEnabled && OfflineTtsEngine.getSafeEngine() != null) {
+            OfflineTtsEngine.speak(englishVoice, speed = 1.0f, pitch = 1.0f)
         }
     }
 
@@ -645,7 +696,12 @@ class ChatbotActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 txtPreview.text = conv.messages.lastOrNull()?.text ?: "No messages"
                 txtTime.text = getRelativeTime(conv.timestamp)
                 itemView.setOnClickListener { onClick(conv) }
-                btnDelete.setOnClickListener { onDelete(conv, position) }
+                btnDelete.setOnClickListener { 
+                    val currentPos = adapterPosition
+                    if (currentPos != RecyclerView.NO_POSITION) {
+                        onDelete(items[currentPos], currentPos) 
+                    }
+                }
             }
 
             private fun getRelativeTime(timestamp: Long): String {

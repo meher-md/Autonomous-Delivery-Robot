@@ -9,4 +9,11 @@ install(DIRECTORY
   DESTINATION share/${PROJECT_NAME}/
 )
 
+install(PROGRAMS
+  scripts/start_piper.py
+  scripts/audio_bridge.py
+  scripts/simple_player.py
+  DESTINATION lib/${PROJECT_NAME}/
+)
+
 ament_package()

@@ -193,8 +193,8 @@ def generate_launch_description():
             )
         ),
         launch_arguments={
-            'device': '15', # User confirmed 'default' worked. PortAudio ID 15 is 'default'.
-            'channels': '2', # Force Stereo output (Node will upmix Mono->Stereo)
+            'device': '-1', # Safest Default
+            'channels': '1', # Matches Piper Mono
         }.items()
     )
 
