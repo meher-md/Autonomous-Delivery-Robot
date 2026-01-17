@@ -119,7 +119,7 @@ def generate_launch_description():
                          "publish_frequency":50.0,
                          "gain":0.05,
                          "zeta":0.0,
-                         "imu_frame": "imu_link",
+                         "imu_frame": "imu_Link",
                          
                          }],
             remappings=[

@@ -595,7 +595,7 @@
       xyz="0 0 0" />
   </joint>
   <link
-    name="imu_link">
+    name="imu_Link">
     <inertial>
       <origin
         xyz="9.14669704326077E-05 7.43113497559955E-05 -0.000730279767243657"
@@ -643,7 +643,7 @@
     <parent
       link="base_link" />
     <child
-      link="imu_link" />
+      link="imu_Link" />
     <axis
       xyz="0 0 0" />
   </joint>

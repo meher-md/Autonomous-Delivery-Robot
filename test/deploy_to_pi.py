@@ -2,7 +2,7 @@
 import paramiko
 import os
 import sys
-HOSTNAME = '192.168.79.13'
+HOSTNAME = '192.168.200.13'
 USERNAME = 'pi'
 PASSWORD = 'admin'
 PORT = 22
@@ -24,9 +24,6 @@ FILES_TO_TRANSFER = [
     ('src/andino/andino_navigation/params/nav2_params.yaml', 'ws/src/andino/andino_navigation/params/nav2_params.yaml'),
     ('src/andino/andino_bringup/config/cyclonedds.xml', 'ws/src/andino/andino_bringup/config/cyclonedds.xml'),
     ('src/andino/andino_description/urdf/temp_urdf_snippet.xml', 'ws/src/andino/andino_description/urdf/temp_urdf_snippet.xml'),
-    ('verify_ultrasonic.py', 'ws/verify_ultrasonic.py'),
-    ('test_sensor_pi.py', 'ws/test_sensor_pi.py'),
-    ('test_imu.py', 'ws/test_imu.py')
 ]
 COMMANDS_TO_RUN = [
     "source /opt/ros/humble/setup.bash && cd ~/ws && colcon build --symlink-install --cmake-clean-first --packages-select andino_base andino_control andino_description andino_bringup andino_navigation"
@@ -70,6 +67,22 @@ def main():
     if not client:
         sys.exit(1)
     client.exec_command("mkdir -p ws/src/andino/andino_bringup/scripts")
+    
+    # Sync time
+    import time
+    current_time = time.strftime('%Y-%m-%d %H:%M:%S')
+    print(f"Syncing remote time to: {current_time}")
+    # Using sudo -S to accept password from stdin if needed, though often pi user has passwordless sudo.
+    # We try both or just assume passwordless or use the password variable.
+    # Safe approach: echo password | sudo -S date ...
+    sync_cmd = f'echo {PASSWORD} | sudo -S date -s "{current_time}"'
+    stdin, stdout, stderr = client.exec_command(sync_cmd)
+    exit_status = stdout.channel.recv_exit_status()
+    if exit_status == 0:
+        print("Time synced successfully.")
+    else:
+        print(f"Failed to sync time: {stderr.read().decode()}")
+
     sftp = client.open_sftp()
     upload_files(sftp)
     sftp.close()

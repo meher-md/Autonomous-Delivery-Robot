@@ -118,4 +118,9 @@ Date_Full,Year,Month,Day_Name,Time_Arrival,Order_ID,Target_Location,QR_Scan_Stat
 ,,,,,1ba6785d,,Verified,Thumb Up,45,2.5,120.5,Delivered
 2026-01-17,2026.0,January,Saturday,13:13:32,7DF4FEB1,Lobby,Pending,Pending,0,0.0,0.0,In Progress
 2026-01-17,2026.0,January,Saturday,13:13:33,D9A2E21B,Lobby,Pending,Pending,0,0.0,0.0,In Progress
-N/A,N/A,N/A,N/A,N/A,685e8c8b,N/A,Verified,Thumb Up,45,2.5,120.5,Delivered
+,,,,,685e8c8b,,Verified,Thumb Up,45,2.5,120.5,Delivered
+2026-01-17,2026.0,January,Saturday,14:54:08,3C30825F,A,Pending,Pending,0,0.0,0.0,In Progress
+2026-01-17,2026.0,January,Saturday,14:54:09,2EFFFDBF,A,Failed,None,45,2.5,120.5,Failed
+2026-01-17,2026.0,January,Saturday,15:58:16,A61F81B8,A,Failed,None,45,2.5,120.5,Failed
+2026-01-17,2026.0,January,Saturday,16:12:52,CF7E65C8,A,Pending,Pending,0,0.0,0.0,In Progress
+N/A,N/A,N/A,N/A,N/A,322cdff9,N/A,Verified,Thumb Up,45,2.5,120.5,Delivered
