@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 
 import os
 from ament_index_python.packages import get_package_share_directory
@@ -8,16 +7,11 @@ from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression, TextSubstitution
 from launch_ros.actions import Node, PushRosNamespace, SetRemap
-
 from nav2_common.launch import ParseMultiRobotPose
-
 from andino_gz.launch_tools.substitutions import TextJoin
-
-
 def generate_launch_description():
     pkg_andino_gz = get_package_share_directory('andino_gz')
     pkg_nav2_bringup = get_package_share_directory('nav2_bringup')
-
     ros_bridge_arg = DeclareLaunchArgument(
         'ros_bridge', default_value='True', description='Run ROS bridge node.')
     rviz_arg = DeclareLaunchArgument('rviz', default_value='True', description='Start RViz.')
@@ -51,8 +45,6 @@ def generate_launch_description():
         default_value='True',
         description='Use laptop webcam for compressed stream (QR/YOLO)',
     )
-
-    # Variables of launch file.
     rviz = LaunchConfiguration('rviz')
     ros_bridge = LaunchConfiguration('ros_bridge')
     world_name = LaunchConfiguration('world_name')
@@ -63,14 +55,10 @@ def generate_launch_description():
     params_file = LaunchConfiguration('params_file')
     autostart = LaunchConfiguration('autostart')
     use_webcam = LaunchConfiguration('use_webcam')
-
-    # Obtains world path.
     world_path = PathJoinSubstitution([pkg_andino_gz, 'worlds', world_name])
     log_world_path = LogInfo(msg=TextJoin(substitutions=["World path: ", world_path]))
-    # Obtains the map path.
     map_path = PathJoinSubstitution([pkg_andino_gz, 'maps', map_name, TextJoin(substitutions=[map_name ,'.yaml'])])
     log_map_path = LogInfo(msg=TextJoin(substitutions=["Map path: ", map_path]))
-    # Gazebo arguments.
     gz_args = TextJoin(
         substitutions=[
             world_path,
@@ -79,7 +67,6 @@ def generate_launch_description():
         ],
         separator=' ',
     )
-    # Launches the base group: Gazebo sim and ROS bridge for generic Gazebo stuff.
     base_group = GroupAction(
         scoped=True, forwarding=False,
         launch_configurations={
@@ -90,14 +77,12 @@ def generate_launch_description():
             'use_webcam': use_webcam,
         },
         actions=[
-            # Gazebo Sim
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     os.path.join(get_package_share_directory('ros_gz_sim'), 'launch', 'gz_sim.launch.py')
                 ),
                 launch_arguments={'gz_args': gz_args}.items(),
             ),
-            # ROS Bridge for generic Gazebo stuff
             Node(
                 package='ros_gz_bridge',
                 executable='parameter_bridge',
@@ -108,12 +93,7 @@ def generate_launch_description():
             ),
         ]
     )
-
     robots_list = ParseMultiRobotPose('robots').value()
-    # When no robots are specified, spawn a single robot at the origin.
-    # The default value isn't getting parsed correctly because ParseMultiRobotPose checks sys.args
-    # instead of using launch argument.
-    # TODO: Implement our ParseMultiRobotPose substitution for getting robot's pose correctly.
     log_robots_by_user = LogInfo(msg="Robots provided by user.")
     if (robots_list == {}):
         log_robots_by_user = LogInfo(msg="No robots provided, using default:")
@@ -124,7 +104,6 @@ def generate_launch_description():
     one_robot = PythonExpression([TextSubstitution(text=str(len(robots_list.keys()))), ' == 1'])
     for robot_name in robots_list:
         init_pose = robots_list[robot_name]
-        # As it is scoped and not forwarding, the launch configuration in this context gets cleared.
         robots_group = GroupAction(
             scoped=True, forwarding=False,
             launch_configurations={
@@ -138,7 +117,6 @@ def generate_launch_description():
                 PushRosNamespace(
                     condition=IfCondition(more_than_one_robot),
                     namespace=robot_name),
-                # Spawn the robot and the Robot State Publisher node.
                 IncludeLaunchDescription(
                     PythonLaunchDescriptionSource(
                         os.path.join(pkg_andino_gz, 'launch', 'include', 'spawn_robot.launch.py')
@@ -153,7 +131,6 @@ def generate_launch_description():
                         'use_sim_time': 'true',
                     }.items(),
                 ),
-                # RViz with nav2
                 Node(
                     condition=IfCondition(PythonExpression([rviz, ' and ', LaunchConfiguration('nav2')])),
                     package='rviz2',
@@ -165,7 +142,6 @@ def generate_launch_description():
                         ('/tf_static', 'tf_static'),
                     ],
                 ),
-                # RViz without nav2
                 Node(
                     condition=IfCondition(PythonExpression([rviz, ' and not ', LaunchConfiguration('nav2')])),
                     package='rviz2',
@@ -177,7 +153,6 @@ def generate_launch_description():
                         ('/tf_static', 'tf_static'),
                     ],
                 ),
-                # Run ros_gz bridge
                 IncludeLaunchDescription(
                     PythonLaunchDescriptionSource(
                         os.path.join(pkg_andino_gz, 'launch', 'include', 'gz_ros_bridge.launch.py')
@@ -200,12 +175,8 @@ def generate_launch_description():
               'nav2': nav2_flag,
           },
           actions=[
-              # Remapping scan topics for Nav2 local and global costmap.
-              # As we use relative values in the param file for supporting multiple robots,
-              # the scan topic needs to be remapped otherwise goes under global-costmap/scan topic.
               SetRemap(src='/' + robot_name + '/global_costmap/scan', dst='/' + robot_name + '/scan', condition=IfCondition(PythonExpression([more_than_one_robot, ' and ', LaunchConfiguration('nav2')]))),
               SetRemap(src='/' + robot_name + '/local_costmap/scan', dst='/' + robot_name + '/scan', condition=IfCondition(PythonExpression([more_than_one_robot, ' and ', LaunchConfiguration('nav2')]))),
-              # Nav2 Bringup for multiple robots
               IncludeLaunchDescription(
                   PythonLaunchDescriptionSource(
                       os.path.join(pkg_nav2_bringup, 'launch', 'bringup_launch.py')
@@ -222,7 +193,6 @@ def generate_launch_description():
               ),
               SetRemap(src='/global_costmap/scan', dst='/scan', condition=IfCondition(PythonExpression([one_robot, ' and ', LaunchConfiguration('nav2')]))),
               SetRemap(src='/local_costmap/scan', dst='/scan', condition=IfCondition(PythonExpression([one_robot, ' and ', LaunchConfiguration('nav2')]))),
-              # Nav2 Bringup for single robot
               IncludeLaunchDescription(
                   PythonLaunchDescriptionSource(
                       os.path.join(pkg_nav2_bringup, 'launch', 'bringup_launch.py')
@@ -239,8 +209,6 @@ def generate_launch_description():
           )
         spawn_robots_group.append(robots_group)
         spawn_robots_group.append(nav_group)
-
-    # Add the share directory to the Gazebo resource path.
     pkg_share_path = get_package_share_directory('andino_gz')
     gz_resource_path = SetEnvironmentVariable(
         name='GZ_SIM_RESOURCE_PATH',
@@ -250,7 +218,6 @@ def generate_launch_description():
             os.environ.get('GZ_SIM_RESOURCE_PATH', '')
         ]
     )
-
     ign_resource_path = SetEnvironmentVariable(
         name='IGN_GAZEBO_RESOURCE_PATH',
         value=[
@@ -259,7 +226,6 @@ def generate_launch_description():
             os.environ.get('IGN_GAZEBO_RESOURCE_PATH', '')
         ]
     )
-
     ld = LaunchDescription()
     ld.add_action(gz_resource_path)
     ld.add_action(ign_resource_path)

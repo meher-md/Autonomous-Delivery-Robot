@@ -1,11 +1,9 @@
-#!/usr/bin/env python3
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
 import json
 import time
 import uuid
-
 class MobileBridge(Node):
     def __init__(self):
         super().__init__('mobile_bridge')
@@ -16,17 +14,14 @@ class MobileBridge(Node):
         self.addr_sub = self.create_subscription(String, '/app/address', self.on_address, 10)
         self.phone_sub = self.create_subscription(String, '/app/phone', self.on_phone, 10)
         self.get_logger().info('mobile_bridge ready')
-
     def on_address(self, msg: String):
         self.addr = msg.data
         self.get_logger().info(f"Got address: {self.addr}")
         self.try_create()
-
     def on_phone(self, msg: String):
         self.phone = msg.data
         self.get_logger().info(f"Got phone: {self.phone}")
         self.try_create()
-
     def try_create(self):
         if self.addr and self.phone:
             order = {
@@ -44,7 +39,6 @@ class MobileBridge(Node):
             self.get_logger().info(f"Published order: {order['order_id']}")
             self.addr = None
             self.phone = None
-
 def main(args=None):
     rclpy.init(args=args)
     node = MobileBridge()

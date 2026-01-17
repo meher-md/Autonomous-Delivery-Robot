@@ -1,17 +1,7 @@
-#!/usr/bin/env python3
-
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
-
-###############
-#    Docs     #
-###############
-# This launch file is used to visualize the tf tree of the robot.
-# It is convenient when having multiple robots to visualize the tf tree of each robot.
-
-
 def generate_launch_description():
     robot_ns_arg = DeclareLaunchArgument(
         "robot_ns",

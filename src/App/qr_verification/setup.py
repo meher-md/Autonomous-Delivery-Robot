@@ -1,7 +1,5 @@
 from setuptools import find_packages, setup
-
 package_name = 'qr_verification'
-
 setup(
     name=package_name,
     version='0.0.0',

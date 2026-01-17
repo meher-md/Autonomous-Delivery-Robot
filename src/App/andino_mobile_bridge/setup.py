@@ -1,8 +1,6 @@
 from setuptools import setup
 from glob import glob
-
 package_name = 'andino_mobile_bridge'
-
 setup(
     name=package_name,
     version='0.0.0',

@@ -7,11 +7,8 @@ from launch.substitutions import SubstitutionFailure
 from launch.utilities import normalize_to_list_of_substitutions
 from launch.utilities import perform_substitutions
 from launch.utilities.type_utils import perform_typed_substitution
-
-
 class TextJoin(Substitution):
     """Substitution that TextJoin stuff."""
-
     def __init__(self,
                  substitutions: Iterable[Union[Text, Substitution]],
                  separator: Text = '') -> None:
@@ -19,21 +16,17 @@ class TextJoin(Substitution):
         self.__substitutions = normalize_to_list_of_substitutions(
             substitutions)
         self.__separator = separator
-
     @property
     def substitutions(self) -> Iterable[Substitution]:
         """Getter for variable_name."""
         return self.__substitutions
-
     @property
     def separator(self) -> Text:
         """Getter for variable_name."""
         return self.__separator
-
     def describe(self) -> Text:
         """Return a description of this substitution as a string."""
         return f"TextJoin: {self.__separator.join([sub.describe() for sub in self.__substitutions])}"
-
     def perform(self, context: LaunchContext) -> Text:
         """Perform the substitution by retrieving the local variable."""
         performed_substitutions = [

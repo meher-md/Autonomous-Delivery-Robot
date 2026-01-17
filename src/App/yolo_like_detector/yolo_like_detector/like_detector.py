@@ -10,15 +10,11 @@ import cv2
 import numpy as np
 import onnxruntime as ort
 import yaml
+from gtts import gTTS
 import pygame
 import time
 import json
-from rclpy.action import ActionClient
-try:
-    from audio_common_msgs.action import TTS
-    TTS_AVAILABLE = True
-except ImportError:
-    TTS_AVAILABLE = False
+import threading
 
 
 class LikeDetectorNode(Node):
@@ -26,7 +22,6 @@ class LikeDetectorNode(Node):
         super().__init__('pipeline_ros_bridge')
         
         self.publisher_ = self.create_publisher(Bool, '/like_detected', 10)
-        self.detections_pub = self.create_publisher(String, '/yolo/detections_str', 10)
         self.get_logger().info("ROS 2 Publisher for /like_detected is ready.")
 
         # Subscriptions
@@ -84,14 +79,6 @@ class LikeDetectorNode(Node):
         # Countdown Timer (Requested by User)
         self.target_start_time = 0.0
         
-        # PIPER TTS CLIENT
-        if TTS_AVAILABLE:
-            self.tts_client = ActionClient(self, TTS, '/say') # Corrected from /piper_node/say
-            self.get_logger().info("Connected to Piper TTS Action Server")
-        else:
-            self.tts_client = None
-            self.get_logger().warn("Audio Common Msgs not found - Piper disabled")
-
         self.get_logger().info("Like Detector Node (Passive) ready. Waiting for QR Verification...")
     
     def load_class_names(self):
@@ -190,7 +177,7 @@ class LikeDetectorNode(Node):
             
             # Big Red Countdown
             text = f"GET READY: {int(time_left) + 1}"
-            cv2.putText(display_frame, text, (100, 240), 
+            cv2.putText(display_frame, text, (150, 240), 
                        cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 4)
             
             cv2.imshow("YOLOv8 Like Detection", display_frame)
@@ -210,14 +197,9 @@ class LikeDetectorNode(Node):
             msg_out.data = like_detected
             self.publisher_.publish(msg_out)
             
-            # Publish Detected Objects Names
-            detected_names = [d['class_name'] for d in detections]
-            if detected_names:
-                det_msg = String()
-                det_msg.data = ", ".join(set(detected_names)) # Unique names
-                self.detections_pub.publish(det_msg)
-            
             if like_detected and not self.detection_made:
+                like_dets = [d for d in detections if d['class_name'].lower() == 'like']
+                self.get_logger().info(f"Like detected! Count: {len(like_dets)}")
                 self.detection_made = True
                 self.play_thank_you_message()
             
@@ -248,11 +230,6 @@ class LikeDetectorNode(Node):
                      self._yolo_saved = True # Prevent spam saving
                  except Exception as e:
                      self.get_logger().error(f"Failed to save YOLO evidence: {e}")
-            
-            # Close window immediately after success (Requested by User)
-            if like_detected:
-                 self.stop_detection()
-                 return
             
         except Exception as e:
             self.get_logger().error(f"Error during inference: {e}")
@@ -350,15 +327,37 @@ class LikeDetectorNode(Node):
         return image
     
     def play_thank_you_message(self):
-        message = "Thank you! I am glad you liked the service!"
-        
-        if self.tts_client and self.tts_client.wait_for_server(timeout_sec=1.0):
-            goal = TTS.Goal()
-            goal.text = message
-            self.tts_client.send_goal_async(goal)
-            self.get_logger().info(f"Sent TTS request: {message}")
-        else:
-            self.get_logger().warn("Piper TTS not available, fallback to silence (or check /piper_node/say)")
+        def _play():
+            try:
+                # Use a unique filename or just reuse
+                message = "We're so glad your order arrived! Thank you for being a valued customer."
+                tts = gTTS(text=message, lang='en', slow=False)
+                
+                audio_file = f"/tmp/yolo_thank_you_{int(time.time())}.mp3"
+                tts.save(audio_file)
+                
+                # Check if mixer is busy? Ideally we might want to prioritize this or mix.
+                # basic check:
+                if not pygame.mixer.get_init():
+                    pygame.mixer.init()
+                    
+                pygame.mixer.music.load(audio_file)
+                pygame.mixer.music.play()
+                
+                while pygame.mixer.music.get_busy():
+                    time.sleep(0.1) # Sleep in thread is fine
+                
+                if os.path.exists(audio_file):
+                    os.remove(audio_file)
+                self.get_logger().info("Audio message played successfully")
+                
+            except Exception as e:
+                self.get_logger().error(f"Error playing audio: {e}")
+
+        # Run in separate thread to avoid blocking loop
+        t = threading.Thread(target=_play)
+        t.daemon = True
+        t.start()
     
     def destroy_node(self):
         cv2.destroyAllWindows()
