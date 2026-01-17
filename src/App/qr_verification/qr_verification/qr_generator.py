@@ -96,16 +96,13 @@ class QrGenerator(Node):
                     self.get_logger().info("Logo embedded in QR code with white background")
             except Exception as e:
                 self.get_logger().error(f"Failed to embed logo: {e}")
-            now = datetime.fromtimestamp(timestamp)
-            year_str = now.strftime("%Y")
-            month_str = now.strftime("%B")
-            day_str = now.strftime("%d")
-            mission_folder = f"mission_{order_id}"
-            base_dir = os.path.expanduser("~/ws/mission_proof")
-            mission_dir = os.path.join(base_dir, year_str, month_str, day_str, mission_folder)
-            os.makedirs(mission_dir, exist_ok=True)
+            # Don't create folder or save QR image here - qr_scanner will do that
+            # Just generate and send the QR to the app
             filename = f"qr_{order_id}.png"
-            filepath = os.path.join(mission_dir, filename)
+            # Save to temporary location (will be moved to mission folder by qr_scanner)
+            temp_dir = "/tmp"
+            os.makedirs(temp_dir, exist_ok=True)
+            filepath = os.path.join(temp_dir, filename)
             img.save(filepath)
             bio = BytesIO()
             img.save(bio, format='PNG')

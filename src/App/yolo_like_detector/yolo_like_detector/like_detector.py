@@ -15,6 +15,9 @@ import pygame
 import time
 import json
 import threading
+import asyncio
+import edge_tts
+import tempfile
 
 
 class LikeDetectorNode(Node):
@@ -217,19 +220,30 @@ class LikeDetectorNode(Node):
             cv2.waitKey(1)
             
             # Save Evidence if detected
-            if like_detected and self.current_mission_path and not getattr(self, '_yolo_saved', False):
+            if like_detected and not getattr(self, '_yolo_saved', False):
+                 if self.current_mission_path:
+                     try:
+                         save_path = os.path.join(self.current_mission_path, "yolo_like.jpg")
+                         # Add timestamp
+                         timestamp = time.strftime("%H:%M:%S")
+                         cv2.putText(display_frame, f"Time: {timestamp}", (10, 450), 
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 1)
+                         
+                         cv2.imwrite(save_path, display_frame)
+                         self.get_logger().info(f"📸 YOLO Evidence saved to: {save_path}")
+                         self._yolo_saved = True # Prevent spam saving
+                     except Exception as e:
+                         self.get_logger().error(f"Failed to save YOLO evidence: {e}")
+                 else:
+                     self.get_logger().error("❌ Like Detected but Mission Path is UNKNOWN. Cannot save image to order folder!")
+                 
+                 # ALWAYS Close YOLO window after detection (success or fail)
+                 self.stop_detection() # CRITICAL: Stop loop so window doesn't reopen
                  try:
-                     save_path = os.path.join(self.current_mission_path, "yolo_like.jpg")
-                     # Add timestamp
-                     timestamp = time.strftime("%H:%M:%S")
-                     cv2.putText(display_frame, f"Time: {timestamp}", (10, 450), 
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 1)
-                     
-                     cv2.imwrite(save_path, display_frame)
-                     self.get_logger().info(f"📸 YOLO Evidence saved to: {save_path}")
-                     self._yolo_saved = True # Prevent spam saving
-                 except Exception as e:
-                     self.get_logger().error(f"Failed to save YOLO evidence: {e}")
+                     cv2.destroyWindow("YOLOv8 Like Detection")
+                     self.get_logger().info("✅ YOLO window closed permanently after Like detection")
+                 except:
+                     pass
             
         except Exception as e:
             self.get_logger().error(f"Error during inference: {e}")
@@ -327,36 +341,38 @@ class LikeDetectorNode(Node):
         return image
     
     def play_thank_you_message(self):
+        """
+        Play pre-generated audio file (Offline gTTS).
+        """
         def _play():
             try:
-                # Use a unique filename or just reuse
-                message = "We're so glad your order arrived! Thank you for being a valued customer."
-                tts = gTTS(text=message, lang='en', slow=False)
-                
-                audio_file = f"/tmp/yolo_thank_you_{int(time.time())}.mp3"
-                tts.save(audio_file)
-                
-                # Check if mixer is busy? Ideally we might want to prioritize this or mix.
-                # basic check:
-                if not pygame.mixer.get_init():
-                    pygame.mixer.init()
+                # Use absolute path to the pre-generated asset
+                # Use absolute path to the pre-generated asset
+                audio_path = "/home/mo/ws/src/App/audio_assets/audio_thankyou.mp3"
+                if os.path.exists(audio_path):
+                    if not pygame.mixer.get_init():
+                        pygame.mixer.init(frequency=24000)
                     
-                pygame.mixer.music.load(audio_file)
-                pygame.mixer.music.play()
-                
-                while pygame.mixer.music.get_busy():
-                    time.sleep(0.1) # Sleep in thread is fine
-                
-                if os.path.exists(audio_file):
-                    os.remove(audio_file)
-                self.get_logger().info("Audio message played successfully")
-                
-            except Exception as e:
-                self.get_logger().error(f"Error playing audio: {e}")
+                    # Force correct frequency
+                    current_freq, _, _ = pygame.mixer.get_init()
+                    if current_freq != 24000:
+                        pygame.mixer.quit()
+                        pygame.mixer.init(frequency=24000)
 
-        # Run in separate thread to avoid blocking loop
+                    # Prevent Overlap: Stop any other audio (e.g. intro)
+                    if pygame.mixer.music.get_busy():
+                        pygame.mixer.music.stop()
+                        
+                    pygame.mixer.music.load(audio_path)
+                    pygame.mixer.music.play()
+                    while pygame.mixer.music.get_busy():
+                        time.sleep(0.1)
+                else:
+                    self.get_logger().error(f"Audio asset not found: {audio_path}")
+            except Exception as e:
+                self.get_logger().error(f"Audio Playback Error: {e}")
+
         t = threading.Thread(target=_play)
-        t.daemon = True
         t.start()
     
     def destroy_node(self):

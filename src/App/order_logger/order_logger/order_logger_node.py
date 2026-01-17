@@ -91,9 +91,17 @@ class OrderLogger(Node):
             order_id = data.get("order_id")
             if not order_id:
                 return
+
+            # --- FILTER RETURN-TO-HOME ORDERS ---
+            target_loc = str(data.get("target_location", data.get("address", "N/A"))).strip()
+            if target_loc.upper() in ['PKG', 'GARAGE', 'HOME']:
+                self.get_logger().info(f"🚫 Ignoring Dashboard Log for Return-to-Base (ID: {order_id}, Target: {target_loc})")
+                return
+            # ------------------------------------
+
             self.get_logger().info(f"🆕 New Order detected: {order_id}. Logging initial state...")
             now = datetime.now()
-            target_loc = data.get("target_location", data.get("address", "N/A"))
+            # target_loc is already extracted above
             row_data = {
                 "Date_Full": now.strftime("%Y-%m-%d"),
                 "Year": now.strftime("%Y"),

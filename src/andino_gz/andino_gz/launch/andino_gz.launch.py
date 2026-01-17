@@ -45,6 +45,11 @@ def generate_launch_description():
         default_value='True',
         description='Use laptop webcam for compressed stream (QR/YOLO)',
     )
+    start_app_arg = DeclareLaunchArgument(
+        'start_app',
+        default_value='True',
+        description='Start application layer (QR scanner, YOLO detector, etc.)',
+    )
     rviz = LaunchConfiguration('rviz')
     ros_bridge = LaunchConfiguration('ros_bridge')
     world_name = LaunchConfiguration('world_name')
@@ -55,6 +60,7 @@ def generate_launch_description():
     params_file = LaunchConfiguration('params_file')
     autostart = LaunchConfiguration('autostart')
     use_webcam = LaunchConfiguration('use_webcam')
+    start_app = LaunchConfiguration('start_app')
     world_path = PathJoinSubstitution([pkg_andino_gz, 'worlds', world_name])
     log_world_path = LogInfo(msg=TextJoin(substitutions=["World path: ", world_path]))
     map_path = PathJoinSubstitution([pkg_andino_gz, 'maps', map_name, TextJoin(substitutions=[map_name ,'.yaml'])])
@@ -240,10 +246,20 @@ def generate_launch_description():
     ld.add_action(map_name_arg)
     ld.add_action(params_file_arg)
     ld.add_action(use_webcam_arg)
+    ld.add_action(start_app_arg)
     ld.add_action(autostart_arg)
     ld.add_action(log_world_path)
     ld.add_action(log_map_path)
     ld.add_action(base_group)
     for group in spawn_robots_group:
         ld.add_action(group)
+    # Include application layer (QR scanner, YOLO detector, etc.)
+    pkg_deliverybot_bringup = get_package_share_directory('deliverybot_bringup')
+    app_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(pkg_deliverybot_bringup, 'launch', 'app.launch.py')
+        ),
+        condition=IfCondition(start_app),
+    )
+    ld.add_action(app_launch)
     return ld

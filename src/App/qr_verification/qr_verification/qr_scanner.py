@@ -1,4 +1,9 @@
-#!/usr/bin/env python3
+
+import qrcode
+from qrcode.image.styledpil import StyledPilImage
+from qrcode.image.styles.moduledrawers import CircleModuleDrawer
+from qrcode.image.styles.colormasks import SquareGradiantColorMask
+from PIL import Image, ImageDraw
 import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionClient
@@ -58,6 +63,18 @@ class QrScanner(Node):
         self._return_delay = 120.0  
         self._timer_scheduled = False
         self._frames_processed = 0
+        self.scan_start_time = 0.0 
+        self.current_mission_folder = None # New: Persist the single folder for this order
+        self.intro_played = False # Flag to prevent repetition
+        
+        # Determine Dashboard Directory for Logo
+        try:
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            # Adjusted path based on typical structure: src/App/qr_verification/qr_verification -> src/App/order_logger/dashboard
+            self.dashboard_dir = os.path.abspath(os.path.join(current_dir, '../../order_logger/dashboard'))
+        except:
+             self.dashboard_dir = os.path.expanduser("~/ws/src/App/order_logger/dashboard")
+
         self.get_logger().info(
             f'qr_scanner ready (listening to /image_raw/compressed). Pyzbar={PYZBAR_AVAILABLE}, OpenCV={cv2.__version__}'
         )
@@ -67,43 +84,37 @@ class QrScanner(Node):
                 self.get_logger().info('✅ Audio Mixer Initialized for Edge TTS')
             except Exception as e:
                 self.get_logger().error(f'❌ Failed to initialize Audio Mixer: {e}')
-        self.scan_start_time = 0.0 
         self._publish_status('initialized', 'Scanner initialized, waiting for arrival...')
-    def speak(self, text):
+    def speak(self, filename):
         """
-        Speak text using Edge TTS (Roger Voice) in a separate thread.
-        This replaces the old Piper logic.
+        Play pre-generated audio file (Offline gTTS).
         """
-        t = threading.Thread(target=self._run_async_tts, args=(text,))
+        def _play():
+            try:
+                # Use absolute path to the pre-generated asset
+                audio_path = f"/home/mo/ws/src/App/audio_assets/{filename}"
+                if os.path.exists(audio_path):
+                    # Re-init mixer with correct frequency if needed, or just init
+                    if not pygame.mixer.get_init():
+                        pygame.mixer.init(frequency=24000)
+                    
+                    # Optional: Check if existing init matches? frequent init/quit might be bad.
+                    current_freq, _, _ = pygame.mixer.get_init()
+                    if current_freq != 24000:
+                        pygame.mixer.quit()
+                        pygame.mixer.init(frequency=24000)
+
+                    pygame.mixer.music.load(audio_path)
+                    pygame.mixer.music.play()
+                    while pygame.mixer.music.get_busy():
+                        time.sleep(0.1)
+                else:
+                    self.get_logger().error(f"Audio asset not found: {audio_path}")
+            except Exception as e:
+                self.get_logger().error(f"Audio Playback Error: {e}")
+
+        t = threading.Thread(target=_play)
         t.start()
-    def _run_async_tts(self, text):
-        try:
-            asyncio.run(self._generate_and_play(text))
-        except Exception as e:
-            self.get_logger().error(f"TTS Thread Error: {e}")
-    async def _generate_and_play(self, text):
-        VOICE = "en-US-RogerNeural"
-        try:
-            with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as fp:
-                temp_filename = fp.name
-            self.get_logger().info(f"🔊 Generating TTS: '{text}' using {VOICE}")
-            communicate = edge_tts.Communicate(text, VOICE)
-            await communicate.save(temp_filename)
-            self.get_logger().info(f"▶️ Playing Audio...")
-            try:
-                 pygame.mixer.music.stop()
-                 pygame.mixer.music.load(temp_filename)
-                 pygame.mixer.music.play()
-                 while pygame.mixer.music.get_busy():
-                     time.sleep(0.1)
-            except Exception as pe:
-                 self.get_logger().error(f"Playback error: {pe}")
-            try:
-                os.remove(temp_filename)
-            except:
-                pass
-        except Exception as e:
-            self.get_logger().error(f"Edge TTS Generation Error: {e}")
     def imgmsg_to_cv2(self, img_msg):
         """
         Manually convert a sensor_msgs/CompressedImage to an OpenCV image.
@@ -161,7 +172,10 @@ class QrScanner(Node):
                 self.mission_qr_scanned = False
                 self.mission_yolo_detected = False
                 self.start_scanning()
-                self.speak("Hi! I am Rafiq. I am here. Can you please scan the QR code I sent you?")
+                if not self.intro_played:
+                    self.speak("audio_intro.mp3")
+                    self.intro_played = True
+                    
                 if not self._timer_scheduled:
                     try:
                         self._schedule_return_to_R403(self._return_delay)
@@ -173,10 +187,11 @@ class QrScanner(Node):
             if not self.mission_qr_scanned: 
                  self.get_logger().info('Robot left destination - stopping QR scanner')
                  self.stop_scanning()
+            self.intro_played = False # Reset for next stop
     def on_order_created(self, msg: String):
         """
         Parse order message and store order_id for verification.
-        Also reset timer state.
+        Also IMMEDIATELY create the mission folder and generate the QR code image.
         """
         try:
             if not msg.data:
@@ -190,11 +205,99 @@ class QrScanner(Node):
             new_id = str(order_data.get('order_id', '')).strip()
             if not new_id and 'order_id' not in str(msg.data):
                  pass
+            
             if new_id:
+                # --- FILTER RETURN-TO-HOME ORDERS ---
+                # Check if this is just a "Return to Garage" command disguised as an order
+                target = str(order_data.get('target_location', '')).strip().upper()
+                if not target:
+                     target = str(order_data.get('destination', '')).strip().upper()
+                
+                if target in ['PKG', 'GARAGE', 'HOME']:
+                    self.get_logger().info(f"🚫 Ignoring Return-to-Base Order (ID: {new_id}, Target: {target}) - No new QR/Folder created.")
+                    return 
+                # ------------------------------------
+
                 self.active_order_id = new_id
                 self.get_logger().info(f"🆕 New Order Received! ID: {self.active_order_id}")
+                
+                # --- IMMEDIATE FOLDER & QR GENERATION START ---
+                try:
+                    now_dt = datetime.datetime.now()
+                    year_str = now_dt.strftime("%Y")
+                    month_str = now_dt.strftime("%B") 
+                    day_str = now_dt.strftime("%d")
+                    folder_name = f"mission_{new_id}"
+                    
+                    base_dir = os.path.expanduser("~/ws/mission_proof")
+                    mission_dir = os.path.join(base_dir, year_str, month_str, day_str, folder_name)
+                    os.makedirs(mission_dir, exist_ok=True)
+                    self.get_logger().info(f"📂 Created mission directory early: {mission_dir}")
+                    
+                    # Store this folder for the entire mission life-cycle
+                    self.current_mission_folder = mission_dir
+                    
+                    # Generate QR Image
+                    qr_filename = f"qr_{new_id}.png"
+                    qr_path = os.path.join(mission_dir, qr_filename)
+                    if not os.path.exists(qr_path):
+                        qr_payload = msg.data 
+                        
+                        # Generate STYLED QR to match app
+                        qr = qrcode.QRCode(
+                            version=1, 
+                            box_size=12, 
+                            border=4, 
+                            error_correction=qrcode.constants.ERROR_CORRECT_H
+                        )
+                        qr.add_data(qr_payload)
+                        qr.make(fit=True)
+                        img = qr.make_image(
+                            image_factory=StyledPilImage,
+                            module_drawer=CircleModuleDrawer(),
+                            color_mask=SquareGradiantColorMask(
+                                back_color=(255, 255, 255),
+                                center_color=(0, 120, 215),
+                                edge_color=(50, 50, 50)
+                            )
+                        ).convert('RGBA')
+                        
+                        # LOGO EMBEDDING LOGIC
+                        try:
+                            logo_path = os.path.join(self.dashboard_dir, 'robot_logo_dashboard.png')
+                            if os.path.exists(logo_path):
+                                logo = Image.open(logo_path).convert("RGBA")
+                                qr_width, qr_height = img.size
+                                logo_size = int(qr_width * 0.25)
+                                logo = logo.resize((logo_size, logo_size), Image.Resampling.LANCZOS)
+                                pos = ((qr_width - logo_size) // 2, (qr_height - logo_size) // 2)
+                                padding = 10
+                                bg_size = (logo_size + padding, logo_size + padding)
+                                bg_pos = (pos[0] - padding // 2, pos[1] - padding // 2)
+                                draw = ImageDraw.Draw(img)
+                                draw.rectangle(
+                                    [bg_pos, (bg_pos[0] + bg_size[0], bg_pos[1] + bg_size[1])],
+                                    fill="white"
+                                )
+                                img.paste(logo, pos, logo)
+                                img = img.convert("RGB") # Convert back to RGB for saving if needed, usually RGBA is fine for PNG
+                            else:
+                                 self.get_logger().warn(f"Logo file not found at: {logo_path}")
+                        except Exception as logo_err:
+                            self.get_logger().error(f"Failed to embed logo: {logo_err}")
+
+                        img.save(qr_path)
+                        self.get_logger().info(f"🖼️ Generated and saved STYLED QR code + Logo to: {qr_path}")
+                    else:
+                        self.get_logger().info(f"ℹ️ QR code image already exists: {qr_path}")
+                        
+                except Exception as e:
+                    self.get_logger().error(f"Failed to generate early QR/Folder: {e}")
+                # --- IMMEDIATE FOLDER & QR GENERATION END ---
+
             else:
                 self.get_logger().info("New order received (no ID found in payload)")
+            
             if order_data or 'order_id' in str(msg.data):
                 self._timer_scheduled = False
                 if self._return_timer is not None:
@@ -346,48 +449,54 @@ class QrScanner(Node):
                 self.get_logger().info(f"Verification Info: No active order ID to match against. Assuming Valid.")
                 is_verified = True
                 self.last_verification_error = None
-            if is_verified:
-                self.get_logger().info("✅ Scan Complete. Closing Scanner UI first...")
-                self.stop_scanning() 
-                time.sleep(0.5) 
-                self.get_logger().info("🚀 Triggering YOLO Detector...")
-                verified_msg = Bool()
-                verified_msg.data = True
-                self.verified_pub.publish(verified_msg)
-                self.speak("Success! Please open the box and take your order. When you are done, please show me a Like sign.")
-            else:
-                 pass
+            # Step 1: Create Mission Folder & Save Evidence (Prioritize Path Publishing)
             if is_verified:
                  try:
-                     now_dt = datetime.datetime.now()
-                     year_str = now_dt.strftime("%Y")
-                     month_str = now_dt.strftime("%B") 
-                     day_str = now_dt.strftime("%d")
-                     if self.active_order_id:
-                         mission_id = self.active_order_id
+                     mission_dir = None
+                     # >>> FORCE USE OF PRE-CREATED FOLDER <<<
+                     if self.current_mission_folder and os.path.isdir(self.current_mission_folder):
+                         mission_dir = self.current_mission_folder
+                         self.get_logger().info(f"📂 Reuse existing mission directory: {mission_dir}")
                      else:
-                         mission_id = f"{int(now)}"
-                     folder_name = f"mission_{mission_id}"
-                     base_dir = os.path.expanduser("~/ws/mission_proof")
-                     mission_dir = os.path.join(base_dir, year_str, month_str, day_str, folder_name)
-                     os.makedirs(mission_dir, exist_ok=True)
-                     self.get_logger().info(f"📂 Used mission proof directory: {mission_dir}")
+                         # Fallback if no pre-created folder exists
+                         now_dt = datetime.datetime.now()
+                         year_str = now_dt.strftime("%Y")
+                         month_str = now_dt.strftime("%B") 
+                         day_str = now_dt.strftime("%d")
+                         if self.active_order_id:
+                             mission_id = self.active_order_id
+                         else:
+                             mission_id = f"{int(now)}"
+                         
+                         folder_name = f"mission_{mission_id}"
+                         base_dir = os.path.expanduser("~/ws/mission_proof")
+                         mission_dir = os.path.join(base_dir, year_str, month_str, day_str, folder_name)
+                         os.makedirs(mission_dir, exist_ok=True)
+                         self.get_logger().info(f"📂 Created NEW mission directory (Fallback): {mission_dir}")
+                         self.current_mission_folder = mission_dir # Store it
+
+                     # PUBLISH PATH FIRST
                      path_msg = String()
                      path_msg.data = mission_dir
                      self.mission_path_pub.publish(path_msg)
+                     self.get_logger().info(f"📨 Published Mission Path: {mission_dir}")
+                     
                      scanned_order_id = None
                      try:
                          scanned_json = json.loads(payload_str)
                          scanned_order_id = scanned_json.get('order_id')
                      except json.JSONDecodeError:
                          scanned_order_id = payload_str.strip()
+                     
                      if scanned_order_id:
                          gen_filename = f"qr_{scanned_order_id}.png"
                          gen_path = os.path.join(mission_dir, gen_filename)
                          if os.path.exists(gen_path):
-                             self.get_logger().info(f"✅ Verified original QR exists in mission folder: {gen_path}")
+                             self.get_logger().info(f"✅ Verified original QR exists: {gen_path}")
                          else:
-                             self.get_logger().warn(f"⚠️ Original QR not found in {mission_dir} (maybe generated on a different day?)")
+                             self.get_logger().warn(f"⚠️ Original QR not found in {mission_dir}")
+                     
+                     # Save Scanner Evidence
                      evidence_frame = frame.copy()
                      evidence_frame = cv2.resize(evidence_frame, (640, 480))
                      text_str = f"SCANNED: {payload_str}"
@@ -396,15 +505,30 @@ class QrScanner(Node):
                          y = y0 + i*dy
                          cv2.putText(evidence_frame, line, (10, y), 
                                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
-                     timestamp_str = now_dt.strftime("%Y-%m-%d %H:%M:%S")
+                     timestamp_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                      cv2.putText(evidence_frame, f"Time: {timestamp_str}", (10, 460), 
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 1)
+                     
                      save_path = os.path.join(mission_dir, "qr_scan.jpg")
                      cv2.imwrite(save_path, evidence_frame)
                      self.get_logger().info(f"📸 Saved scan evidence to: {save_path}")
                  except Exception as e:
-                     self.get_logger().error(f"Failed to save evidence: {e}")
+                     self.get_logger().error(f"Failed to create folder or save evidence: {e}")
                      traceback.print_exc()
+            # Step 2: Publish Verification Signal (After Path is ready)
+            if is_verified:
+                self.get_logger().info("✅ Scan Complete. Closing Scanner UI first...")
+                self.stop_scanning() 
+                time.sleep(0.5) 
+                self.get_logger().info("🚀 Triggering YOLO Detector...")
+                
+                verified_msg = Bool()
+                verified_msg.data = True
+                self.verified_pub.publish(verified_msg)
+                
+                self.speak("audio_instruction.mp3")
+            else:
+                 pass
             self._publish_status(
                 'qr_scanned', 
                 f'QR: {payload_str} | Verified: {is_verified}'
