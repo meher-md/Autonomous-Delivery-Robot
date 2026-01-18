@@ -9,8 +9,15 @@ from visualization_msgs.msg import Marker, MarkerArray
 from std_srvs.srv import Trigger
 from std_msgs.msg import String
 from math import sin, cos
-current_dir = os.path.dirname(os.path.abspath(__file__))
-DEFAULT_YAML_PATH = os.path.abspath(os.path.join(current_dir, '../maps/hti.yaml'))
+from ament_index_python.packages import get_package_share_directory
+
+try:
+    share_dir = get_package_share_directory('map_info')
+    DEFAULT_YAML_PATH = os.path.join(share_dir, 'maps', 'hti.yaml')
+except Exception as e:
+    # Fallback to local relative path for development if package not installed
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    DEFAULT_YAML_PATH = os.path.abspath(os.path.join(current_dir, '../maps/hti.yaml'))
 def yaw_to_quat(yaw: float):
     return {'x': 0.0, 'y': 0.0, 'z': sin(yaw / 2.0), 'w': cos(yaw / 2.0)}
 def load_named_poses(yaml_path: str):
