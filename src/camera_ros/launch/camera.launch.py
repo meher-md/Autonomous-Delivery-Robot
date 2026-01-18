@@ -58,15 +58,15 @@ def generate_launch_description() -> LaunchDescription:
     ]
 
     # optionally add ImageViewNode to show camera image
-    if has_resource("packages", "image_view"):
-        composable_nodes += [
-            ComposableNode(
-                package='image_view',
-                plugin='image_view::ImageViewNode',
-                remappings=[('/image', '/camera/image_raw')],
-                extra_arguments=[{'use_intra_process_comms': True}],
-            ),
-        ]
+    # if has_resource("packages", "image_view"):
+    #     composable_nodes += [
+    #         ComposableNode(
+    #             package='image_view',
+    #             plugin='image_view::ImageViewNode',
+    #             remappings=[('/image', '/camera/image_raw')],
+    #             extra_arguments=[{'use_intra_process_comms': True}],
+    #         ),
+    #     ]
 
     # composable nodes in single container
     container = ComposableNodeContainer(

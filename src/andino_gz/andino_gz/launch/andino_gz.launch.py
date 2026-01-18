@@ -48,7 +48,7 @@ def generate_launch_description():
     )
     start_app_arg = DeclareLaunchArgument(
         'start_app',
-        default_value='True',
+        default_value='False',
         description='Start application layer (QR scanner, YOLO detector, etc.)',
     )
     rviz = LaunchConfiguration('rviz')

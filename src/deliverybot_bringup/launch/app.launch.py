@@ -55,6 +55,7 @@ def generate_launch_description():
         name='web_video_server',
         parameters=[{
             'port': web_video_port,
+            'address': '0.0.0.0',
             'default_transport': 'compressed'
         }],
         output='screen'
@@ -124,7 +125,7 @@ def generate_launch_description():
         DeclareLaunchArgument('start_slam', default_value='false'),
         DeclareLaunchArgument('start_map_http', default_value='false'),
         DeclareLaunchArgument('map_http_port', default_value='8070'),
-        DeclareLaunchArgument('camera_topic', default_value='/image_raw/compressed'),
+        DeclareLaunchArgument('camera_topic', default_value='/camera/image_raw/compressed'),
         DeclareLaunchArgument('rosbridge_ssl', default_value='true'),
         DeclareLaunchArgument(
             'rosbridge_certfile',
