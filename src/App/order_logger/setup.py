@@ -9,7 +9,7 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
     ],
-    install_requires=['setuptools'],
+    install_requires=['setuptools', 'jinja2', 'pandas', 'streamlit', 'plotly', 'fpdf', 'matplotlib'],
     zip_safe=True,
     maintainer='mo',
     maintainer_email='mohamed.bn.nasser2001@gmail.com',
