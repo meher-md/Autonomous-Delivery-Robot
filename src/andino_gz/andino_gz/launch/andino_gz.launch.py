@@ -12,6 +12,7 @@ from andino_gz.launch_tools.substitutions import TextJoin
 def generate_launch_description():
     pkg_andino_gz = get_package_share_directory('andino_gz')
     pkg_nav2_bringup = get_package_share_directory('nav2_bringup')
+    pkg_robot_localization = get_package_share_directory('robot_localization')
     ros_bridge_arg = DeclareLaunchArgument(
         'ros_bridge', default_value='True', description='Run ROS bridge node.')
     rviz_arg = DeclareLaunchArgument('rviz', default_value='True', description='Start RViz.')
@@ -89,14 +90,14 @@ def generate_launch_description():
                 ),
                 launch_arguments={'gz_args': gz_args}.items(),
             ),
-            Node(
-                package='ros_gz_bridge',
-                executable='parameter_bridge',
-                arguments=['/clock@rosgraph_msgs/msg/Clock[ignition.msgs.Clock'],
-                output='screen',
-                namespace='andino_gz_sim',
-                condition=IfCondition(ros_bridge),
-            ),
+            # Node(
+            #     package='ros_gz_bridge',
+            #     executable='parameter_bridge',
+            #     arguments=['/clock@rosgraph_msgs/msg/Clock[ignition.msgs.Clock'],
+            #     output='screen',
+            #     namespace='andino_gz_sim',
+            #     condition=IfCondition(ros_bridge),
+            # ),
         ]
     )
     robots_list = ParseMultiRobotPose('robots').value()
@@ -137,6 +138,13 @@ def generate_launch_description():
                         'use_sim_time': 'true',
                     }.items(),
                 ),
+                # Node(
+                #     package='robot_localization',
+                #     executable='ekf_node',
+                #     name='ekf_filter_node',
+                #     output='screen',
+                #     parameters=[os.path.join(pkg_andino_gz, 'config', 'ekf.yaml'), {'use_sim_time': True}],
+                # ),
                 Node(
                     condition=IfCondition(PythonExpression([rviz, ' and ', LaunchConfiguration('nav2')])),
                     package='rviz2',
@@ -194,6 +202,7 @@ def generate_launch_description():
                     'autostart': 'True',
                     'use_sim_time': 'True',
                     'params_file': LaunchConfiguration('params_file'),
+                    'use_robot_state_pub': 'False',
                   }.items(),
                   condition=IfCondition(PythonExpression([more_than_one_robot, ' and ', LaunchConfiguration('nav2')])),
               ),
@@ -208,6 +217,7 @@ def generate_launch_description():
                     'autostart': 'True',
                     'use_sim_time': 'True',
                     'params_file': LaunchConfiguration('params_file'),
+                    'use_robot_state_pub': 'False',
                   }.items(),
                   condition=IfCondition(PythonExpression([one_robot, ' and ', LaunchConfiguration('nav2')])),
               ),

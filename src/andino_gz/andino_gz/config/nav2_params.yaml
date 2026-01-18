@@ -20,11 +20,11 @@
 amcl:
   ros__parameters:
     use_sim_time: True
-    alpha1: 0.2
-    alpha2: 0.2
-    alpha3: 0.2
-    alpha4: 0.2
-    alpha5: 0.2
+    alpha1: 0.1
+    alpha2: 0.1
+    alpha3: 0.1
+    alpha4: 0.1
+    alpha5: 0.1
     base_frame_id: "base_footprint"
     beam_skip_distance: 0.5
     beam_skip_error_threshold: 0.9
@@ -40,7 +40,7 @@ amcl:
     max_particles: 3000
     min_particles: 500
     odom_frame_id: "odom"
-    pf_err: 0.05
+    pf_err: 0.02
     pf_z: 0.99
     recovery_alpha_fast: 0.0
     recovery_alpha_slow: 0.0
@@ -153,26 +153,26 @@ controller_server:
     general_goal_checker:
       stateful: True
       plugin: "nav2_controller::SimpleGoalChecker"
-      xy_goal_tolerance: 0.25
-      yaw_goal_tolerance: 0.25
+      xy_goal_tolerance: 0.35
+      yaw_goal_tolerance: 0.30
     # DWB parameters
     FollowPath:
       plugin: "dwb_core::DWBLocalPlanner"
       debug_trajectory_details: True
-      min_vel_x: -0.2
+      min_vel_x: -0.35
       min_vel_y: 0.0
-      max_vel_x: 1.26
+      max_vel_x: 2.2
       max_vel_y: 0.0
-      max_vel_theta: 1.0
+      max_vel_theta: 2.0
       min_speed_xy: 0.0
       max_speed_xy: 6.12
       min_speed_theta: 0.0
-      acc_lim_x: 1.0
+      acc_lim_x: 2.2
       acc_lim_y: 0.0
-      acc_lim_theta: 2.0
-      decel_lim_x: -2.5
+      acc_lim_theta: 2.5
+      decel_lim_x: -2.0
       decel_lim_y: 0.0
-      decel_lim_theta: -3.2
+      decel_lim_theta: -2.5
       vx_samples: 20
       vy_samples: 5
       vtheta_samples: 20
@@ -180,7 +180,7 @@ controller_server:
       linear_granularity: 0.05
       angular_granularity: 0.025
       transform_tolerance: 2.0
-      xy_goal_tolerance: 0.25
+      xy_goal_tolerance: 0.35
       trans_stopped_velocity: 0.25
       short_circuit_trajectory_evaluation: True
       stateful: True
@@ -205,8 +205,8 @@ local_costmap:
       robot_base_frame: base_link
       use_sim_time: True
       rolling_window: true
-      width: 3
-      height: 3
+      width: 2
+      height: 2
       resolution: 0.05
       # robot_radius: 0.12
       footprint: "[ [0.2, 0.23], [0.2, -0.23], [-0.2, -0.23], [-0.2, 0.23] ]"
@@ -214,7 +214,7 @@ local_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 10.0
-        inflation_radius: 0.45
+        inflation_radius: 0.65
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
         enabled: True
@@ -267,7 +267,7 @@ global_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 10.0
-        inflation_radius: 0.45
+        inflation_radius: 0.55
       always_send_full_costmap: True
 
 map_server:
@@ -352,10 +352,10 @@ velocity_smoother:
     smoothing_frequency: 10.0
     scale_velocities: False
     feedback: "OPEN_LOOP"
-    max_velocity: [0.75, 0.0, 4.0]
-    min_velocity: [-0.75, 0.0, -4.0]
-    max_accel: [2.5, 0.0, 3.2]
-    max_decel: [-2.5, 0.0, -3.2]
+    max_velocity: [2.5, 0.0, 4.0]
+    min_velocity: [-2.5, 0.0, -4.0]
+    max_accel: [3.0, 0.0, 3.2]
+    max_decel: [-3.0, 0.0, -3.2]
     odom_topic: "/odom"
     odom_duration: 0.1
     deadband_velocity: [0.0, 0.0, 0.0]

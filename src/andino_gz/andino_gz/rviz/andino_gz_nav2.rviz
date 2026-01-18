@@ -472,7 +472,7 @@ Visualization Manager:
           Value: false
         - Alpha: 1
           Class: rviz_default_plugins/Polygon
-          Color: 25; 255; 0
+          Color: 0; 255; 255
           Enabled: true
           Name: Polygon
           Topic:
@@ -492,8 +492,8 @@ Visualization Manager:
           Axis: Z
           Channel Name: intensity
           Class: rviz_default_plugins/PointCloud2
-          Color: 255; 255; 255
-          Color Transformer: RGB8
+          Color: 0; 255; 255
+          Color Transformer: FlatColor
           Decay Time: 0
           Enabled: true
           Invert Rainbow: false

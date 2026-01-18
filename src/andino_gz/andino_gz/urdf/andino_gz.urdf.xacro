@@ -462,7 +462,7 @@
   
   
   <link
-    name="camera_Link">
+    name="camera_link">
     <inertial>
       <origin
         xyz="0.000117233948187856 1.11022302462516E-16 -0.00287446531611046"
@@ -501,55 +501,12 @@
     <parent
       link="base_link" />
     <child
-      link="camera_Link" />
+      link="camera_link" />
     <axis
       xyz="0 0 0" />
   </joint>
 
-  <link
-    name="imu_Link">
-    <inertial>
-      <origin
-        xyz="9.14669704326077E-05 7.43113497559955E-05 -0.000730279767243657"
-        rpy="0 0 0" />
-      <mass
-        value="0.000641277078130652" />
-      <inertia
-        ixx="1.18623588033942E-08"
-        ixy="-1.25747803912043E-13"
-        ixz="1.37266547980991E-14"
-        iyy="3.31177640674267E-08"
-        iyz="-7.98714410293282E-13"
-        izz="4.4714140581948E-08" />
-    </inertial>
-    <visual>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://andino_description/meshes/imu_Link.STL" />
-      </geometry>
-      <material
-        name="">
-        <color
-          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
-      </material>
-    </visual>
-  </link>
-  <joint
-    name="imu_joint"
-    type="fixed">
-    <origin
-      xyz="0.0019454 0.0099438 0.0016"
-      rpy="0 0 0" />
-    <parent
-      link="base_link" />
-    <child
-      link="imu_Link" />
-    <axis
-      xyz="0 0 0" />
-  </joint>
+  <xacro:imu_sensor parent_link="base_link" sensor_prop="${sensor_prop}" />
   
   <!-- ========================================================= -->
   <!-- Ultrasonic Sensor  -->
@@ -632,14 +589,19 @@
       filename="ignition-gazebo-diff-drive-system"
       name="ignition::gazebo::systems::DiffDrive">
       <left_joint>left_wheel_joint</left_joint>
+      <left_joint>left_back_wheel_joint</left_joint>
       <right_joint>right_wheel_joint</right_joint>
+      <right_joint>right_back_wheel_joint</right_joint>
       <wheel_separation>0.403</wheel_separation>
       <wheel_radius>0.06</wheel_radius>
-      <odom_topic>/unused/diff_drive_odometry</odom_topic>
+      <wheel_radius>0.06</wheel_radius>
+      <publish_odom>false</publish_odom>
+      <publish_wheel_tf>false</publish_wheel_tf>
+      <odom_topic>/unused/diff_drive_odom</odom_topic>
       <tf_topic>/unused/diff_drive_tf</tf_topic>
+      <frame_id>garbage_odom</frame_id>
+      <child_frame_id>garbage_base</child_frame_id>
       <odom_publish_frequency>1</odom_publish_frequency>
-      <frame_id>odom_diff_drive</frame_id>
-      <child_frame_id>base_link</child_frame_id>
     </plugin>
   </gazebo>
 
@@ -647,7 +609,7 @@
     <plugin
       filename="ignition-gazebo-odometry-publisher-system"
       name="ignition::gazebo::systems::OdometryPublisher">
-      <odom_publish_frequency>20</odom_publish_frequency>
+      <odom_publish_frequency>50</odom_publish_frequency>
       <robot_base_frame>base_link</robot_base_frame>
       <odom_frame>odom</odom_frame>
       <tf_topic>/model/andino/tf</tf_topic>
@@ -697,9 +659,9 @@
     </plugin>
   </gazebo>
 
-  <gazebo reference="camera_Link">
+  <gazebo reference="camera_link">
     <sensor name="camera" type="camera">
-      <gz_frame_id>camera_Link</gz_frame_id>
+      <gz_frame_id>camera_link</gz_frame_id>
       <camera>
         <horizontal_fov>1.047</horizontal_fov>
         <image>
