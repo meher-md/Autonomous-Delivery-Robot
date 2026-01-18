@@ -121,6 +121,20 @@ class GoalNameNode(Node):
         self.path_pub.publish(String(data=self.yaml_path))
     def select_map_interactive(self, current_path: str) -> str:
         """Present a menu to select an existing YAML map file or create a new one."""
+        # Resolve symlink to ensure we work with the source file if possible
+        if os.path.exists(current_path):
+             real_path = os.path.realpath(current_path)
+             if real_path != current_path:
+                 print(f"DEBUG: Resolved symlink to source: {real_path}")
+                 current_path = real_path
+        
+        # Custom logic: check for standard 'ws' path shared by team
+        home = os.path.expanduser('~')
+        standard_src_path = os.path.join(home, 'ws', 'src', 'App', 'map_info', 'maps')
+        if os.path.exists(standard_src_path):
+             print(f"DEBUG: Standard source path found, switching to: {standard_src_path}")
+             current_path = os.path.join(standard_src_path, os.path.basename(current_path))
+
         directory = os.path.dirname(current_path)
         if not os.path.exists(directory):
             try:
