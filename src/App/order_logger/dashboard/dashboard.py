@@ -168,12 +168,20 @@ st.subheader("📋 Recent Activity Log")
 def highlight_status(val):
     color = '#28a745' if val == 'Delivered' else '#dc3545'
     return f'color: {color}; font-weight: bold;'
-st.dataframe(
-    filtered_df[['Time_Arrival', 'Order_ID', 'Target_Location', 'Order_Final_Status', 'Date_Full']]
-    .sort_values(by='Time_Arrival', ascending=False)
-    .style.applymap(highlight_status, subset=['Order_Final_Status']),
-    hide_index=True
-)
+try:
+    st.dataframe(
+        filtered_df[['Time_Arrival', 'Order_ID', 'Target_Location', 'Order_Final_Status', 'Date_Full']]
+        .sort_values(by='Time_Arrival', ascending=False)
+        .style.applymap(highlight_status, subset=['Order_Final_Status']),
+        hide_index=True
+    )
+except AttributeError:
+    # Fallback for systems where Jinja2 is missing or incompatible with Pandas
+    st.dataframe(
+        filtered_df[['Time_Arrival', 'Order_ID', 'Target_Location', 'Order_Final_Status', 'Date_Full']]
+        .sort_values(by='Time_Arrival', ascending=False),
+        hide_index=True
+    )
 st.sidebar.markdown("---")
 csv_data = filtered_df.to_csv(index=False).encode('utf-8')
 st.sidebar.download_button(

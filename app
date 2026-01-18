@@ -138,6 +138,12 @@ if [[ -f "${DASHBOARD_SCRIPT}" ]]; then
     echo "  -> Dashboard already running on port ${DASHBOARD_PORT}"
   else
     echo "  -> Starting Streamlit Dashboard on port ${DASHBOARD_PORT}..."
+    
+    # Auto-install dependencies for friends/users who might miss them
+    if [[ -f "${WS_ROOT}/src/App/order_logger/dashboard/requirements.txt" ]]; then
+        pip3 install -r "${WS_ROOT}/src/App/order_logger/dashboard/requirements.txt" >/dev/null 2>&1 || echo "  ⚠️  Auto-install of dashboard requirements failed (might need sudo or venv)"
+    fi
+
     nohup python3 -m streamlit run "${DASHBOARD_SCRIPT}" \
       --server.port="${DASHBOARD_PORT}" \
       --server.address="0.0.0.0" \
