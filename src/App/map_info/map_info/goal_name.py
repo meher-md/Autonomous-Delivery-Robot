@@ -91,7 +91,9 @@ class GoalNameNode(Node):
         self.enable_click_input = self.get_parameter('enable_click_input').get_parameter_value().bool_value
         self.watch_yaml = self.get_parameter('watch_yaml').get_parameter_value().bool_value
         self.watch_interval = self.get_parameter('watch_interval').get_parameter_value().double_value
+        print(f"DEBUG: enable_click_input is {self.enable_click_input}")
         if self.enable_click_input:
+            print(f"DEBUG: Entering select_map_interactive with path {self.yaml_path}")
             self.yaml_path = self.select_map_interactive(self.yaml_path)
         latched_qos = QoSProfile(depth=1)
         latched_qos.reliability = QoSReliabilityPolicy.RELIABLE
