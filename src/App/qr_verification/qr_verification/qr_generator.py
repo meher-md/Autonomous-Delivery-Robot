@@ -13,6 +13,7 @@ from qrcode.image.styledpil import StyledPilImage
 from qrcode.image.styles.moduledrawers import CircleModuleDrawer
 from qrcode.image.styles.colormasks import SquareGradiantColorMask
 from PIL import Image, ImageDraw
+
 class QrGenerator(Node):
     def __init__(self):
         super().__init__('qr_generator')
@@ -65,7 +66,11 @@ class QrGenerator(Node):
                 'address': address,
                 'timestamp': timestamp
             }
-            qr = qrcode.QRCode(version=4, box_size=12, border=4, error_correction=qrcode.constants.ERROR_CORRECT_H)
+            qr = qrcode.QRCode(version=None, box_size=12, border=6, error_correction=qrcode.constants.ERROR_CORRECT_H)
+            #qr arg >> version = None >> auto detect version depending on data size
+            #qr arg >> box_size = 12 >> size of each module in pixels
+            #qr arg >> border = 6 >> border size in modules
+            #qr arg >> error_correction = qrcode.constants.ERROR_CORRECT_H >> error correction level
             qr.add_data(json.dumps(payload))
             qr.make(fit=True)
             img = qr.make_image(image_factory=StyledPilImage,
