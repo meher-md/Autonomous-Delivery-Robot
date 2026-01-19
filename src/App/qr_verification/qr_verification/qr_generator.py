@@ -10,7 +10,7 @@ from io import BytesIO
 from datetime import datetime
 import qrcode
 from qrcode.image.styledpil import StyledPilImage
-from qrcode.image.styles.moduledrawers import CircleModuleDrawer
+from qrcode.image.styles.moduledrawers import SquareModuleDrawer
 from qrcode.image.styles.colormasks import SquareGradiantColorMask
 from PIL import Image, ImageDraw
 
@@ -62,33 +62,33 @@ class QrGenerator(Node):
             order_id = str(uuid.uuid4())[:8]
             timestamp = int(time.time())
             payload = {
-                'order_id': order_id,
-                'address': address,
-                'timestamp': timestamp
+                'order_id':order_id,
+                'address':address,
+                'timestamp':timestamp
             }
-            qr = qrcode.QRCode(version=None, box_size=12, border=6, error_correction=qrcode.constants.ERROR_CORRECT_H)
+            qr = qrcode.QRCode(version=None, box_size=12, border=5, error_correction=qrcode.constants.ERROR_CORRECT_H)
             #qr arg >> version = None >> auto detect version depending on data size
             #qr arg >> box_size = 12 >> size of each module in pixels
-            #qr arg >> border = 6 >> extra safety for poor lighting
-            #qr arg >> error_correction = qrcode.constants.ERROR_CORRECT_H >> error correction level
+            #qr arg >> border = 5 >> safety for poor lighting
+            #qr arg >> error_correction = qrcode.constants.ERROR_CORRECT_H >> very high error correction level
             qr.add_data(json.dumps(payload))
-            qr.make(fit=True)
+            qr.make(fit=True) # The QR will automatically pick the smallest version that can hold the data
             img = qr.make_image(image_factory=StyledPilImage,
-                                module_drawer=CircleModuleDrawer(),
+                                module_drawer=SquareModuleDrawer(),
                                 color_mask=SquareGradiantColorMask(
                                     back_color=(255, 255, 255),
                                     center_color=(0, 120, 215),
                                     edge_color=(50, 50, 50)
                                 )).convert('RGBA')
-            """try:
+            try:
                 logo_path = os.path.join(self.dashboard_dir, 'robot_logo_dashboard.png')
                 if os.path.exists(logo_path):
                     logo = Image.open(logo_path).convert("RGBA")
                     qr_width, qr_height = img.size
-                    logo_size = int(qr_width * 0.25)
+                    logo_size = int(qr_width * 0.22)
                     logo = logo.resize((logo_size, logo_size), Image.Resampling.LANCZOS)
                     pos = ((qr_width - logo_size) // 2, (qr_height - logo_size) // 2)
-                    padding = 10
+                    padding = 8
                     bg_size = (logo_size + padding, logo_size + padding)
                     bg_pos = (pos[0] - padding // 2, pos[1] - padding // 2)
                     draw = ImageDraw.Draw(img)
@@ -97,10 +97,9 @@ class QrGenerator(Node):
                         fill="white"
                     )
                     img.paste(logo, pos, logo)
-                    img = img.convert("RGB")
                     self.get_logger().info("Logo embedded in QR code with white background")
             except Exception as e:
-                self.get_logger().error(f"Failed to embed logo: {e}")"""
+                self.get_logger().error(f"Failed to embed logo: {e}")
             
             # Create Mission Folder Structure
             try:
@@ -119,7 +118,7 @@ class QrGenerator(Node):
                 filepath = os.path.join(mission_dir, filename)
                 
                 # Save the image directly to the mission folder
-                img.save(filepath)
+                img.save(filepath, format='PNG')
                 
                 bio = BytesIO()
                 img.save(bio, format='PNG')
