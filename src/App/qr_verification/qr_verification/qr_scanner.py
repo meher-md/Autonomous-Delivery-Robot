@@ -15,6 +15,7 @@ import asyncio
 import edge_tts
 import tempfile
 import pygame
+
 PYZBAR_AVAILABLE = False
 try:
     from pyzbar import pyzbar
@@ -80,7 +81,9 @@ class QrScanner(Node):
                 self.get_logger().error(f'❌ Failed to initialize Audio Mixer: {e}')
         
         # Simulation Mode Init
-        self.simulation_mode = False
+        self.declare_parameter('use_webcam', False)
+        self.simulation_mode = self.get_parameter('use_webcam').get_parameter_value().bool_value
+        
         self.camera_pub = None
         self.cap = None  # Capture object for simulation
         self.create_timer(2.0, self._late_init_check)
@@ -565,9 +568,11 @@ class QrScanner(Node):
         topic_list = self.get_topic_names_and_types()
         topic_names = [t[0] for t in topic_list]
         
-        if '/clock' in topic_names and not self.simulation_mode:
-            self.get_logger().info('🌍 /clock found! Auto-enabling SIMULATION MODE (Laptop Webcam)')
-            self.simulation_mode = True
+        # If not already enabled by parameter, check for /clock
+        if not self.simulation_mode:
+            if '/clock' in topic_names:
+                self.get_logger().info('🌍 /clock found! Auto-enabling SIMULATION MODE (Laptop Webcam)')
+                self.simulation_mode = True
             
         if self.simulation_mode and not self.camera_pub:
              self.camera_pub = self.create_publisher(CompressedImage, '/camera/image_raw/compressed', 10)
