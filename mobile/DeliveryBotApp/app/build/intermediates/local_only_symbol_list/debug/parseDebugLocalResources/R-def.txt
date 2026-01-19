@@ -1,18 +1,24 @@
 R_DEF: Internal format may change without notice
 local
 color bg_dark
+color blue
 color btn_gray
+color card_bg
+color cyan
 color divider
 color field_bg
 color ic_launcher_background
 color ic_launcher_bg
-color lavender
+color orange
 color pb_bg
 color pb_text_primary
 color pb_text_secondary
+color red
 color text_primary
 color text_secondary
+drawable bg_btn_blue
 drawable bg_btn_primary_blue
+drawable bg_btn_red
 drawable bg_card_cyan
 drawable bg_card_dark
 drawable bg_card_green
@@ -37,7 +43,6 @@ drawable bg_spinner
 drawable bg_video_container
 drawable bg_video_live
 drawable btn_cyan
-drawable btn_lavender
 drawable btn_primary
 drawable custom_progress_bar
 drawable dialog_rounded_bg
@@ -69,7 +74,6 @@ id btnClearHistory
 id btnClose
 id btnCloseDialog
 id btnCloseSettings
-id btnConfirmPhone
 id btnConnect
 id btnCreateOrder
 id btnDeleteConversation
@@ -113,7 +117,6 @@ id downloadProgressBar
 id drawerContent
 id drawerLayout
 id editTextMessage
-id etPhoneInput
 id etSearch
 id gridContainer
 id headerBar
@@ -191,7 +194,6 @@ layout activity_chatbot
 layout activity_dashboard
 layout activity_main
 layout activity_orders
-layout activity_phone
 layout activity_robot_assistant
 layout activity_scan
 layout activity_settings

@@ -81,9 +81,6 @@
             android:name="com.example.deliverybot.AddressActivity"
             android:exported="false" />
         <activity
-            android:name="com.example.deliverybot.PhoneActivity"
-            android:exported="false" />
-        <activity
             android:name="com.example.deliverybot.ScanActivity"
             android:exported="false" />
         <activity
