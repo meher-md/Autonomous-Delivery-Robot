@@ -69,7 +69,7 @@ class QrGenerator(Node):
             qr = qrcode.QRCode(version=None, box_size=12, border=6, error_correction=qrcode.constants.ERROR_CORRECT_H)
             #qr arg >> version = None >> auto detect version depending on data size
             #qr arg >> box_size = 12 >> size of each module in pixels
-            #qr arg >> border = 6 >> border size in modules
+            #qr arg >> border = 6 >> extra safety for poor lighting
             #qr arg >> error_correction = qrcode.constants.ERROR_CORRECT_H >> error correction level
             qr.add_data(json.dumps(payload))
             qr.make(fit=True)
