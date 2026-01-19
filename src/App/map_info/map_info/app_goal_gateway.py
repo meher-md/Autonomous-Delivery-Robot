@@ -5,6 +5,7 @@ from math import sin, cos
 import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionClient
+from rclpy.qos import QoSProfile, QoSDurabilityPolicy, QoSReliabilityPolicy
 try:
     from audio_common_msgs.action import TTS
     TTS_AVAILABLE = True
@@ -77,7 +78,11 @@ class AppGoalGateway(Node):
         self.topic_status = self.get_parameter('topic_status').get_parameter_value().string_value
         self.server_timeout = self.get_parameter('server_timeout').get_parameter_value().double_value
         self.fuzzy_cutoff = float(self.get_parameter('fuzzy_cutoff').get_parameter_value().double_value)
-        self.sub_map_path = self.create_subscription(String, '/app/map_path', self.on_map_path, 10)
+        
+        latched_qos = QoSProfile(depth=1)
+        latched_qos.durability = QoSDurabilityPolicy.TRANSIENT_LOCAL
+        latched_qos.reliability = QoSReliabilityPolicy.RELIABLE
+        self.sub_map_path = self.create_subscription(String, '/app/map_path', self.on_map_path, latched_qos)
         self.sub_goal_name = self.create_subscription(String, self.topic_goal_name, self.on_name, 10)
         self.order_pub = self.create_publisher(String, '/order/json', 10)
         self.pub_status = self.create_publisher(String, self.topic_status, 10)
