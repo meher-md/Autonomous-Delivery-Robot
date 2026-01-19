@@ -223,7 +223,7 @@ class QrScanner(Node):
                 self.get_logger().info(f"🆕 New Order Received! ID: {self.active_order_id}")
                 
                 # --- MISSION FOLDER PATH CALCULATION ---
-                # We expect order_logger to create this folder and move the QR code there.
+                # We expect qr_gendrator to create this folder and move the QR code there.
                 try:
                     now_dt = datetime.datetime.now()
                     year_str = now_dt.strftime("%Y")
