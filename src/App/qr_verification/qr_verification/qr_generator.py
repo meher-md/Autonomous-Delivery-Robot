@@ -80,7 +80,7 @@ class QrGenerator(Node):
                                     center_color=(0, 120, 215),
                                     edge_color=(50, 50, 50)
                                 )).convert('RGBA')
-            try:
+            """try:
                 logo_path = os.path.join(self.dashboard_dir, 'robot_logo_dashboard.png')
                 if os.path.exists(logo_path):
                     logo = Image.open(logo_path).convert("RGBA")
@@ -89,8 +89,8 @@ class QrGenerator(Node):
                     logo = logo.resize((logo_size, logo_size), Image.Resampling.LANCZOS)
                     pos = ((qr_width - logo_size) // 2, (qr_height - logo_size) // 2)
                     padding = 8
-                    bg_size = (logo_size + padding, logo_size + padding)
-                    bg_pos = (pos[0] - padding // 2, pos[1] - padding // 2)
+                    bg_size = (logo_size + padding * 2, logo_size + padding * 2)
+                    bg_pos = (pos[0] - padding, pos[1] - padding) 
                     draw = ImageDraw.Draw(img)
                     draw.rectangle(
                         [bg_pos, (bg_pos[0] + bg_size[0], bg_pos[1] + bg_size[1])],
@@ -99,7 +99,7 @@ class QrGenerator(Node):
                     img.paste(logo, pos, logo)
                     self.get_logger().info("Logo embedded in QR code with white background")
             except Exception as e:
-                self.get_logger().error(f"Failed to embed logo: {e}")
+                self.get_logger().error(f"Failed to embed logo: {e}")"""
             
             # Create Mission Folder Structure
             try:
@@ -116,8 +116,6 @@ class QrGenerator(Node):
                 
                 filename = f"qr_{order_id}.png"
                 filepath = os.path.join(mission_dir, filename)
-                
-                # Save the image directly to the mission folder
                 img.save(filepath, format='PNG')
                 
                 bio = BytesIO()
