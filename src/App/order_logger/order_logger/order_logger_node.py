@@ -85,7 +85,7 @@ class OrderLogger(Node):
         ]
         self.get_logger().info(f'Order Logger Ready. Saving/Updating: {self.csv_path}')
     def on_order_created(self, msg: String):
-        """Handle new order: Create 'Pending' entry immediately."""
+        """Handle new order: Create 'Pending' entry immediately and setup mission folder."""
         try:
             data = json.loads(msg.data)
             order_id = data.get("order_id")
@@ -100,6 +100,7 @@ class OrderLogger(Node):
             # ------------------------------------
 
             self.get_logger().info(f"🆕 New Order detected: {order_id}. Logging initial state...")
+
             now = datetime.now()
             # target_loc is already extracted above
             row_data = {

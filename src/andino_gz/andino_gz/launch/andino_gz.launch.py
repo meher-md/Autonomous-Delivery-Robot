@@ -43,7 +43,7 @@ def generate_launch_description():
     )
     use_webcam_arg = DeclareLaunchArgument(
         'use_webcam',
-        default_value='True',
+        default_value='False',
         description='Use laptop webcam for compressed stream (QR/YOLO)',
     )
     start_app_arg = DeclareLaunchArgument(

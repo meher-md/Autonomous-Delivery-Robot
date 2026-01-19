@@ -1,9 +1,5 @@
 
-import qrcode
-from qrcode.image.styledpil import StyledPilImage
-from qrcode.image.styles.moduledrawers import CircleModuleDrawer
-from qrcode.image.styles.colormasks import SquareGradiantColorMask
-from PIL import Image, ImageDraw
+
 import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionClient
@@ -84,6 +80,13 @@ class QrScanner(Node):
                 self.get_logger().info('✅ Audio Mixer Initialized for Edge TTS')
             except Exception as e:
                 self.get_logger().error(f'❌ Failed to initialize Audio Mixer: {e}')
+        
+        # Simulation Mode Init
+        self.simulation_mode = False
+        self.camera_pub = None
+        self.cap = None  # Capture object for simulation
+        self.create_timer(2.0, self._late_init_check)
+
         self._publish_status('initialized', 'Scanner initialized, waiting for arrival...')
     def speak(self, filename):
         """
@@ -92,7 +95,7 @@ class QrScanner(Node):
         def _play():
             try:
                 # Use absolute path to the pre-generated asset
-                audio_path = f"/home/mo/ws/src/App/audio_assets/{filename}"
+                audio_path = os.path.expanduser(f"~/ws/src/App/audio_assets/{filename}")
                 if os.path.exists(audio_path):
                     # Re-init mixer with correct frequency if needed, or just init
                     if not pygame.mixer.get_init():
@@ -221,7 +224,8 @@ class QrScanner(Node):
                 self.active_order_id = new_id
                 self.get_logger().info(f"🆕 New Order Received! ID: {self.active_order_id}")
                 
-                # --- IMMEDIATE FOLDER & QR GENERATION START ---
+                # --- MISSION FOLDER PATH CALCULATION ---
+                # We expect order_logger to create this folder and move the QR code there.
                 try:
                     now_dt = datetime.datetime.now()
                     year_str = now_dt.strftime("%Y")
@@ -231,69 +235,14 @@ class QrScanner(Node):
                     
                     base_dir = os.path.expanduser("~/ws/mission_proof")
                     mission_dir = os.path.join(base_dir, year_str, month_str, day_str, folder_name)
-                    os.makedirs(mission_dir, exist_ok=True)
-                    self.get_logger().info(f"📂 Created mission directory early: {mission_dir}")
                     
                     # Store this folder for the entire mission life-cycle
                     self.current_mission_folder = mission_dir
-                    
-                    # Generate QR Image
-                    qr_filename = f"qr_{new_id}.png"
-                    qr_path = os.path.join(mission_dir, qr_filename)
-                    if not os.path.exists(qr_path):
-                        qr_payload = msg.data 
-                        
-                        # Generate STYLED QR to match app
-                        qr = qrcode.QRCode(
-                            version=1, 
-                            box_size=12, 
-                            border=4, 
-                            error_correction=qrcode.constants.ERROR_CORRECT_H
-                        )
-                        qr.add_data(qr_payload)
-                        qr.make(fit=True)
-                        img = qr.make_image(
-                            image_factory=StyledPilImage,
-                            module_drawer=CircleModuleDrawer(),
-                            color_mask=SquareGradiantColorMask(
-                                back_color=(255, 255, 255),
-                                center_color=(0, 120, 215),
-                                edge_color=(50, 50, 50)
-                            )
-                        ).convert('RGBA')
-                        
-                        # LOGO EMBEDDING LOGIC
-                        try:
-                            logo_path = os.path.join(self.dashboard_dir, 'robot_logo_dashboard.png')
-                            if os.path.exists(logo_path):
-                                logo = Image.open(logo_path).convert("RGBA")
-                                qr_width, qr_height = img.size
-                                logo_size = int(qr_width * 0.25)
-                                logo = logo.resize((logo_size, logo_size), Image.Resampling.LANCZOS)
-                                pos = ((qr_width - logo_size) // 2, (qr_height - logo_size) // 2)
-                                padding = 10
-                                bg_size = (logo_size + padding, logo_size + padding)
-                                bg_pos = (pos[0] - padding // 2, pos[1] - padding // 2)
-                                draw = ImageDraw.Draw(img)
-                                draw.rectangle(
-                                    [bg_pos, (bg_pos[0] + bg_size[0], bg_pos[1] + bg_size[1])],
-                                    fill="white"
-                                )
-                                img.paste(logo, pos, logo)
-                                img = img.convert("RGB") # Convert back to RGB for saving if needed, usually RGBA is fine for PNG
-                            else:
-                                 self.get_logger().warn(f"Logo file not found at: {logo_path}")
-                        except Exception as logo_err:
-                            self.get_logger().error(f"Failed to embed logo: {logo_err}")
+                    self.get_logger().info(f"📂 Tracking mission directory: {mission_dir}")
 
-                        img.save(qr_path)
-                        self.get_logger().info(f"🖼️ Generated and saved STYLED QR code + Logo to: {qr_path}")
-                    else:
-                        self.get_logger().info(f"ℹ️ QR code image already exists: {qr_path}")
-                        
                 except Exception as e:
-                    self.get_logger().error(f"Failed to generate early QR/Folder: {e}")
-                # --- IMMEDIATE FOLDER & QR GENERATION END ---
+                    self.get_logger().error(f"Failed to calculate mission folder path: {e}")
+                # ---------------------------------------
 
             else:
                 self.get_logger().info("New order received (no ID found in payload)")
@@ -610,6 +559,52 @@ class QrScanner(Node):
         except Exception as e:
             self.get_logger().error(f'Error scheduling return to R403: {e}')
             self._timer_scheduled = False
+
+    def _late_init_check(self):
+        if hasattr(self, '_checked_env'): return
+        self._checked_env = True
+        
+        topic_list = self.get_topic_names_and_types()
+        topic_names = [t[0] for t in topic_list]
+        
+        if '/clock' in topic_names and not self.simulation_mode:
+            self.get_logger().info('🌍 /clock found! Auto-enabling SIMULATION MODE (Laptop Webcam)')
+            self.simulation_mode = True
+            
+        if self.simulation_mode and not self.camera_pub:
+             self.camera_pub = self.create_publisher(CompressedImage, '/camera/image_raw/compressed', 10)
+             self.get_logger().info('📢 Late-Init: Publisher created for Simulation Mode')
+             
+             # Start Capture Loop for Simulation
+             try:
+                 self.cap = cv2.VideoCapture(0)
+                 if not self.cap.isOpened():
+                     self.get_logger().error("Cannot open webcam")
+                 else:
+                     self.create_timer(0.05, self.publish_sim_frame) # ~20fps
+                     self.get_logger().info('📷 Webcam opened for simulation')
+             except Exception as e:
+                 self.get_logger().error(f"Failed to start sim camera: {e}")
+
+    def publish_sim_frame(self):
+        """
+        Publish webcam frame if in simulation mode.
+        """
+        if self.simulation_mode and hasattr(self, 'cap') and self.cap and self.cap.isOpened():
+            ret, frame = self.cap.read()
+            if ret:
+                msg = CompressedImage()
+                msg.header.stamp = self.get_clock().now().to_msg()
+                msg.format = "jpeg"
+                msg.data = np.array(cv2.imencode('.jpg', frame)[1]).tobytes()
+                self.camera_pub.publish(msg)
+
+    def destroy_node(self):
+        if hasattr(self, 'cap') and self.cap:
+             self.cap.release()
+        cv2.destroyAllWindows()
+        super().destroy_node()
+
 def main(args=None):
     rclpy.init(args=args)
     node = QrScanner()

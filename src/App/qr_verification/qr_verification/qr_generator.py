@@ -65,7 +65,7 @@ class QrGenerator(Node):
                 'address': address,
                 'timestamp': timestamp
             }
-            qr = qrcode.QRCode(version=1, box_size=12, border=4, error_correction=qrcode.constants.ERROR_CORRECT_H)
+            qr = qrcode.QRCode(version=4, box_size=12, border=4, error_correction=qrcode.constants.ERROR_CORRECT_H)
             qr.add_data(json.dumps(payload))
             qr.make(fit=True)
             img = qr.make_image(image_factory=StyledPilImage,
@@ -75,7 +75,7 @@ class QrGenerator(Node):
                                     center_color=(0, 120, 215),
                                     edge_color=(50, 50, 50)
                                 )).convert('RGBA')
-            try:
+            """try:
                 logo_path = os.path.join(self.dashboard_dir, 'robot_logo_dashboard.png')
                 if os.path.exists(logo_path):
                     logo = Image.open(logo_path).convert("RGBA")
@@ -95,28 +95,44 @@ class QrGenerator(Node):
                     img = img.convert("RGB")
                     self.get_logger().info("Logo embedded in QR code with white background")
             except Exception as e:
-                self.get_logger().error(f"Failed to embed logo: {e}")
-            # Don't create folder or save QR image here - qr_scanner will do that
-            # Just generate and send the QR to the app
-            filename = f"qr_{order_id}.png"
-            # Save to temporary location (will be moved to mission folder by qr_scanner)
-            temp_dir = "/tmp"
-            os.makedirs(temp_dir, exist_ok=True)
-            filepath = os.path.join(temp_dir, filename)
-            img.save(filepath)
-            bio = BytesIO()
-            img.save(bio, format='PNG')
-            b64_png = base64.b64encode(bio.getvalue()).decode('utf-8')
-            resp = {
-                'qr_b64_png': b64_png,
-                'payload': payload,
-                'filename': filename
-            }
-            msg_out = String()
-            msg_out.data = json.dumps(resp)
-            self.pub.publish(msg_out)
-            self._log_to_order_history(order_id, address, timestamp, filename, filepath)
-            self.get_logger().info(f"Generated QR for order {order_id} (saved to {filepath})")
+                self.get_logger().error(f"Failed to embed logo: {e}")"""
+            
+            # Create Mission Folder Structure
+            try:
+                now_dt = datetime.now()
+                year_str = now_dt.strftime("%Y")
+                month_str = now_dt.strftime("%B") 
+                day_str = now_dt.strftime("%d")
+                folder_name = f"mission_{order_id}"
+                
+                base_dir = os.path.expanduser("~/ws/mission_proof")
+                mission_dir = os.path.join(base_dir, year_str, month_str, day_str, folder_name)
+                os.makedirs(mission_dir, exist_ok=True)
+                self.get_logger().info(f"📂 Created mission directory: {mission_dir}")
+                
+                filename = f"qr_{order_id}.png"
+                filepath = os.path.join(mission_dir, filename)
+                
+                # Save the image directly to the mission folder
+                img.save(filepath)
+                
+                bio = BytesIO()
+                img.save(bio, format='PNG')
+                b64_png = base64.b64encode(bio.getvalue()).decode('utf-8')
+                resp = {
+                    'qr_b64_png': b64_png,
+                    'payload': payload,
+                    'filename': filename
+                }
+                msg_out = String()
+                msg_out.data = json.dumps(resp)
+                self.pub.publish(msg_out)
+                self._log_to_order_history(order_id, address, timestamp, filename, filepath)
+                self.get_logger().info(f"Generated QR for order {order_id} (saved to {filepath})")
+            except Exception as e:
+                self.get_logger().error(f"Failed to create mission folder or save QR: {e}")
+                # Fallback to tmp if critical failure, to ensure app still gets a QR? 
+                # For now, we assume this must succeed for the flow to work.
         except Exception as e:
             self.get_logger().error(f"QR generation failed: {e}")
     def _log_to_order_history(self, order_id: str, address: str, timestamp: int, filename: str, filepath: str):

@@ -71,11 +71,11 @@ Date_Full,Year,Month,Day_Name,Time_Arrival,Order_ID,Target_Location,QR_Scan_Stat
 01-05-26,2026.0,January,Monday,19:00:00,e60b2fd7,A,Verified,Thumb Up,36,2.7,6.1,Delivered
 01-05-26,2026.0,January,Monday,19:25:00,df3bbaf7,A,Verified,Thumb Up,33,1.4,6.0,Delivered
 2026-01-06,2026.0,January,Tuesday,17:10:57,TEST_VERIFY_999,TEST_LOC,Pending,Pending,0,0.0,0.0,In Progress
-,,,,,UNKNOWN,,Failed,None,45,2.5,120.5,Failed
+,,,,,UNKNOWN,,Failed,,45,2.5,120.5,Failed
 2026-01-10,2026.0,January,Saturday,15:34:17,6F07A57E,Lab,Pending,Pending,0,0.0,0.0,In Progress
 2026-01-10,2026.0,January,Saturday,15:34:55,TEST_MANUAL,Manual Test,Pending,Pending,0,0.0,0.0,In Progress
 2026-01-10,2026.0,January,Saturday,15:50:46,4D72A96A,Lobby,Pending,Pending,0,0.0,0.0,In Progress
-2026-01-13,2026.0,January,Tuesday,19:13:29,B729DE9A,Lobby,Failed,None,45,2.5,120.5,Failed
+2026-01-13,2026.0,January,Tuesday,19:13:29,B729DE9A,Lobby,Failed,,45,2.5,120.5,Failed
 2026-01-13,2026.0,January,Tuesday,19:15:35,7F73618B,PKG,Pending,Pending,0,0.0,0.0,In Progress
 2026-01-17,2026.0,January,Saturday,07:58:33,TEST_1768629513,TEST_LAB,Verified,Thumb Up,10,1.5,50.0,Delivered
 2026-01-17,2026.0,January,Saturday,08:00:44,TEST_1768629644,TEST_LAB,Verified,Thumb Up,10,1.5,50.0,Delivered
@@ -86,7 +86,7 @@ Date_Full,Year,Month,Day_Name,Time_Arrival,Order_ID,Target_Location,QR_Scan_Stat
 2026-01-17,2026.0,January,Saturday,08:55:38,7CE7297C,Lobby,Pending,Pending,0,0.0,0.0,In Progress
 2026-01-17,2026.0,January,Saturday,09:25:32,DAF9A4D6,Lobby,Pending,Pending,0,0.0,0.0,In Progress
 2026-01-17,2026.0,January,Saturday,09:43:47,BBDC16A9,Lobby,Pending,Pending,0,0.0,0.0,In Progress
-,,,,,79d273c2,,Verified,None,45,2.5,120.5,Delivered (No Gesture)
+,,,,,79d273c2,,Verified,,45,2.5,120.5,Delivered (No Gesture)
 2026-01-17,2026.0,January,Saturday,09:46:03,1AD57EF7,PKG,Pending,Pending,0,0.0,0.0,In Progress
 2026-01-17,2026.0,January,Saturday,09:57:47,FCEE6B75,Lobby,Pending,Pending,0,0.0,0.0,In Progress
 2026-01-17,2026.0,January,Saturday,10:42:38,2CBD3998,Lobby,Pending,Pending,0,0.0,0.0,In Progress
@@ -120,9 +120,18 @@ Date_Full,Year,Month,Day_Name,Time_Arrival,Order_ID,Target_Location,QR_Scan_Stat
 2026-01-17,2026.0,January,Saturday,13:13:33,D9A2E21B,Lobby,Pending,Pending,0,0.0,0.0,In Progress
 ,,,,,685e8c8b,,Verified,Thumb Up,45,2.5,120.5,Delivered
 2026-01-17,2026.0,January,Saturday,14:54:08,3C30825F,A,Pending,Pending,0,0.0,0.0,In Progress
-2026-01-17,2026.0,January,Saturday,14:54:09,2EFFFDBF,A,Failed,None,45,2.5,120.5,Failed
-2026-01-17,2026.0,January,Saturday,15:58:16,A61F81B8,A,Failed,None,45,2.5,120.5,Failed
+2026-01-17,2026.0,January,Saturday,14:54:09,2EFFFDBF,A,Failed,,45,2.5,120.5,Failed
+2026-01-17,2026.0,January,Saturday,15:58:16,A61F81B8,A,Failed,,45,2.5,120.5,Failed
 2026-01-17,2026.0,January,Saturday,16:12:52,CF7E65C8,A,Pending,Pending,0,0.0,0.0,In Progress
 ,,,,,322cdff9,,Verified,Thumb Up,45,2.5,120.5,Delivered
 2026-01-19,2026.0,January,Monday,08:44:16,98869188,A,Pending,Pending,0,0.0,0.0,In Progress
-N/A,N/A,N/A,N/A,N/A,fa75bc1e,N/A,Verified,Thumb Up,45,2.5,120.5,Delivered
+,,,,,fa75bc1e,,Verified,Thumb Up,45,2.5,120.5,Delivered
+2026-01-19,2026.0,January,Monday,15:22:04,F63360F9,test,Pending,Pending,0,0.0,0.0,In Progress
+2026-01-19,2026.0,January,Monday,15:22:33,09DCAE58,Lobby,Pending,Pending,0,0.0,0.0,In Progress
+2026-01-19,2026.0,January,Monday,15:28:48,4EA69C6C,test,Pending,Pending,0,0.0,0.0,In Progress
+2026-01-19,2026.0,January,Monday,15:29:40,B8B16EE6,test,Pending,Pending,0,0.0,0.0,In Progress
+,,,,,ce8aeaad,,Verified,Thumb Up,45,2.5,120.5,Delivered
+2026-01-19,2026.0,January,Monday,15:37:58,2EDEBDB2,test,Pending,Pending,0,0.0,0.0,In Progress
+,,,,,1c7ee2d8,,Verified,Thumb Up,45,2.5,120.5,Delivered
+2026-01-19,2026.0,January,Monday,15:43:49,0317C1EE,test,Pending,Pending,0,0.0,0.0,In Progress
+N/A,N/A,N/A,N/A,N/A,9160a40b,N/A,Verified,Thumb Up,45,2.5,120.5,Delivered

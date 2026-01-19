@@ -82,6 +82,11 @@ class LikeDetectorNode(Node):
         # Countdown Timer (Requested by User)
         self.target_start_time = 0.0
         
+        # Simulation Mode Init
+        self.simulation_mode = False
+        self.camera_pub = None
+        self.create_timer(2.0, self._late_init_check)
+
         self.get_logger().info("Like Detector Node (Passive) ready. Waiting for QR Verification...")
     
     def load_class_names(self):
@@ -379,6 +384,21 @@ class LikeDetectorNode(Node):
         cv2.destroyAllWindows()
         pygame.mixer.quit()
         super().destroy_node()
+
+    def _late_init_check(self):
+        if hasattr(self, '_checked_env'): return
+        self._checked_env = True
+        
+        topic_list = self.get_topic_names_and_types()
+        topic_names = [t[0] for t in topic_list]
+        
+        if '/clock' in topic_names and not self.simulation_mode:
+            self.get_logger().info('🌍 /clock found! Auto-enabling SIMULATION MODE (Laptop Webcam)')
+            self.simulation_mode = True
+            
+        if self.simulation_mode and not self.camera_pub:
+             self.camera_pub = self.create_publisher(CompressedImage, '/camera/image_raw/compressed', 10)
+             self.get_logger().info('📢 Late-Init: Publisher created for Simulation Mode')
 
 def main(args=None):
     rclpy.init(args=args)
