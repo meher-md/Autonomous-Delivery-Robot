@@ -41,15 +41,7 @@ from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
 
 
-from launch.actions import DeclareLaunchArgument
-from launch.conditions import IfCondition
-from launch.substitutions import LaunchConfiguration
-
 def generate_launch_description():
-    declare_use_ultrasonic_cmd = DeclareLaunchArgument(
-        'use_ultrasonic',
-        default_value='True',
-        description='Whether to start ultrasonic sensor broadcaster')
 
     controller_params_file = os.path.join(get_package_share_directory("andino_control"),'config','andino_controllers.yaml')
 
@@ -88,23 +80,15 @@ def generate_launch_description():
         executable="spawner",
         arguments=["imu_sensor_broadcaster", "--controller-manager", "/controller_manager"],
     )
-    ultrasonic_broadcaster_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["ultrasonic_broadcaster", "--controller-manager", "/controller_manager"],
-        condition=IfCondition(LaunchConfiguration("use_ultrasonic"))
-    )
-
     # Delay start of diff_drive_controller_spawner after `joint_state_broadcaster`
     delay_diff_drive_controller_spawner_after_joint_state_broadcaster_spawner = RegisterEventHandler(
         event_handler=OnProcessExit(
             target_action=joint_state_broadcaster_spawner,
-            on_exit=[diff_drive_controller_spawner, imu_sensor_broadcaster_spawner, ultrasonic_broadcaster_spawner],
+            on_exit=[diff_drive_controller_spawner, imu_sensor_broadcaster_spawner],
         )
     )
 
     nodes = [
-        declare_use_ultrasonic_cmd,
         control_node,
         joint_state_broadcaster_spawner,
         delay_diff_drive_controller_spawner_after_joint_state_broadcaster_spawner,

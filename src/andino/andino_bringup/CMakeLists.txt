@@ -12,11 +12,4 @@ install(
     share/${PROJECT_NAME}
 )
 
-install(
-  PROGRAMS
-    scripts/range_to_laserscan.py
-  DESTINATION
-    lib/${PROJECT_NAME}
-)
-
 ament_package()

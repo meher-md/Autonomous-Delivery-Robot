@@ -64,8 +64,11 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "app.h"
 
+#include <Adafruit_BNO055.h>
+#include <Adafruit_Sensor.h>
 #include <Arduino.h>
 #include <Wire.h>
+#include <utility/imumaths.h>
 
 #include "commands.h"
 #include "constants.h"
@@ -118,14 +121,7 @@ unsigned long App::last_set_motors_speed_cmd_{0};
 
 bool App::is_imu_connected{false};
 
-MPU6050 App::mpu_;
-
-// NewPing Init (Max Distance 400cm)
-NewPing App::sonar_(Hw::kSonarTriggerPin, Hw::kSonarEchoPin, 400);
-unsigned long App::ping_timer_{0};
-volatile int App::current_distance_cm_{0};
-
-
+Adafruit_BNO055 App::bno055_imu_{/*sensorID=*/55, BNO055_ADDRESS_A, &Wire};
 
 void App::setup() {
   // Required by Arduino libraries to work.
@@ -156,38 +152,17 @@ void App::setup() {
   shell_.register_command(Commands::kSetPidsTuningGains, cmd_set_pid_tuning_gains_cb);
   shell_.register_command(Commands::kGetIsImuConnected, cmd_get_is_imu_connected_cb);
   shell_.register_command(Commands::kReadEncodersAndImu, cmd_read_encoders_and_imu_cb);
-  shell_.register_command(Commands::kReadSonar, cmd_read_sonar_cb);
-  shell_.register_command(Commands::kReadImuStatus, cmd_read_imu_status_cb);
 
-  // Initialize MPU6050
-  Wire.begin();
-  Wire.setClock(400000); // Fast Mode I2C
-  mpu_.initialize();
-  Serial.println("Calibrating IMU... Keep robot still.");
-  mpu_.CalibrateGyro();
-  mpu_.CalibrateAccel();
-  Serial.println("IMU Calibrated."); // Default: Gyro 250dps, Accel 2g
-  is_imu_connected = mpu_.testConnection();
-
-  if (is_imu_connected) {
-    Serial.println("IMU Init: SUCCESS (MPU6050)");
-  } else {
-    Serial.println("IMU Init: FAILED (MPU6050)");
+  // Initialize IMU sensor.
+  if (bno055_imu_.begin()) {
+    bno055_imu_.setExtCrystalUse(true);
+    is_imu_connected = true;
   }
-  
-  // Init Ping Timer (Start 50ms from now)
-  ping_timer_ = millis() + 50;
 }
 
 void App::loop() {
   // Process command prompt input.
   shell_.process_input();
-
-  // Non-blocking Sonar Ping (Every 50ms)
-  if (millis() >= ping_timer_) {
-    ping_timer_ += 50;
-    sonar_.ping_timer(echoCheck);
-  }
 
   // Compute PID output at the configured rate.
   if ((millis() - last_pid_computation_) > Constants::kPidPeriod) {
@@ -204,12 +179,6 @@ void App::loop() {
   // Required by Arduino libraries to work.
   if (serialEventRun) {
     serialEventRun();
-  }
-}
-
-void App::echoCheck() {
-  if (sonar_.check_timer()) {
-    current_distance_cm_ = sonar_.ping_result / US_ROUNDTRIP_CM;
   }
 }
 
@@ -354,48 +323,39 @@ void App::cmd_read_encoders_and_imu_cb(int, char**) {
   Serial.print(right_encoder_.read());
   Serial.print(" ");
 
-  // MPU6050 limits: Accel +/- 2g, Gyro +/- 250dps
-  // 1g = 16384 LSB, 1dps = 131 LSB
-  int16_t ax, ay, az;
-  int16_t gx, gy, gz;
-  mpu_.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-
-  // Default Identity Quaternion (x, y, z, w)
-  Serial.print("0.0000 0.0000 0.0000 1.0000 ");
-
-  // Angular velocity (rad/s)
-  // (raw / 131.0) * (PI / 180.0) ~= raw * 0.000133158
-  Serial.print(gx * 0.000133158);
+  // Retrieve absolute orientation (quaternion). See
+  // https://learn.adafruit.com/adafruit-bno055-absolute-orientation-sensor/overview for further
+  // information.
+  imu::Quaternion orientation = bno055_imu_.getQuat();
+  Serial.print(orientation.x(), 4);
   Serial.print(" ");
-  Serial.print(gy * 0.000133158);
+  Serial.print(orientation.y(), 4);
   Serial.print(" ");
-  Serial.print(gz * 0.000133158);
+  Serial.print(orientation.z(), 4);
+  Serial.print(" ");
+  Serial.print(orientation.w(), 4);
   Serial.print(" ");
 
-  // Linear acceleration (m/s^2)
-  // (raw / 16384.0) * 9.81 ~= raw * 0.000598755
-  Serial.print(ax * 0.000598755);
+  // Retrieve angular velocity (rad/s). See
+  // https://learn.adafruit.com/adafruit-bno055-absolute-orientation-sensor/overview for further
+  // information.
+  imu::Vector<3> angular_velocity = bno055_imu_.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
+  Serial.print(angular_velocity.x());
   Serial.print(" ");
-  Serial.print(ay * 0.000598755);
+  Serial.print(angular_velocity.y());
   Serial.print(" ");
-  Serial.println(az * 0.000598755);
-}
+  Serial.print(angular_velocity.z());
+  Serial.print(" ");
 
-void App::cmd_read_imu_status_cb(int, char**) {
-  Serial.print("Connection:");
-  Serial.print(mpu_.testConnection());
-  Serial.print(" DevID:0x");
-  Serial.println(mpu_.getDeviceID(), HEX);
-}
-
-void App::cmd_read_sonar_cb(int, char**) {
-  // Return cached non-blocking value
-  // If 0, it means no echo (out of range) -> Return 5.0m (Free Space)
-  if (current_distance_cm_ == 0) {
-      Serial.println("5.0");
-  } else {
-      Serial.println(current_distance_cm_ / 100.0, 3);
-  }
+  // Retrieve linear acceleration (m/s^2). See
+  // https://learn.adafruit.com/adafruit-bno055-absolute-orientation-sensor/overview for further
+  // information.
+  imu::Vector<3> linear_acceleration = bno055_imu_.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
+  Serial.print(linear_acceleration.x());
+  Serial.print(" ");
+  Serial.print(linear_acceleration.y());
+  Serial.print(" ");
+  Serial.print(linear_acceleration.z());
 }
 
 }  // namespace andino

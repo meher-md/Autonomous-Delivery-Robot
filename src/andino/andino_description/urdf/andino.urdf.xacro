@@ -648,38 +648,7 @@
       xyz="0 0 0" />
   </joint>
   
-  <!-- ========================================================= -->
-  <!-- Ultrasonic Sensor  -->
-  <!-- ========================================================= -->
-  <link name="ultrasonic_sensor_link">
-    <visual>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <geometry>
-        <box size="0.02 0.04 0.02"/>
-      </geometry>
-      <material name="blue">
-        <color rgba="0.0 0.0 1.0 1.0"/>
-      </material>
-    </visual>
-    <collision>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <geometry>
-        <box size="0.02 0.04 0.02"/>
-      </geometry>
-    </collision>
-    <inertial>
-      <mass value="0.01"/>
-      <inertia ixx="1e-5" ixy="0" ixz="0" iyy="1e-5" iyz="0" izz="1e-5"/>
-    </inertial>
-  </link>
-
-  <joint name="ultrasonic_joint" type="fixed">
-    <parent link="base_link"/>
-    <child link="ultrasonic_sensor_link"/>
-    <origin xyz="0.22 0 0.02" rpy="0 0 0"/>
-  </joint>
-
-  <!-- ====== ROS 2 Control (hardware interfaces) ====== -->
+    <!-- ====== ROS 2 Control (hardware interfaces) ====== -->
   <xacro:if value="$(arg use_real_ros_control)">
     <xacro:include filename="$(find ${package_name})/urdf/include/andino_control.urdf.xacro" />
     <xacro:control hardware_props="${hardware_props}" />

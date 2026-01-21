@@ -39,7 +39,6 @@
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_lifecycle/node_interfaces/lifecycle_node_interface.hpp>
 #include <rclcpp_lifecycle/state.hpp>
-#include "sensor_msgs/msg/range.hpp"
 
 #include "andino_base/imu.h"
 #include "andino_base/motor_driver.h"
@@ -104,13 +103,6 @@ class DiffDriveAndino : public hardware_interface::SystemInterface {
   Wheel right_wheel_;
   // IMU.
   Imu imu_;
-  
-  double sonar_distance_{-1.0};
-  int sonar_poll_counter_{0};
-  
-  // Publisher for ultrasonic data (Directly from HW interface for simplicity)
-  rclcpp::Publisher<sensor_msgs::msg::Range>::SharedPtr sonar_pub_;
-
   // logger
   rclcpp::Logger logger_{rclcpp::get_logger("DiffDriveAndino")};
 };

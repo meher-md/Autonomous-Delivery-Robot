@@ -29,9 +29,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
-#include <Wire.h>
-#include <MPU6050.h>
-#include <NewPing.h>
+#include <Adafruit_BNO055.h>
 
 #include "digital_out_arduino.h"
 #include "encoder.h"
@@ -92,8 +90,6 @@ class App {
 
   /// Callback method for the `Commands::kReadEncodersAndImu` command.
   static void cmd_read_encoders_and_imu_cb(int argc, char** argv);
-  static void cmd_read_sonar_cb(int argc, char** argv);
-  static void cmd_read_imu_status_cb(int argc, char** argv);
 
   /// Serial stream.
   static SerialStreamArduino serial_stream_;
@@ -127,8 +123,8 @@ class App {
   static Pid left_pid_controller_;
   static Pid right_pid_controller_;
 
-  /// MPU6050 IMU sensor.
-  static MPU6050 mpu_;
+  /// Adafruit BNO055 IMU sensor.
+  static Adafruit_BNO055 bno055_imu_;
 
   /// Tracks the last time the PID computation was made.
   static unsigned long last_pid_computation_;
@@ -138,12 +134,6 @@ class App {
 
   /// Tracks whether there is an IMU sensor connected.
   static bool is_imu_connected;
-
-  // NewPing Non-Blocking Members
-  static NewPing sonar_;
-  static unsigned long ping_timer_; // When to ping next
-  static volatile int current_distance_cm_; // Updated by ISR
-  static void echoCheck(); // ISR callback
 };
 
 }  // namespace andino

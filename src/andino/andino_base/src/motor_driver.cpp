@@ -50,16 +50,11 @@ void MotorDriver::Setup(const std::string& serial_device, int32_t baud_rate, int
   std::this_thread::sleep_for(std::chrono::seconds(20));
   
   // TODO: Use baud_rate from parameter.
-  // Configure the serial port.
-  if (baud_rate == 57600) {
-    serial_port_.SetBaudRate(LibSerial::BaudRate::BAUD_57600);
-  } else if (baud_rate == 115200) {
-    serial_port_.SetBaudRate(LibSerial::BaudRate::BAUD_115200);
-  } else {
-    std::cerr << "Baud rate " << baud_rate << " not supported. Defaulting to 57600." << std::endl;
-    serial_port_.SetBaudRate(LibSerial::BaudRate::BAUD_57600);
+  if (baud_rate != 57600) {
+    std::cerr << "A baudrate different than 57600 is not supported yet." << std::endl;
   }
-
+  // Configure the serial port.
+  serial_port_.SetBaudRate(LibSerial::BaudRate::BAUD_57600);
   serial_port_.SetCharacterSize(LibSerial::CharacterSize::CHAR_SIZE_8);
   serial_port_.SetParity(LibSerial::Parity::PARITY_NONE);
   serial_port_.SetStopBits(LibSerial::StopBits::STOP_BITS_1);
@@ -100,15 +95,6 @@ MotorDriver::Encoders MotorDriver::ReadEncoderValues() {
     is >> val;
   }
   return enc;
-}
-
-double MotorDriver::ReadSonar() {
-  std::string response = SendMsg("s");
-  try {
-      return std::stod(response);
-  } catch (...) {
-      return -1.0;
-  }
 }
 
 void MotorDriver::SetMotorValues(int val_1, int val_2) {

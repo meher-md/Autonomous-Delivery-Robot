@@ -59,10 +59,6 @@ hardware_interface::CallbackReturn DiffDriveAndino::on_init(const hardware_inter
                    .c_str());
 
   for (const hardware_interface::ComponentInfo& joint : info.joints) {
-    // Skip verification for ultrasonic sensor
-    if (joint.name == "ultrasonic_joint") {
-        continue;
-    }
     // DiffDriveAndino has exactly two states and one command interface on each joint
     if (joint.command_interfaces.size() != 1) {
       RCLCPP_FATAL(logger_, "Joint '%s' has %zu command interfaces found. 1 expected.", joint.name.c_str(),
@@ -130,11 +126,6 @@ std::vector<hardware_interface::StateInterface> DiffDriveAndino::export_state_in
         hardware_interface::StateInterface(config_.imu_sensor_name, "linear_acceleration.y", &imu_.linear_acceleration_y_));
   state_interfaces.emplace_back(
         hardware_interface::StateInterface(config_.imu_sensor_name, "linear_acceleration.z", &imu_.linear_acceleration_z_));
-  
-  // Export Ultrasonic Interface
-  state_interfaces.emplace_back(
-        hardware_interface::StateInterface("ultrasonic_joint", "range", &sonar_distance_));
-        
   return state_interfaces;
 }
 
@@ -173,60 +164,23 @@ hardware_interface::return_type DiffDriveAndino::read(const rclcpp::Time& /* tim
     return hardware_interface::return_type::ERROR;
   }
 
-    int32_t left_enc_new = 0;
-    int32_t right_enc_new = 0;
-
     if (motor_driver_.HasImu()) {
-      const MotorDriver::EncodersAndImu eai = motor_driver_.ReadEncoderAndImuValues();
-      left_enc_new = eai.encoders[0];
-      right_enc_new = eai.encoders[1];
+    const MotorDriver::EncodersAndImu eai = motor_driver_.ReadEncoderAndImuValues();
+    left_wheel_.enc_ = eai.encoders[0];
+    right_wheel_.enc_ = eai.encoders[1];
 
-      // Map IMU values:
-      imu_.angular_velocity_x_ = eai.imu[4];
-      imu_.angular_velocity_y_ = eai.imu[5];
-      imu_.angular_velocity_z_ = eai.imu[6];
-      
-      imu_.linear_acceleration_x_ = eai.imu[7];
-      imu_.linear_acceleration_y_ = eai.imu[8];
-      imu_.linear_acceleration_z_ = eai.imu[9];
-      
-      imu_.orientation_x = eai.imu[0];
-      imu_.orientation_y = eai.imu[1];
-      imu_.orientation_z = eai.imu[2];
-      imu_.orientation_w = eai.imu[3];
-    } else {
-      const MotorDriver::Encoders encoders = motor_driver_.ReadEncoderValues();
-      left_enc_new = encoders[0];
-      right_enc_new = encoders[1];
-    }
-
-    // --- Odometry Sanity Check (Anti-Teleportation Filter) ---
-    // Max speed ~1 m/s = ~2000 ticks/sec. Loop 25Hz -> ~80 ticks/cycle.
-    // Threshold set to 2000 ticks (huge margin) to filter only massive corruption (billions).
-    const int32_t MAX_ENC_JUMP = 2000;
-
-    // Left Wheel Filter
-    int32_t left_diff = std::abs(left_enc_new - (int32_t)left_wheel_.enc_); 
-    // Note: Cast existing to int32_t to match, handle overflow carefully if unsigned
-    // wheel.h uses unsigned int, but firmware sends long (signed). This mismatch needs care.
-    // Assuming wrapping behavior or similar range for now.
+    imu_.angular_velocity_x_ = eai.imu[3];
+    imu_.angular_velocity_y_ = eai.imu[4];
+    imu_.angular_velocity_z_ = eai.imu[5];
+    imu_.linear_acceleration_x_ = eai.imu[0];
+    imu_.linear_acceleration_y_ = eai.imu[1];
+    imu_.linear_acceleration_z_ = eai.imu[2];
     
-    // Actually, unsigned int - signed int comparison is tricky.
-    // Let's rely on diff being massive. if new is 4000000 and old is 100, diff is huge.
-    
-    if (left_diff < MAX_ENC_JUMP) {
-        left_wheel_.enc_ = left_enc_new;
-    } else {
-        RCLCPP_WARN(logger_, "Ignored massive Left Encoder Jump: %d -> %d", left_wheel_.enc_, left_enc_new);
-    }
-
-    // Right Wheel Filter
-    int32_t right_diff = std::abs(right_enc_new - (int32_t)right_wheel_.enc_);
-    if (right_diff < MAX_ENC_JUMP) {
-        right_wheel_.enc_ = right_enc_new;
-    } else {
-        RCLCPP_WARN(logger_, "Ignored massive Right Encoder Jump: %d -> %d", right_wheel_.enc_, right_enc_new);
-    }
+  } else {
+    const MotorDriver::Encoders encoders = motor_driver_.ReadEncoderValues();
+    left_wheel_.enc_ = encoders[0];
+    right_wheel_.enc_ = encoders[1];
+  }
 
   const double left_pos_prev = left_wheel_.pos_;
   left_wheel_.pos_ = left_wheel_.Angle();
@@ -235,14 +189,6 @@ hardware_interface::return_type DiffDriveAndino::read(const rclcpp::Time& /* tim
   const double right_pos_prev = right_wheel_.pos_;
   right_wheel_.pos_ = right_wheel_.Angle();
   right_wheel_.vel_ = (right_wheel_.pos_ - right_pos_prev) / delta_secs;
-
-  // Poll Sonar periodically (e.g. every 50 cycles) to avoid blocking serial too much
-  // Firmware blocks for ~2ms (was 10ms). 
-  sonar_poll_counter_++;
-  if (sonar_poll_counter_ > 50) { 
-      sonar_distance_ = motor_driver_.ReadSonar();
-      sonar_poll_counter_ = 0; 
-  }
 
   return hardware_interface::return_type::OK;
 }

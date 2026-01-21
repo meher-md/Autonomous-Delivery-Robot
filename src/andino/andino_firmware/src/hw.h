@@ -61,14 +61,10 @@ struct Hw {
   /// a jumper to do so.
   static constexpr int kRightMotorEnableGpioPin{12};
 
+  /// @brief IMU sensor I2C SCL pin. Connected to PC5 (digital pin 19, analog pin A5).
   static constexpr int kImuI2cSclPin{19};
   /// @brief IMU sensor I2C SDA pin. Connected to PC4 (digital pin 18, analog pin A4).
   static constexpr int kImuI2cSdaPin{18};
-
-  /// @brief Sonar Trigger Pin. Digital Pin 8.
-  static constexpr int kSonarTriggerPin{8};
-  /// @brief Sonar Echo Pin. Digital Pin 7.
-  static constexpr int kSonarEchoPin{7};
 };
 
 }  // namespace andino

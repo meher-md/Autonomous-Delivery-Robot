@@ -14,7 +14,7 @@ ekf_filter_node:
     odom0_config: [false, false, false,  # x, y, z (Position - FALSE)
                    false, false, false,  # roll, pitch, yaw (Orientation - FALSE)
                    true,  false, false,  # vx, vy, vz (Linear Velocity - TRUE for Vx)
-                   false, false, true,   # wx, wy, wz (Angular Velocity - TRUE for Wz)
+                   false, false, false,   # wx, wy, wz (Angular Velocity - TRUE for Wz)
                    false, false, false]
     odom0_queue_size: 2
     odom0_nodelay: false
@@ -24,9 +24,9 @@ ekf_filter_node:
     # IMU (Filtered by Madgwick)
     imu0: /imu/data # This is the output of the Madgwick filter
     imu0_config: [false, false, false, # x, y, z
-                  false, false, false,  # roll (f), pitch (f), yaw (FALSE - Do not fuse dummy orientation)
+                  false, false, true,  # roll (f), pitch (f), yaw (t) (Trust Madgwick Yaw)
                   false, false, false, # vx, vy, vz
-                  false, false, true, # wx, wy, wz (Rates - TRUE: Fuse Gyro Z)
+                  false, false, true, # wx, wy, wz (Rates - FALSE: don't double-fuse rates)
                   true, false, false]
     imu0_differential: false # CRITICAL: Treat Madgwick output as absolute
     imu0_remove_gravitational_acceleration: false # Madgwick should handle this

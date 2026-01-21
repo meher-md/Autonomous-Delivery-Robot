@@ -78,11 +78,6 @@ class MotorDriver {
   /// @returns The encoder values.
   Encoders ReadEncoderValues();
 
-  /// @brief Read the Ultrasonic sensor value [m].
-  /// @returns Distance in meters, or -1.0 if invalid.
-  double ReadSonar();
-
-  /// @brief Set the motor values.
   /// @brief Set the motor values.
   ///        The unit of the values is in encoder ticks per revolution.
   /// @param val_1 Value for the first motor.
