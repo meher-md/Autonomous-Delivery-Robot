@@ -110,7 +110,8 @@ class ChatBridge(Node):
         )
         
         # COMMAND OUTPUT
-        self.cmd_pub = self.create_publisher(String, '/app/goal_name', 10)
+        self.cmd_pub = self.create_publisher(String, '/app/goal_name', 10)  # For orders (from app)
+        self.direct_nav_pub = self.create_publisher(String, '/app/direct_nav', 10)  # For chatbot navigation (no order)
         self.vel_pub = self.create_publisher(Twist, '/cmd_vel', 10)
         
         # LIDAR Safety
@@ -187,12 +188,12 @@ class ChatBridge(Node):
                         self.get_logger().info(f"🔄 Redirecting COMMAND:{cmd_val} to MOTION logic")
                         action = cmd_val.upper()
                     else:
-                        # Real Navigation Command
-                        self.get_logger().info(f"🤖 NAV CMD: Go to {cmd_val}")
+                        # Real Navigation Command - Use direct_nav (no order)
+                        self.get_logger().info(f"🤖 NAV CMD (Direct): Go to {cmd_val}")
                         self.current_location = f"Going to {cmd_val}" 
                         msg = String()
                         msg.data = cmd_val
-                        self.cmd_pub.publish(msg)
+                        self.direct_nav_pub.publish(msg)  # No order creation
                         
                         return True
             except Exception as e:
@@ -592,16 +593,13 @@ class ChatBridge(Node):
             self.get_logger().info(f"🚀 Direct Navigation Triggered: {location}")
             self.current_location = f"Going to {location}"
             
-            # 1. Publish Goal Name
+            # 1. Publish to direct_nav (NO order creation)
             msg = String()
             msg.data = location
-            self.cmd_pub.publish(msg)
+            self.direct_nav_pub.publish(msg)
             
-            # 2. Log Order (Handled by app_goal_gateway now)
-            # self.publish_new_order(location)
-            
-            # 3. Respond
-            self.publish_response(f"🚀 Heading to {location} (Direct Command)")
+            # 2. Respond
+            self.publish_response(f"🚀 Heading to {location}")
             return True
         return False
 

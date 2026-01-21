@@ -67,6 +67,7 @@ class AppGoalGateway(Node):
         self.declare_parameter('yaml_path', DEFAULT_YAML)
         self.declare_parameter('frame_id', 'map')
         self.declare_parameter('topic_goal_name', '/app/goal_name')
+        self.declare_parameter('topic_direct_nav', '/app/direct_nav')  # Navigation without order
         self.declare_parameter('topic_goal_cancel', '/app/goal_cancel')
         self.declare_parameter('topic_status', '/app/goal_status')
         self.declare_parameter('server_timeout', 8.0)
@@ -74,6 +75,7 @@ class AppGoalGateway(Node):
         self.yaml_path = self.get_parameter('yaml_path').get_parameter_value().string_value
         self.frame_id = self.get_parameter('frame_id').get_parameter_value().string_value
         self.topic_goal_name = self.get_parameter('topic_goal_name').get_parameter_value().string_value
+        self.topic_direct_nav = self.get_parameter('topic_direct_nav').get_parameter_value().string_value
         self.topic_goal_cancel = self.get_parameter('topic_goal_cancel').get_parameter_value().string_value
         self.topic_status = self.get_parameter('topic_status').get_parameter_value().string_value
         self.server_timeout = self.get_parameter('server_timeout').get_parameter_value().double_value
@@ -84,6 +86,7 @@ class AppGoalGateway(Node):
         latched_qos.reliability = QoSReliabilityPolicy.RELIABLE
         self.sub_map_path = self.create_subscription(String, '/app/map_path', self.on_map_path, latched_qos)
         self.sub_goal_name = self.create_subscription(String, self.topic_goal_name, self.on_name, 10)
+        self.sub_direct_nav = self.create_subscription(String, self.topic_direct_nav, self.on_direct_nav, 10)  # Chatbot navigation
         self.order_pub = self.create_publisher(String, '/order/json', 10)
         self.pub_status = self.create_publisher(String, self.topic_status, 10)
         self.client = ActionClient(self, NavigateToPose, 'navigate_to_pose')
@@ -126,6 +129,24 @@ class AppGoalGateway(Node):
             self.speak("I received an order. I will deliver it and send a QR code to the customer.")
         self._go_to(resolved)
         self.publish_new_order(resolved)
+
+    def on_direct_nav(self, msg: String):
+        """Handle direct navigation from chatbot - NO order creation, NO QR."""
+        name = msg.data.strip()
+        if not name:
+            return
+        self.get_logger().info(f"🚀 Direct Navigation (No Order): {name}")
+        self.named_poses = load_named_poses(self.yaml_path)
+        resolved = self._resolve_name(name)
+        if not resolved:
+            self.get_logger().warn(f'Direct Nav: Name "{name}" not found.')
+            self._status(f'not_found:{name}')
+            return
+        if resolved != name:
+            self.get_logger().info(f'Using closest match: {resolved}')
+        # Navigate WITHOUT order creation
+        self.speak(f"Going to {resolved}.")
+        self._go_to(resolved)
     def publish_new_order(self, location: str):
         """Publish order event for Dashboard."""
         try:

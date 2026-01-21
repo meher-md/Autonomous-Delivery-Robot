@@ -75,6 +75,9 @@ class ChatbotActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     // TTS Queue
     private var isTtsReady = false
     private var pendingGreeting: String? = null
+    
+    // Voice Dialog
+    private var voiceDialog: ChatbotBottomSheetDialogFragment? = null
 
     // SharedPreferences keys
     private val PREFS_NAME = "chat_history"
@@ -109,6 +112,11 @@ class ChatbotActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         // Update connection status
         updateConnectionStatus()
+        
+        // Load saved mute preference
+        val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+        isTtsEnabled = !prefs.getBoolean("voice_muted", false)
+        updateVoiceToggleIcon()
         
         // Preload BOTH voices FIRST, then start conversation with greeting
         preloadVoicesAndStartGreeting()
@@ -206,10 +214,12 @@ class ChatbotActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         
         btnBack.setOnClickListener {
             saveCurrentConversation()
+            // Stop any playing audio when exiting chatbot
+            OfflineTtsEngine.stop()
             finish()
         }
 
-        btnMic.setOnClickListener { startVoiceRecognition() }
+        btnMic.setOnClickListener { showVoiceDialog() }
 
         btnHistory.setOnClickListener {
             if (drawerLayout.isDrawerOpen(android.view.Gravity.END)) {
@@ -266,10 +276,34 @@ class ChatbotActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         if (result.resultCode == RESULT_OK) {
             val results = result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
             results?.firstOrNull()?.let { spokenText ->
+                // Update dialog with user text
+                voiceDialog?.updateUserText(spokenText)
+                voiceDialog?.updateStatus("Thinking...")
+                
+                // Send to AI
                 editTextMessage.setText(spokenText)
                 wasVoiceInput = true
                 sendMessage()
             }
+        } else {
+            voiceDialog?.updateStatus("Idle")
+        }
+    }
+
+    private fun showVoiceDialog() {
+        voiceDialog = ChatbotBottomSheetDialogFragment()
+        voiceDialog?.show(supportFragmentManager, "VoiceDialog")
+        
+        // Auto-start listening when dialog opens
+        voiceDialog?.updateStatus("Listening...")
+        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+            startVoiceRecognition()
+        }, 500)
+        
+        // Handle mic toggle button in dialog
+        voiceDialog?.onMicToggleListener = {
+            voiceDialog?.updateStatus("Listening...")
+            startVoiceRecognition()
         }
     }
 
@@ -283,6 +317,7 @@ class ChatbotActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             voiceLauncher.launch(intent)
         } catch (e: Exception) {
             Toast.makeText(this, "Voice input not available", Toast.LENGTH_SHORT).show()
+            voiceDialog?.dismiss()
         }
     }
 
@@ -299,6 +334,10 @@ class ChatbotActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     val voiceText = json.optString("voice", "") // Optional voice text
                     
                     addBotMessage(displayText)
+                    
+                    // Update voice dialog if open
+                    voiceDialog?.updateRobotText(displayText.take(100))
+                    voiceDialog?.updateStatus("Idle")
                     
                     val isTable = displayText.contains("📊") || displayText.startsWith("#")
                     
@@ -319,6 +358,10 @@ class ChatbotActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 } catch (e: Exception) {
                     // FALLBACK: Old format (Plain Text) or JSON parse error
                     addBotMessage(response)
+                    
+                    // Update voice dialog if open (fallback)
+                    voiceDialog?.updateRobotText(response.take(100))
+                    voiceDialog?.updateStatus("Idle")
                     
                     val isTable = response.contains("📊") || response.startsWith("#")
                     
@@ -610,11 +653,19 @@ class ChatbotActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     override fun onDestroy() {
         super.onDestroy()
         saveCurrentConversation()
+        // Stop and cleanup all audio
+        OfflineTtsEngine.stop()
         tts.stop()
         tts.shutdown()
         responseCallback?.let {
             com.example.deliverybot.net.RosBridgeClient.unsubscribe("/app/chat/response", it)
         }
+    }
+    
+    override fun onPause() {
+        super.onPause()
+        // Stop audio when app goes to background or activity changes
+        OfflineTtsEngine.stop()
     }
 
     // Chat Message Data Class

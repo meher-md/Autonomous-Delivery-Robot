@@ -84,9 +84,72 @@ class GoMenu(Node):
         self.yaml_path = self.get_parameter('yaml_path').get_parameter_value().string_value
         self.frame_id = self.get_parameter('frame_id').get_parameter_value().string_value
         self.timeout = self.get_parameter('timeout_sec').get_parameter_value().double_value
+        
+        # Select map interactively before starting menu
+        self.yaml_path = self.select_map_interactive(self.yaml_path)
+        
         self.client = ActionClient(self, NavigateToPose, 'navigate_to_pose')
         self.get_logger().info(f'Interactive menu started. YAML="{self.yaml_path}"')
         self.menu_loop()
+    
+    def select_map_interactive(self, current_path: str) -> str:
+        """Present a menu to select an existing YAML map file or create a new one."""
+        # Custom logic: check for standard 'ws' path shared by team
+        home = os.path.expanduser('~')
+        standard_src_path = os.path.join(home, 'ws', 'src', 'App', 'map_info', 'maps')
+        if os.path.exists(standard_src_path):
+            current_path = os.path.join(standard_src_path, os.path.basename(current_path))
+
+        directory = os.path.dirname(current_path)
+        if not os.path.exists(directory):
+            try:
+                os.makedirs(directory)
+            except OSError:
+                print(f"Warning: Could not create directory {directory}. Using default path.")
+                return current_path
+        
+        print("\n=== Map Selection Menu ===")
+        yaml_files = [f for f in os.listdir(directory) if f.endswith('.yaml')]
+        yaml_files.sort()
+        
+        print("Available Maps:")
+        for idx, f in enumerate(yaml_files):
+            print(f"  {idx + 1}. {f}")
+        print(f"  {len(yaml_files) + 1}. [Create New Map]")
+        
+        while True:
+            try:
+                choice = input(f"\nSelect map (1-{len(yaml_files) + 1}): ").strip()
+                if not choice.isdigit():
+                    continue
+                choice_idx = int(choice) - 1
+                if 0 <= choice_idx < len(yaml_files):
+                    selected_file = yaml_files[choice_idx]
+                    print(f"Selected: {selected_file}")
+                    return os.path.join(directory, selected_file)
+                elif choice_idx == len(yaml_files):
+                    new_name = input("Enter new map name (without .yaml): ").strip()
+                    if not new_name:
+                        print("Invalid name.")
+                        continue
+                    if not new_name.endswith('.yaml'):
+                        new_name += '.yaml'
+                    full_path = os.path.join(directory, new_name)
+                    if not os.path.exists(full_path):
+                        with open(full_path, 'w') as f:
+                            f.write("{}")  
+                        print(f"Created new map file: {new_name}")
+                    else:
+                        print(f"File {new_name} already exists. Using it.")
+                    return full_path
+                else:
+                    print("Invalid selection.")
+            except (KeyboardInterrupt, EOFError):
+                print("\nSelection cancelled. Using default.")
+                return current_path
+            except Exception as e:
+                print(f"Error during selection: {e}")
+                return current_path
     def menu_loop(self):
         """Main interactive loop: list waypoints and ask the user to pick one."""
         try:

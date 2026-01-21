@@ -66,9 +66,5 @@ dependencies {
     // OSMDroid (OpenStreetMap)
     implementation 'org.osmdroid:osmdroid-android:6.1.16'
     
-    // Sherpa-ONNX TTS Engine (Local AAR)
-    implementation fileTree(dir: 'libs', include: ['*.aar', '*.jar'])
-    
-    // Apache Commons Compress (for TTS model extraction)
-    implementation 'org.apache.commons:commons-compress:1.24.0'
+    // Note: Sherpa-ONNX removed - using Native Android TTS instead
 }

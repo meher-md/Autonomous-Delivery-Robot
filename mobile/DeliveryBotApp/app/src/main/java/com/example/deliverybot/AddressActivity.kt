@@ -161,23 +161,50 @@ class AddressActivity : AppCompatActivity() {
 
     private fun loadDefaultMaps() {
         maps.clear()
-        val defaultMap = MapData("Main Building - Floor 1", mutableListOf(
-            LocationData("Lab 101", "Labs"),
-            LocationData("Hall A", "Halls"),
-            LocationData("Cafeteria", "All"),
-            LocationData("Office 4B", "Offices"),
-            LocationData("Library", "All"),
-            LocationData("Lab 203", "Labs")
+        
+        // HTI Map - 4th Floor Rooms
+        val htiMap = MapData("HTI", mutableListOf(
+            LocationData("402(ROBOTICS)", "Labs"),
+            LocationData("R401", "Rooms"),
+            LocationData("R403", "Rooms"),
+            LocationData("R404", "Rooms"),
+            LocationData("R405", "Rooms"),
+            LocationData("R406", "Rooms"),
+            LocationData("R407", "Rooms"),
+            LocationData("R408", "Rooms"),
+            LocationData("R410", "Rooms"),
+            LocationData("R411(DR.AHMED)", "Offices"),
+            LocationData("R412", "Rooms"),
+            LocationData("R413", "Rooms"),
+            LocationData("R414", "Rooms"),
+            LocationData("R415", "Rooms"),
+            LocationData("R416", "Rooms"),
+            LocationData("R417", "Rooms"),
+            LocationData("R418", "Rooms"),
+            LocationData("R419", "Rooms"),
+            LocationData("WC", "All")
         ))
-        maps.add(defaultMap)
-        maps.add(MapData("Library", mutableListOf(
-            LocationData("Reading Room", "All"),
-            LocationData("Computer Lab", "Labs")
-        )))
-        maps.add(MapData("Cafeteria Building", mutableListOf(
-            LocationData("Main Hall", "Halls"),
-            LocationData("Kitchen", "All")
-        )))
+        maps.add(htiMap)
+        
+        // Simple Map
+        val simpleMap = MapData("Map", mutableListOf(
+            LocationData("A", "All"),
+            LocationData("PKG", "All")
+        ))
+        maps.add(simpleMap)
+        
+        // Office Simulation Map
+        val officeSimMap = MapData("Office Simulation", mutableListOf(
+            LocationData("Cafeteria", "All"),
+            LocationData("Lab", "Labs"),
+            LocationData("Library", "All"),
+            LocationData("Lobby", "All"),
+            LocationData("MO", "All"),
+            LocationData("PKG", "All"),
+            LocationData("test", "All")
+        ))
+        maps.add(officeSimMap)
+        
         saveMapsData()
     }
 
