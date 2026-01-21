@@ -48,7 +48,10 @@ The project is divided into three main layers:
 
 ### 1. Robot Layer (ROS 2)
 *   **`andino_gz`**: High-fidelity simulation in Gazebo.
-*   **`andino_description`**: URDF/Xacro robot modeling.
+*   **`andino_description`**: This package acts as the robot's **"Digital Anatomy"**. It explains the physical structure to the software so the robot understands its own body.
+    *   **The Parts (Links)**: It lists every physical piece, like the chassis (body), left wheel, right wheel, and camera.
+    *   **The Movement (Joints)**: It defines how these parts connect and move. For example, it specifies that the "Wheels" can spin around an axle, but the "Camera" is stuck firmly to the chassis.
+    *   **The Logic (Transforms)**: This allows the robot to know math like: *"If my camera sees a door 1 meter away, and my camera is 10cm in front of my wheels, then my wheels are 1.1 meters away from the door."* Without this, autonomous navigation is impossible.
 *   **`navigation_configs`**: Nav2 parameters, behavior trees, and maps.
 *   **`deliverybot_bringup`**: Launch files to start the entire stack.
 

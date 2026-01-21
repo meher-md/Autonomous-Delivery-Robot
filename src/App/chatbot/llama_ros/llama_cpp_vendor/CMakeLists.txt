@@ -4,7 +4,9 @@ project(llama_cpp_vendor)
 include(FetchContent)
 find_package(ament_cmake REQUIRED)
 
-set(LLAMA_CUDA OFF CACHE BOOL "Force disable deprecated option" FORCE)
+# Enable CUDA/GPU acceleration for faster inference
+set(GGML_CUDA ON CACHE BOOL "Enable CUDA support" FORCE)
+set(LLAMA_CUDA ON CACHE BOOL "Enable CUDA support" FORCE)
 
 FetchContent_Declare(
   llama

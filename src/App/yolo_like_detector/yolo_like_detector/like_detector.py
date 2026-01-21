@@ -69,7 +69,7 @@ class LikeDetectorNode(Node):
         self.img_height = self.input_shape[2]
         self.img_width = self.input_shape[3]
         
-        self.confidence_threshold = 0.70 # Stricter threshold for high certainty
+        self.confidence_threshold = 0.60 # Stricter threshold for high certainty
         
         pygame.mixer.init()
         

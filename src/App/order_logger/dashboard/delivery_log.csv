@@ -126,6 +126,7 @@ Date_Full,Year,Month,Day_Name,Time_Arrival,Order_ID,Target_Location,QR_Scan_Stat
 ,,,,,322cdff9,,Verified,Thumb Up,45,2.5,120.5,Delivered
 2026-01-19,2026.0,January,Monday,08:44:16,98869188,A,Pending,Pending,0,0.0,0.0,In Progress
 ,,,,,fa75bc1e,,Verified,Thumb Up,45,2.5,120.5,Delivered
+<<<<<<< HEAD
 2026-01-19,2026.0,January,Monday,15:22:04,F63360F9,test,Pending,Pending,0,0.0,0.0,In Progress
 2026-01-19,2026.0,January,Monday,15:22:33,09DCAE58,Lobby,Pending,Pending,0,0.0,0.0,In Progress
 2026-01-19,2026.0,January,Monday,15:28:48,4EA69C6C,test,Pending,Pending,0,0.0,0.0,In Progress
@@ -135,3 +136,21 @@ Date_Full,Year,Month,Day_Name,Time_Arrival,Order_ID,Target_Location,QR_Scan_Stat
 ,,,,,1c7ee2d8,,Verified,Thumb Up,45,2.5,120.5,Delivered
 2026-01-19,2026.0,January,Monday,15:43:49,0317C1EE,test,Pending,Pending,0,0.0,0.0,In Progress
 N/A,N/A,N/A,N/A,N/A,9160a40b,N/A,Verified,Thumb Up,45,2.5,120.5,Delivered
+=======
+2026-01-19,2026.0,January,Monday,13:14:34,33A91D86,T1,Pending,Pending,0,0.0,0.0,In Progress
+2026-01-19,2026.0,January,Monday,13:15:06,AB67C5F0,T1,Pending,Pending,0,0.0,0.0,In Progress
+2026-01-19,2026.0,January,Monday,14:54:08,44D834A9,A,Pending,Pending,0,0.0,0.0,In Progress
+2026-01-19,2026.0,January,Monday,14:54:09,71A32B0F,A,Pending,Pending,0,0.0,0.0,In Progress
+,,,,,a2b1be2d,,Verified,,45,2.5,120.5,Delivered (No Gesture)
+2026-01-19,2026.0,January,Monday,15:09:19,B7869984,A,Pending,Pending,0,0.0,0.0,In Progress
+,,,,,4af4174c,,Verified,,45,2.5,120.5,Delivered (No Gesture)
+2026-01-19,2026.0,January,Monday,17:00:05,5A313541,A,Failed,,45,2.5,120.5,Failed
+2026-01-19,2026.0,January,Monday,17:07:51,F01002CF,A,Failed,,45,2.5,120.5,Failed
+2026-01-19,2026.0,January,Monday,19:01:12,D3191AA4,A,Pending,Pending,0,0.0,0.0,In Progress
+2026-01-19,2026.0,January,Monday,19:01:34,79CDD317,A,Pending,Pending,0,0.0,0.0,In Progress
+2026-01-19,2026.0,January,Monday,19:01:35,5F372782,A,Pending,Pending,0,0.0,0.0,In Progress
+2026-01-19,2026.0,January,Monday,19:24:06,B9484EDC,A,Pending,Pending,0,0.0,0.0,In Progress
+2026-01-21,2026.0,January,Wednesday,06:34:18,C087C108,Lab,Pending,Pending,0,0.0,0.0,In Progress
+,,,,,30a65ed3,,Verified,Thumb Up,45,2.5,120.5,Delivered
+2026-01-21,2026.0,January,Wednesday,07:16:44,A09FB3E6,Lobby,Failed,None,45,2.5,120.5,Failed
+>>>>>>> ffaf51738 (Refactor: Update MPU6050 and I2Cdevlib dependencies across platforms and remove obsolete test files.)

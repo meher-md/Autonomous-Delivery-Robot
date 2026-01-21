@@ -485,7 +485,7 @@ class ChatBridge(Node):
             last_n = df.tail(actual_count)
             
             # Build Simple List Format (Mobile Friendly)
-            table = f"📊 Last {actual_count} Orders:\n\n"
+            table = f"📊 آخر {actual_count} طلبات (Last {actual_count} Orders):\n\n"
             
             for idx, (_, row) in enumerate(last_n.iterrows(), 1):
                 date = str(row.get('Date_Full', '?'))[:10]
@@ -495,7 +495,7 @@ class ChatBridge(Node):
                 
                 table += f"{idx}. {date}\n"
                 table += f"   📍 {loc}\n"
-                table += f"   ⏱️ {duration:.1f} min | 📏 {distance:.1f} m\n\n"
+                table += f"   ⏱️ {duration:.1f} دقيقة | 📏 {distance:.1f} متر\n\n"
             
             # Add note if any limit was exceeded
             if exceeded_max:

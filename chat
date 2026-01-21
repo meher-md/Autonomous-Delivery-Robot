@@ -51,9 +51,14 @@ echo "Waiting for Llama AI to initialize..."
 sleep 10
 
 # ---------- Launch Chat Bridge ----------
-echo "==> Starting Chat Bridge (chat_bridge.py)"
-ros2 run deliverybot_bringup chat_bridge.py &
-BRIDGE_PID=$!
+if pgrep -f "chat_bridge.py" > /dev/null; then
+    echo "⚠️  Chat Bridge (chat_bridge.py) is already running. Skipping launch."
+    BRIDGE_PID=$(pgrep -f "chat_bridge.py" | head -n 1)
+else
+    echo "==> Starting Chat Bridge (chat_bridge.py)"
+    ros2 run deliverybot_bringup chat_bridge.py &
+    BRIDGE_PID=$!
+fi
 
 echo ""
 echo "✅ Chatbot Stack Running!"

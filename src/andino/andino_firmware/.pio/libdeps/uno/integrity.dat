@@ -1,4 +1,1 @@
-teckel12/NewPing
-SPI
-Wire
-electroniccats/MPU6050
+jrowberg/I2Cdevlib-MPU6050@^1.0.0
