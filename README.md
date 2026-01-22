@@ -55,6 +55,36 @@ The project is divided into three main layers:
 *   **`navigation_configs`**: Nav2 parameters, behavior trees, and maps.
 *   **`deliverybot_bringup`**: Launch files to start the entire stack.
 
+#### Andino Package Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        ANDINO ROBOT STACK                               │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  ┌─────────────────┐     ┌─────────────────┐     ┌───────────────────┐  │
+│  │ andino_firmware │────▶│   andino_base   │────▶│ andino_description│  │
+│  │    (Arduino)    │     │ (ROS 2 Driver)  │     │   (URDF/Xacro)    │  │
+│  │  Motor + Encoder│     │   Odometry      │     │   Robot Model     │  │
+│  └─────────────────┘     └─────────────────┘     └────────┬──────────┘  │
+│                                                           │             │
+│                                                           ▼             │
+│  ┌─────────────────┐     ┌─────────────────┐     ┌───────────────────┐  │
+│  │   andino_slam   │◀───▶│andino_navigation│◀────│  andino_bringup   │  │
+│  │ (slam_toolbox)  │     │     (Nav2)      │     │  (Launch Files)   │  │
+│  │  Map Building   │     │  Path Planning  │     │  System Startup   │  │
+│  └─────────────────┘     └────────┬────────┘     └───────────────────┘  │
+│                                   │                                     │
+│                                   ▼                                     │
+│                          ┌─────────────────┐                            │
+│                          │ andino_control  │                            │
+│                          │(diff_drive_ctrl)│                            │
+│                          │   /cmd_vel      │                            │
+│                          └─────────────────┘                            │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
 ### 2. AI & Application Layer
 *   **`yolo_like_detector`**: Python node running the specific gesture recognition model.
 *   **`qr_verification`**: Handles camera input for QR decoding and validation.
@@ -240,6 +270,13 @@ cd ws
 ./app
 ```
 
+**Terminal 5: AI Chatbot Assistant**
+Launches the Rafiq AI chatbot with LLM and voice capabilities.
+```bash
+cd ws
+./chat
+```
+
 ---
 
 ### 2️⃣ Real Robot Operation
@@ -293,6 +330,13 @@ Starts the backend server for the mobile app connection.
 ```bash
 cd ws
 ./app
+```
+
+**Terminal 8 (Laptop): AI Chatbot Assistant**
+Launches the Rafiq AI chatbot with LLM and voice capabilities.
+```bash
+cd ws
+./chat
 ```
 
 ---
