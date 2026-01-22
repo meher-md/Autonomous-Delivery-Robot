@@ -66,6 +66,113 @@ The project is divided into three main layers:
 
 ---
 
+## 🤖 AI Chatbot Assistant (Rafiq)
+
+The robot features a sophisticated **AI-powered conversational assistant** named **Rafiq (رفيق)** that provides natural language interaction in both **Arabic and English**. This is not a simple scripted chatbot—it's a fully integrated AI system with voice capabilities and real-world robot control.
+
+### Core AI Components
+
+| Component | Technology | Description |
+| :--- | :--- | :--- |
+| **LLM Brain** | `llama_ros` + [llama.cpp](https://github.com/ggerganov/llama.cpp) | Runs quantized GGUF language models locally for intelligent responses |
+| **Speech-to-Text** | `whisper_ros` + [whisper.cpp](https://github.com/ggerganov/whisper.cpp) | Offline speech recognition with Silero VAD (Voice Activity Detection) |
+| **Text-to-Speech** | `piper_ros` + [Piper](https://github.com/rhasspy/piper) | High-quality offline voice synthesis |
+| **State Machine** | `yasmin` | Controls chatbot conversation flow and multi-step interactions |
+| **Chat Bridge** | `chat_bridge.py` | Central ROS 2 node connecting mobile app ↔ AI ↔ Robot commands |
+
+### Architecture Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                          CHATBOT SYSTEM                                 │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│   ┌───────────────┐        ┌───────────────────┐        ┌─────────────┐│
+│   │  Mobile App   │◀──────▶│   Chat Bridge     │◀──────▶│  Llama LLM  ││
+│   │  (Android)    │ JSON   │   (ROS 2 Node)    │ Action │  (llama.cpp)││
+│   └───────────────┘        └─────────┬─────────┘        └─────────────┘│
+│                                      │                                  │
+│                    ┌─────────────────┼─────────────────┐                │
+│                    ▼                 ▼                 ▼                │
+│            ┌─────────────┐   ┌─────────────┐   ┌─────────────┐          │
+│            │  Navigation │   │   YOLO      │   │   TTS       │          │
+│            │  Commands   │   │   Vision    │   │   (Piper)   │          │
+│            └─────────────┘   └─────────────┘   └─────────────┘          │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### Key Capabilities
+
+*   **🌐 Bilingual Support**: Responds in Arabic with English translation (format: `عربي ||| English`).
+*   **🗺️ Navigation Commands**: Understands "Go to Kitchen" → `[COMMAND: Kitchen]` → Robot moves.
+*   **🎮 Motion Control**: Commands like "Move forward" → `[ACTION: FORWARD]` with LIDAR safety checks.
+*   **📊 Analytics Queries**: "How many deliveries today?" → Reads CSV logs and provides statistics.
+*   **👁️ Vision Awareness**: Integrates YOLO detections to answer "What do you see?".
+*   **📸 Camera Snapshots**: Can send live camera images to the mobile app on request.
+*   **😂 Personality**: Built-in jokes, playful responses, and a friendly robot persona.
+
+### ROS 2 Topics
+
+| Topic | Type | Direction | Description |
+| :--- | :--- | :--- | :--- |
+| `/app/chat/request` | `std_msgs/String` | Subscribe | User messages from mobile app |
+| `/app/chat/response` | `std_msgs/String` | Publish | AI responses (JSON: text + voice) |
+| `/llama/generate_response` | Action | Client | Sends prompts to LLM |
+| `/say` | Action | Client | Text-to-Speech output |
+| `/app/goal_name` | `std_msgs/String` | Publish | Navigation commands |
+| `/cmd_vel` | `geometry_msgs/Twist` | Publish | Direct motion control |
+
+---
+
+## 📊 Live Dashboard
+
+A real-time **analytics dashboard** built with **Streamlit** that automatically synchronizes with the robot and provides comprehensive monitoring of all delivery operations.
+
+### Dashboard Features
+
+*   **� Auto-Sync**: Dashboard automatically refreshes every 5 seconds to stay synchronized with live robot data.
+*   **�📦 KPI Metrics**: Total orders, success rate, top destination, average trip duration.
+*   **📈 Interactive Charts**: Orders over time, status distribution (pie chart), hourly volume analysis.
+*   **📋 Activity Log**: Recent deliveries with status highlighting.
+*   **� Custom Date Range**: Filter data by Today, Last Week, Last Month, Last Year, or **any custom date range**.
+*   **📥 Export Options**: 
+    - **CSV Download**: Export filtered data for any selected time period.
+    - **PDF Reports**: Generate professional PDF reports with charts for any custom date range.
+
+### Technology Stack
+
+| Package | Version | Purpose |
+| :--- | :--- | :--- |
+| `streamlit` | Latest | Web dashboard framework |
+| `pandas` | Latest | Data manipulation and analysis |
+| `plotly` | Latest | Interactive charts and graphs |
+| `matplotlib` | Latest | Static chart generation for PDF |
+| `fpdf` | Latest | PDF report generation |
+| `jinja2` | Latest | Template rendering |
+
+### Dashboard Screenshots
+
+The dashboard displays:
+- **Header**: Robot logo and title "Autonomous Delivery Dashboard"
+- **Sidebar**: Time period filters (Today, Last Week, Last Month, Custom Range)
+- **Main Panel**: 4 KPI cards → Time series chart → Pie chart → Busy hours analysis → Data table
+
+### Running the Dashboard
+
+```bash
+# Install dependencies
+pip install -r src/App/order_logger/dashboard/requirements.txt
+
+# Launch the dashboard
+cd src/App/order_logger/dashboard
+streamlit run dashboard.py
+```
+
+The dashboard automatically reads from `delivery_log.csv` which is populated by the order logging system during robot operations.
+
+---
+
 ## Getting Started
 
 ### Prerequisites

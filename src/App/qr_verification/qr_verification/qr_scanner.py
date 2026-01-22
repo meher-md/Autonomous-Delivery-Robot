@@ -170,6 +170,18 @@ class QrScanner(Node):
                 destination_str = (
                     f' at {self.current_destination}' if self.current_destination else ''
                 )
+                
+                # CHECK: Only start QR scan if there's an active order
+                if not self.active_order_id:
+                    self.get_logger().info(
+                        f'📍 Arrived{destination_str} (Chatbot Navigation - No Order). Skipping QR scan.'
+                    )
+                    self._publish_status(
+                        'skipped',
+                        f'Arrived{destination_str} via chatbot - no order to verify'
+                    )
+                    return  # Exit without starting scanner
+                
                 self.get_logger().info(
                     f'✅ Robot arrived at destination{destination_str} - starting QR scanner!'
                 )

@@ -401,15 +401,50 @@ class ChatBridge(Node):
                 self.publish_response("I cannot see anything yet (Camera inactive).")
                 return
         
+        # CHECK FOR ANALYTICS QUERIES FIRST (Manual Computation)
+        # This must come BEFORE comparison to handle "كم عدد الطلبات" correctly
+        analytics_response = self.handle_analytics_query(user_text)
+        if analytics_response:
+            self.publish_response(analytics_response)
+            return
+        
         # CHECK FOR COMPARISON REQUEST (Manual Table Generation)
-        comparison_keywords = ['مقارن', 'قارن', 'compare', 'comparison', 'طلبات', 'trips', 'orders', 'آخر']
-        is_comparison = any(kw in user_text.lower() for kw in comparison_keywords)
+        # More specific: require "مقارن/قارن/آخر" + number pattern, not just "طلبات"
+        comparison_keywords = ['مقارن', 'قارن', 'compare', 'comparison', 'آخر']
+        has_number = any(c.isdigit() for c in user_text)
+        is_comparison = any(kw in user_text.lower() for kw in comparison_keywords) or \
+                        (has_number and ('طلبات' in user_text or 'orders' in user_text.lower() or 'trips' in user_text.lower()))
         
         if is_comparison:
             table_response = self.generate_comparison_table(user_text)
             if table_response:
                 self.publish_response(table_response)
                 return
+        
+        # CHECK FOR JOKE CRITICISM (Playful response)
+        criticism_keywords = ['دمك تقيل', 'مش مضحك', 'خلاص نكت', 'متقولش نكت', 'كفايه نكت', 'بطل نكت', 'not funny', 'stop joking']
+        is_criticism = any(kw in user_text for kw in criticism_keywords)
+        
+        if is_criticism:
+            import random
+            playful_responses = [
+                "😅 ماشي ماشي... هسكت بس متزعلش مني! أنا روبوت حساس 🥺",
+                "🙈 طيب خلاص مش هقول نكت تاني... إلا لو طلبت! 😜",
+                "😢 حاضر... بس كدا جرحت مشاعري الإلكترونية! 💔🤖",
+                "🤐 تمام، هركز في الشغل بس... بس كنت بحاول أفرحك! 😊",
+                "😂 أوكي أوكي، أنا عارف إن نكتي محتاجة تحديث! Version 2.0 قريباً! 🔄",
+            ]
+            self.publish_response(random.choice(playful_responses))
+            return
+        
+        # CHECK FOR JOKE REQUEST (Built-in jokes - bypass AI)
+        joke_keywords = ['نكت', 'نكته', 'joke', 'funny', 'ضحك', 'هزار']
+        is_joke = any(kw in user_text.lower() for kw in joke_keywords)
+        
+        if is_joke:
+            joke_response = self.get_random_joke()
+            self.publish_response(joke_response)
+            return
         
         # CHECK FOR SELF-INTRODUCTION REQUEST
         intro_keywords = ['عرف', 'نفسك', 'من أنت', 'من انت', 'مين انت', 'who are you', 'introduce', 'yourself', 'about you', 'ما هو', 'ماهو']
@@ -418,12 +453,6 @@ class ChatBridge(Node):
         if is_intro:
             intro_response = self.get_self_introduction()
             self.publish_response(intro_response)
-            return
-        
-        # CHECK FOR ANALYTICS QUERIES (Manual Computation)
-        analytics_response = self.handle_analytics_query(user_text)
-        if analytics_response:
-            self.publish_response(analytics_response)
             return
 
         # DIRECT NAVIGATION COMMAND (Bypass AI for reliability)
@@ -456,6 +485,21 @@ class ChatBridge(Node):
             "I'm here to make deliveries faster and smarter! How can I help you today? 😊"
         )
         return intro
+
+    def get_random_joke(self):
+        """Return a random joke in Arabic."""
+        import random
+        jokes = [
+            "😂 ليه الروبوت راح للدكتور؟ عشان عنده فيروس! 🤖💊",
+            "😂 واحد روبوت قال للتاني: أنا حاسس إني متبرمج على الحزن! 😢",
+            "😂 ليه الكمبيوتر راح للطبيب؟ عشان عنده بايت! 🖥️",
+            "😂 أنا روبوت توصيل، لو اتأخرت عليك... اعتبرني بشر! 🚗",
+            "😂 قالوا للروبوت: بتحلم بإيه؟ قال: بكهربا مستقرة! ⚡",
+            "😂 ليه الروبوت مبيزعلش؟ عشان معندوش مشاعر... بس أنا مختلف! 💚",
+            "😂 واحد سأل الـ GPS: أنت فين؟ قاله: أنا هنا... بس أنت فين؟! 📍",
+            "😂 أنا رفيق، روبوت ذكي... بس لو ضحكت عليا هعمل نفسي مش فاهم! 🤖😜",
+        ]
+        return random.choice(jokes)
 
     def generate_comparison_table(self, user_text: str):
         """Generate a formatted comparison table from CSV data."""
