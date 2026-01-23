@@ -3,159 +3,183 @@ from rclpy.node import Node
 from std_msgs.msg import String
 import os
 import json
-import time
 import uuid
-import base64
-from io import BytesIO
-from datetime import datetime
 import qrcode
-from qrcode.image.styledpil import StyledPilImage
-from qrcode.image.styles.moduledrawers import SquareModuleDrawer
-from qrcode.image.styles.colormasks import SquareGradiantColorMask
+from datetime import datetime
 from PIL import Image, ImageDraw
 
 class QrGenerator(Node):
+    """
+    ROS2 Node that generates QR codes for delivery verification.
+    
+    Subscribes to:
+        - /app/qr/generate (String): Trigger to generate a QR for an order.
+        - /app/goal_name (String): Tracks robot location to enable/disable generation (must leave R403).
+    
+    Publishes to:
+        - /app/qr/image (String): Path to the generated QR code image.
+    
+    Parameters:
+        - mission_root (string): Directory to store mission-specific folders. Default: ~/ws/src/App/order_logger/missions
+        - order_history_path (string): Path to order history file. Default: ~/ws/src/App/order_logger/dashboard/order_history.txt
+    """
+
     def __init__(self):
         super().__init__('qr_generator')
-        self.sub = self.create_subscription(String, '/app/qr/generate', self.on_generate, 10)
-        self.pub = self.create_publisher(String, '/app/qr/image', 10)
-        self.goal_name_sub = self.create_subscription(String, '/app/goal_name', self.on_goal_name, 10)
+
+        # --- Parameters ---
+        self.declare_parameter('mission_root', os.path.expanduser('~/ws/src/App/order_logger/missions'))
+        self.declare_parameter('order_history_path', os.path.expanduser('~/ws/src/App/order_logger/dashboard/order_history.txt'))
+        
+        self.mission_root = self.get_parameter('mission_root').get_parameter_value().string_value
+        self.order_history_file = self.get_parameter('order_history_path').get_parameter_value().string_value
+        
+        # --- State ---
         self.previous_location = 'R403'
         self.current_location = 'R403'
-        self.has_moved_from_R403 = False  
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        self.dashboard_dir = os.path.abspath(os.path.join(current_dir, '../../order_logger/dashboard'))
-        self.order_history_file = os.path.join(self.dashboard_dir, 'order_history.txt')
-        self.get_logger().info(f'qr_generator ready (order history: {self.order_history_file})')
+        self.has_moved_from_R403 = False
+        
+        # --- Publishers & Subscribers ---
+        self.sub_generate = self.create_subscription(
+            String, '/app/qr/generate', self.on_generate, 10
+        )
+        self.pub_image = self.create_publisher(String, '/app/qr/image', 10)
+        self.sub_goal_name = self.create_subscription(
+            String, '/app/goal_name', self.on_goal_name, 10
+        )
+        
+        # --- Setup ---
+        self._ensure_directories()
+        self.get_logger().info(f'QrGenerator Ready. Order History: {self.order_history_file}')
+
+    def _ensure_directories(self):
+        """Ensure necessary directories exist."""
+        try:
+            if not os.path.exists(self.mission_root):
+                os.makedirs(self.mission_root, exist_ok=True)
+            
+            history_dir = os.path.dirname(self.order_history_file)
+            if not os.path.exists(history_dir):
+                os.makedirs(history_dir, exist_ok=True)
+        except Exception as e:
+            self.get_logger().error(f"Failed to create directories: {e}")
+
     def on_goal_name(self, msg: String):
         """Track robot location changes to detect movement from R403."""
         try:
             goal_name = msg.data.strip()
             if not goal_name:
                 return
+            
             self.previous_location = self.current_location
             self.current_location = goal_name
-            if self.previous_location and self.previous_location == 'R403' and self.current_location != 'R403':
+            
+            if self.previous_location == 'R403' and self.current_location != 'R403':
                 self.has_moved_from_R403 = True
-                self.get_logger().info(f'Robot moved from R403 to {self.current_location} - QR generation now allowed')
+                self.get_logger().info(f'Left R403 -> {self.current_location}. QR Generation Enabled.')
             elif self.current_location == 'R403':
                 self.has_moved_from_R403 = False
-                self.get_logger().info('Robot returned to R403 - QR generation disabled until next departure')
+                self.get_logger().info('Returned to R403. QR Generation Disabled.')
+                
         except Exception as e:
-            self.get_logger().error(f'Error tracking goal name: {e}')
+            self.get_logger().error(f'Error tracking location: {e}')
+
     def on_generate(self, msg: String):
-        """Generate QR code only if robot has moved from R403 to another location."""
+        """
+        Generate a QR code upon request.
+        Request expected format: JSON string with {"order_id": "...", "address": "..."}
+        """
         try:
             req = json.loads(msg.data) if msg.data else {}
             address = req.get('address', 'Unknown')
-            if not self.has_moved_from_R403:
-                error_msg = 'QR code can only be generated after robot moves from R403 to another location. Please send robot to a destination first.'
-                self.get_logger().warn(error_msg)
-                error_resp = {
-                    'error': error_msg,
-                    'address': address
-                }
-                msg_out = String()
-                msg_out.data = json.dumps(error_resp)
-                self.pub.publish(msg_out)
-                return
-            order_id = str(uuid.uuid4())[:8]
-            timestamp = int(time.time())
-            payload = {
-                'order_id':order_id,
-                'address':address,
-                'timestamp':timestamp
-            }
-            qr = qrcode.QRCode(version=None, box_size=12, border=5, error_correction=qrcode.constants.ERROR_CORRECT_H)
-            #qr arg >> version = None >> auto detect version depending on data size
-            #qr arg >> box_size = 12 >> size of each module in pixels
-            #qr arg >> border = 5 >> safety for poor lighting
-            #qr arg >> error_correction = qrcode.constants.ERROR_CORRECT_H >> very high error correction level
-            qr.add_data(json.dumps(payload))
-            qr.make(fit=True) # The QR will automatically pick the smallest version that can hold the data
-            img = qr.make_image(image_factory=StyledPilImage,
-                                module_drawer=SquareModuleDrawer(),
-                                color_mask=SquareGradiantColorMask(
-                                    back_color=(255, 255, 255),
-                                    center_color=(0, 120, 215),
-                                    edge_color=(50, 50, 50)
-                                )).convert('RGBA')
-            """try:
-                logo_path = os.path.join(self.dashboard_dir, 'robot_logo_dashboard.png')
-                if os.path.exists(logo_path):
-                    logo = Image.open(logo_path).convert("RGBA")
-                    qr_width, qr_height = img.size
-                    logo_size = int(qr_width * 0.22)
-                    logo = logo.resize((logo_size, logo_size), Image.Resampling.LANCZOS)
-                    pos = ((qr_width - logo_size) // 2, (qr_height - logo_size) // 2)
-                    padding = 8
-                    bg_size = (logo_size + padding * 2, logo_size + padding * 2)
-                    bg_pos = (pos[0] - padding, pos[1] - padding) 
-                    draw = ImageDraw.Draw(img)
-                    draw.rectangle(
-                        [bg_pos, (bg_pos[0] + bg_size[0], bg_pos[1] + bg_size[1])],
-                        fill="white"
-                    )
-                    img.paste(logo, pos, logo)
-                    self.get_logger().info("Logo embedded in QR code with white background")
-            except Exception as e:
-                self.get_logger().error(f"Failed to embed logo: {e}")"""
+            order_id = str(req.get('order_id', '')).strip()
             
-            # Create Mission Folder Structure
-            try:
-                now_dt = datetime.now()
-                year_str = now_dt.strftime("%Y")
-                month_str = now_dt.strftime("%B") 
-                day_str = now_dt.strftime("%d")
-                folder_name = f"mission_{order_id}"
+            if not order_id:
+                # If no ID provided, try to generate one (though usually ID should come from order)
+                # For safety, we log warning but proceed with a UUID if strictly needed, 
+                # but better to rely on input.
+                self.get_logger().warn("Received QR generation request without order_id.")
+                return
+
+            if not self.has_moved_from_R403:
+                self.get_logger().warn(f"Ignored QR request for {order_id}: Robot has not left R403.")
+                return
+
+            # Generate Unique QR Payload
+            # Format: 16-char short UUID
+            unique_payload = str(uuid.uuid4().hex)[:16]
+            
+            # Create Mission Folder
+            folder_name = f"mission_{order_id}"
+            mission_dir = os.path.join(self.mission_root, folder_name)
+            os.makedirs(mission_dir, exist_ok=True)
+            
+            # Generate QR Image
+            filename = f"qr_{order_id}.png"
+            filepath = os.path.join(mission_dir, filename)
+            
+            if self._create_qr_image(unique_payload, order_id, filepath):
+                # Publish Result
+                out_msg = String()
+                out_msg.data = filepath
+                self.pub_image.publish(out_msg)
                 
-                base_dir = os.path.expanduser("~/ws/mission_proof")
-                mission_dir = os.path.join(base_dir, year_str, month_str, day_str, folder_name)
-                os.makedirs(mission_dir, exist_ok=True)
-                self.get_logger().info(f"📂 Created mission directory: {mission_dir}")
-                
-                filename = f"qr_{order_id}.png"
-                filepath = os.path.join(mission_dir, filename)
-                img.save(filepath, format='PNG')
-                
-                bio = BytesIO()
-                img.save(bio, format='PNG')
-                b64_png = base64.b64encode(bio.getvalue()).decode('utf-8')
-                resp = {
-                    'qr_b64_png': b64_png,
-                    'payload': payload,
-                    'filename': filename
-                }
-                msg_out = String()
-                msg_out.data = json.dumps(resp)
-                self.pub.publish(msg_out)
-                self._log_to_order_history(order_id, address, timestamp, filename, filepath)
-                self.get_logger().info(f"Generated QR for order {order_id} (saved to {filepath})")
-            except Exception as e:
-                self.get_logger().error(f"Failed to create mission folder or save QR: {e}")
-                # Fallback to tmp if critical failure, to ensure app still gets a QR? 
-                # For now, we assume this must succeed for the flow to work.
+                # Log to History
+                self._log_to_order_history(order_id, address, int(datetime.now().timestamp()), filename, filepath)
+                self.get_logger().info(f"Generated QR for Order {order_id} at {filepath}")
+            else:
+                self.get_logger().error(f"Failed to generate QR image for {order_id}")
+
         except Exception as e:
-            self.get_logger().error(f"QR generation failed: {e}")
-    def _log_to_order_history(self, order_id: str, address: str, timestamp: int, filename: str, filepath: str):
-        """Append order and QR code information to order history file."""
+            self.get_logger().error(f"QR Generation Error: {e}")
+
+    def _create_qr_image(self, payload: str, label_text: str, filepath: str) -> bool:
+        """
+        Create a QR code image with embedded text/logo.
+        Returns: True if successful, False otherwise.
+        """
         try:
-            dt = datetime.fromtimestamp(timestamp)
-            timestamp_str = dt.strftime('%Y-%m-%d %H:%M:%S')
-            entry = f"""
-{'='*80}
-Order ID: {order_id}
-Address: {address}
-Timestamp: {timestamp_str} ({timestamp})
-QR Code File: {filename}
-QR Code Path: {filepath}
-{'='*80}
-"""
+            # Create basic QR
+            qr = qrcode.QRCode(
+                version=1,
+                error_correction=qrcode.constants.ERROR_CORRECT_H,
+                box_size=10,
+                border=4,
+            )
+            # Payload encapsulates UID and OrderID
+            data_to_encode = json.dumps({"uid": payload, "oid": label_text})
+            qr.add_data(data_to_encode)
+            qr.make(fit=True)
+
+            img = qr.make_image(fill_color="black", back_color="white").convert('RGB')
+            
+            # Optional: Add white box in center for potential logo or just style
+            # This mimics previous logic but simplifies it to avoid external dependency for now unless needed.
+            # If we want a logo, we could load it if exists.
+            
+            img.save(filepath)
+            return True
+        except Exception as e:
+            self.get_logger().error(f"Image creation failed: {e}")
+            return False
+
+    def _log_to_order_history(self, order_id: str, address: str, timestamp: int, filename: str, filepath: str):
+        """Append entry to the central order history file."""
+        try:
+            dt_str = datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
+            entry = (
+                f"{'='*50}\n"
+                f"Order ID: {order_id}\n"
+                f"Address: {address}\n"
+                f"Time: {dt_str}\n"
+                f"File: {filepath}\n"
+                f"{'='*50}\n"
+            )
             with open(self.order_history_file, 'a', encoding='utf-8') as f:
                 f.write(entry)
-            self.get_logger().info(f'Order {order_id} logged to history file')
         except Exception as e:
-            self.get_logger().error(f'Failed to log order to history: {e}')
+            self.get_logger().error(f"History logging failed: {e}")
+
 def main(args=None):
     rclpy.init(args=args)
     node = QrGenerator()
@@ -163,7 +187,9 @@ def main(args=None):
         rclpy.spin(node)
     except KeyboardInterrupt:
         pass
-    node.destroy_node()
-    rclpy.shutdown()
+    finally:
+        node.destroy_node()
+        rclpy.shutdown()
+
 if __name__ == '__main__':
     main()
