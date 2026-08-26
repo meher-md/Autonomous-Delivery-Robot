@@ -1,0 +1,32 @@
+{
+  "map": {
+    "resolution_m": 0.05,
+    "occupancy_free": 0,
+    "occupancy_occupied": 100,
+    "occupancy_unknown": 255
+  },
+  "robot": {
+    "radius_m": 0.18,
+    "safety_allowance_m": 0.12,
+    "effective_inflation_radius_m": 0.30,
+    "planner_inflation_radius_m": 0.40,
+    "wheel_radius_m": 0.033,
+    "wheel_separation_m": 0.16
+  },
+  "control": {
+    "max_normal_velocity_mps": 0.35,
+    "near_people_velocity_mps": 0.22,
+    "approach_velocity_mps": 0.12,
+    "pure_pursuit_lookahead_m": 0.32,
+    "max_angular_velocity_radps": 0.8
+  },
+  "safety": {
+    "front_caution_distance_m": 1.0,
+    "front_stop_distance_m": 0.32,
+    "rear_caution_distance_m": 0.5,
+    "rear_stop_distance_m": 0.20,
+    "front_stop_angle_limit_rad": 1.0471975512,
+    "persistent_blockage_timeout_s": 3.0,
+    "local_obstacle_timeout_s": 2.0
+  }
+}

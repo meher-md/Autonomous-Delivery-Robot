@@ -1,0 +1,231 @@
+#VRML_SIM R2025a utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/floors/protos/Floor.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/robots/robotis/turtlebot/protos/TurtleBot3Burger.proto"
+
+WorldInfo {
+  basicTimeStep 32
+}
+
+Viewpoint {
+  orientation -0.47 0.86 0.20 4.42
+  position 4.0 -8.0 7.0
+}
+
+TexturedBackground {
+}
+
+TexturedBackgroundLight {
+}
+
+Floor {
+  size 9 9
+}
+
+DEF DELIVERY_ROBOT TurtleBot3Burger {
+  name "delivery robot"
+  supervisor TRUE
+  translation 0.8 0.8 0.0
+  rotation 0 0 1 0
+  controller "restaurant_delivery_controller"
+  extensionSlot [
+    Lidar {
+      translation -0.03 0 0.19
+      name "LDS-01"
+      fieldOfView 6.283185307
+      horizontalResolution 360
+      numberOfLayers 1
+      near 0.08
+      minRange 0.12
+      maxRange 3.5
+      noise 0.005
+    }
+    InertialUnit {
+      name "inertial unit"
+    }
+    Gyro {
+      name "imu gyro"
+    }
+    Display {
+      name "debug display"
+      width 512
+      height 512
+    }
+  ]
+}
+
+Robot {
+  name "scenario supervisor"
+  supervisor TRUE
+  controller "restaurant_scenario_supervisor"
+}
+
+DEF WALL_N Solid {
+  name "wall north"
+  translation 4 8.45 0.25
+  children [
+    Shape {
+      appearance PBRAppearance { baseColor 0.72 0.72 0.68 roughness 0.85 }
+      geometry Box { size 9 0.1 0.5 }
+    }
+  ]
+  boundingObject Box { size 9 0.1 0.5 }
+}
+
+DEF WALL_S Solid {
+  name "wall south"
+  translation 4 -0.45 0.25
+  children [
+    Shape {
+      appearance PBRAppearance { baseColor 0.72 0.72 0.68 roughness 0.85 }
+      geometry Box { size 9 0.1 0.5 }
+    }
+  ]
+  boundingObject Box { size 9 0.1 0.5 }
+}
+
+DEF WALL_E Solid {
+  name "wall east"
+  translation 8.45 4 0.25
+  children [
+    Shape {
+      appearance PBRAppearance { baseColor 0.72 0.72 0.68 roughness 0.85 }
+      geometry Box { size 0.1 9 0.5 }
+    }
+  ]
+  boundingObject Box { size 0.1 9 0.5 }
+}
+
+DEF WALL_W Solid {
+  name "wall west"
+  translation -0.45 4 0.25
+  children [
+    Shape {
+      appearance PBRAppearance { baseColor 0.72 0.72 0.68 roughness 0.85 }
+      geometry Box { size 0.1 9 0.5 }
+    }
+  ]
+  boundingObject Box { size 0.1 9 0.5 }
+}
+
+DEF KITCHEN_COUNTER Solid {
+  name "kitchen counter"
+  translation 1.2 7.2 0.45
+  children [
+    Shape {
+      appearance PBRAppearance { baseColor 0.52 0.50 0.47 roughness 0.7 }
+      geometry Box { size 2.4 1.6 0.9 }
+    }
+  ]
+  boundingObject Box { size 2.4 1.6 0.9 }
+}
+
+DEF CORRIDOR_DIVIDER Solid {
+  name "corridor divider"
+  translation 5.075 4.925 0.35
+  children [
+    Shape {
+      appearance PBRAppearance { baseColor 0.45 0.48 0.50 roughness 0.8 }
+      geometry Box { size 0.35 3.15 0.7 }
+    }
+  ]
+  boundingObject Box { size 0.35 3.15 0.7 }
+}
+
+DEF TABLE_1 Solid {
+  name "table 1"
+  translation 2.0 2.0 0.36
+  children [
+    Shape {
+      appearance PBRAppearance { baseColor 0.40 0.32 0.26 roughness 0.6 }
+      geometry Cylinder { radius 0.32 height 0.72 }
+    }
+  ]
+  boundingObject Cylinder { radius 0.32 height 0.72 }
+}
+
+DEF TABLE_2 Solid {
+  name "table 2"
+  translation 4.3 2.1 0.36
+  children [
+    Shape {
+      appearance PBRAppearance { baseColor 0.40 0.32 0.26 roughness 0.6 }
+      geometry Cylinder { radius 0.32 height 0.72 }
+    }
+  ]
+  boundingObject Cylinder { radius 0.32 height 0.72 }
+}
+
+DEF TABLE_3 Solid {
+  name "table 3"
+  translation 6.4 2.0 0.36
+  children [
+    Shape {
+      appearance PBRAppearance { baseColor 0.40 0.32 0.26 roughness 0.6 }
+      geometry Cylinder { radius 0.32 height 0.72 }
+    }
+  ]
+  boundingObject Cylinder { radius 0.32 height 0.72 }
+}
+
+DEF TABLE_4 Solid {
+  name "table 4"
+  translation 3.1 5.0 0.36
+  children [
+    Shape {
+      appearance PBRAppearance { baseColor 0.40 0.32 0.26 roughness 0.6 }
+      geometry Cylinder { radius 0.32 height 0.72 }
+    }
+  ]
+  boundingObject Cylinder { radius 0.32 height 0.72 }
+}
+
+DEF TABLE_5 Solid {
+  name "table 5"
+  translation 6.2 5.2 0.36
+  children [
+    Shape {
+      appearance PBRAppearance { baseColor 0.40 0.32 0.26 roughness 0.6 }
+      geometry Cylinder { radius 0.32 height 0.72 }
+    }
+  ]
+  boundingObject Cylinder { radius 0.32 height 0.72 }
+}
+
+DEF DYNAMIC_OBSTACLE_1 Solid {
+  name "dynamic obstacle 1"
+  translation -20 -20 0.45
+  children [
+    Shape {
+      appearance PBRAppearance { baseColor 0.12 0.34 0.80 roughness 0.45 }
+      geometry Cylinder { radius 0.18 height 0.9 }
+    }
+  ]
+  boundingObject Cylinder { radius 0.18 height 0.9 }
+}
+
+DEF DYNAMIC_OBSTACLE_2 Solid {
+  name "dynamic obstacle 2"
+  translation -21 -20 0.45
+  children [
+    Shape {
+      appearance PBRAppearance { baseColor 0.12 0.58 0.42 roughness 0.45 }
+      geometry Cylinder { radius 0.18 height 0.9 }
+    }
+  ]
+  boundingObject Cylinder { radius 0.18 height 0.9 }
+}
+
+DEF DYNAMIC_OBSTACLE_3 Solid {
+  name "dynamic obstacle 3"
+  translation -22 -20 0.45
+  children [
+    Shape {
+      appearance PBRAppearance { baseColor 0.72 0.22 0.18 roughness 0.45 }
+      geometry Cylinder { radius 0.18 height 0.9 }
+    }
+  ]
+  boundingObject Cylinder { radius 0.18 height 0.9 }
+}

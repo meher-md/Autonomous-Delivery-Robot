@@ -1,0 +1,13 @@
+build/
+install/
+log/
+*.pyc
+__pycache__/
+.cache/
+.vscode/
+.idea/
+restaurant_robot/simulator/controllers/restaurant_delivery_controller/restaurant_delivery_controller
+restaurant_robot/simulator/controllers/restaurant_delivery_controller/restaurant_run.csv
+restaurant_robot/simulator/controllers/restaurant_scenario_supervisor/restaurant_scenario_supervisor
+restaurant_robot/simulator/controllers/restaurant_scenario_supervisor/scenario_metrics.csv
+restaurant_robot/acceptance_summary.txt
