@@ -10,6 +10,7 @@
 #include <sstream>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "restaurant_robot/control/differential_drive.hpp"
 #include "restaurant_robot/estimation/localization.hpp"
@@ -24,7 +25,6 @@
 #include "restaurant_robot/mission/delivery_manager.hpp"
 #include "restaurant_robot/navigation/navigator.hpp"
 #include "restaurant_robot/planning/astar.hpp"
-#include "restaurant_robot/planning/inflation.hpp"
 #include "restaurant_robot/planning/path_smoothing.hpp"
 #include "restaurant_robot/safety/safety_supervisor.hpp"
 
@@ -41,6 +41,7 @@
 #include <webots/Motor.hpp>
 #include <webots/PositionSensor.hpp>
 #include <webots/Robot.hpp>
+#include <webots/Supervisor.hpp>
 
 using namespace restaurant_robot;
 
@@ -573,10 +574,110 @@ private:
     double scale_{512.0 / 9.0};
 };
 
+class PlannedPathWorldOverlay {
+public:
+    explicit PlannedPathWorldOverlay(webots::Supervisor* supervisor) : supervisor_(supervisor) {}
+
+    void update(const Path& path) {
+        if (!supervisor_) {
+            return;
+        }
+        ensureNodes();
+        if (!ready_) {
+            return;
+        }
+        const std::size_t segment_count = path.points.size() < 2
+                                              ? 0
+                                              : std::min<std::size_t>(path.points.size() - 1, kMaxSegments);
+        for (std::size_t i = 0; i < kMaxSegments; ++i) {
+            if (i < segment_count) {
+                showSegment(i, path.points[i], path.points[i + 1]);
+            } else {
+                hideSegment(i);
+            }
+        }
+    }
+
+    void hide() {
+        if (!supervisor_) {
+            return;
+        }
+        ensureNodes();
+        for (std::size_t i = 0; ready_ && i < kMaxSegments; ++i) {
+            hideSegment(i);
+        }
+    }
+
+private:
+    static constexpr std::size_t kMaxSegments = 96;
+
+    void ensureNodes() {
+        if (initialized_) {
+            return;
+        }
+        initialized_ = true;
+        webots::Node* root = supervisor_->getRoot();
+        webots::Field* children = root ? root->getField("children") : nullptr;
+        if (!children) {
+            return;
+        }
+
+        for (std::size_t i = 0; i < kMaxSegments; ++i) {
+            const std::string def_name = "PLANNED_PATH_SEGMENT_" + std::to_string(i);
+            std::ostringstream node;
+            node << "DEF " << def_name << " Transform { "
+                 << "translation -20 -20 0.045 "
+                 << "scale 0.001 0.045 0.006 "
+                 << "children [ Shape { "
+                 << "appearance PBRAppearance { baseColor 0.05 0.25 1 roughness 0.45 transparency 0.18 } "
+                 << "geometry Box { size 1 1 1 } "
+                 << "} ] }";
+            children->importMFNodeFromString(-1, node.str());
+            segments_.push_back(supervisor_->getFromDef(def_name));
+        }
+        ready_ = std::all_of(segments_.begin(), segments_.end(), [](const webots::Node* node) {
+            return node != nullptr;
+        });
+    }
+
+    void showSegment(std::size_t index, const Point2D& a, const Point2D& b) {
+        webots::Node* node = segments_.at(index);
+        const double dx = b.x - a.x;
+        const double dy = b.y - a.y;
+        const double length = std::hypot(dx, dy);
+        if (!node || length < 0.02) {
+            hideSegment(index);
+            return;
+        }
+        const double translation[3] = {(a.x + b.x) / 2.0, (a.y + b.y) / 2.0, 0.045};
+        const double rotation[4] = {0.0, 0.0, 1.0, std::atan2(dy, dx)};
+        const double scale[3] = {length, 0.045, 0.006};
+        node->getField("translation")->setSFVec3f(translation);
+        node->getField("rotation")->setSFRotation(rotation);
+        node->getField("scale")->setSFVec3f(scale);
+    }
+
+    void hideSegment(std::size_t index) {
+        webots::Node* node = segments_.at(index);
+        if (!node) {
+            return;
+        }
+        const double translation[3] = {-20.0, -20.0, 0.045};
+        const double scale[3] = {0.001, 0.045, 0.006};
+        node->getField("translation")->setSFVec3f(translation);
+        node->getField("scale")->setSFVec3f(scale);
+    }
+
+    webots::Supervisor* supervisor_{nullptr};
+    bool initialized_{false};
+    bool ready_{false};
+    std::vector<webots::Node*> segments_;
+};
+
 }  // namespace
 
 int main(int argc, char** argv) {
-    webots::Robot robot;
+    webots::Supervisor robot;
     const int time_step_ms = static_cast<int>(robot.getBasicTimeStep());
     webots::Keyboard* keyboard = robot.getKeyboard();
     if (keyboard) {
@@ -609,6 +710,7 @@ int main(int argc, char** argv) {
         return 2;
     }
     DebugDisplayRenderer debug_renderer(hardware.display(), restaurant);
+    PlannedPathWorldOverlay path_overlay(&robot);
     OccupancyRayMapper manual_mapper;
     if (loaded_map_from_json) {
         manual_mapper.grid() = restaurant.grid;
@@ -711,7 +813,6 @@ int main(int argc, char** argv) {
                 manual_mapping_mode = false;
                 mapping_mode = batch_mapping_mode;
                 commandDestination(navigator, restaurant, requested_destination);
-                navigator.setEmergencyStop(false);
                 std::cout << "control_mode=auto\n";
             }
             if (gui->has_manual_command) {
@@ -721,16 +822,17 @@ int main(int argc, char** argv) {
             if (gui->goal && isKnownDestination(restaurant, *gui->goal)) {
                 requested_destination = *gui->goal;
                 commandDestination(navigator, restaurant, requested_destination);
-                navigator.setEmergencyStop(false);
                 std::cout << "gui_destination=" << requested_destination << "\n";
             }
             if (gui->estop) {
                 navigator.setEmergencyStop(true);
                 manual_safety.setEmergencyStop(true);
+                std::cout << "gui_estop=latched\n";
             }
             if (gui->clear_estop) {
                 navigator.setEmergencyStop(false);
                 manual_safety.setEmergencyStop(false);
+                std::cout << "gui_estop=released\n";
             }
             gui_save_map = gui->save_map;
             gui_quit = gui->quit;
@@ -768,6 +870,7 @@ int main(int argc, char** argv) {
                     next_debug_export_s = robot.getTime() + debug_export_interval_s;
                 }
             }
+            path_overlay.hide();
             logger.write(RunLogRecord{
                 robot.getTime(),
                 odometry_pose,
@@ -809,7 +912,6 @@ int main(int argc, char** argv) {
                     *keyboard_destination != requested_destination) {
                     requested_destination = *keyboard_destination;
                     commandDestination(navigator, restaurant, requested_destination);
-                    navigator.setEmergencyStop(false);
                     robot.setCustomData(requested_destination);
                     std::cout << "keyboard_destination=" << requested_destination << "\n";
                 }
@@ -826,7 +928,6 @@ int main(int argc, char** argv) {
             } else if (isKnownDestination(restaurant, command) && command != requested_destination) {
                 requested_destination = command;
                 commandDestination(navigator, restaurant, requested_destination);
-                navigator.setEmergencyStop(false);
             } else if (command == "DISTURB_POSE") {
                 const Pose2D pose_belief_before_disturbance = estimated_pose;
                 const Pose2D disturbed{
@@ -848,6 +949,7 @@ int main(int argc, char** argv) {
         }
 
         const auto nav = navigator.update(estimated_pose, scan, time_step_ms / 1000.0);
+        path_overlay.update(navigator.activePath());
         final_replanning_events = nav.replanning_events;
         if (mapping_mode && !scan.ranges.empty()) {
             slam_backend->update(scan, encoders, imu, estimated_pose);

@@ -47,7 +47,7 @@ class RestaurantControlGui:
         actions.grid(row=3, column=0, columnspan=4, sticky="ew")
         ttk.Button(actions, text="Save Map", command=self.save_map).grid(row=0, column=0, padx=3, pady=3)
         ttk.Button(actions, text="E-Stop", command=self.estop).grid(row=0, column=1, padx=3, pady=3)
-        ttk.Button(actions, text="Clear", command=self.clear_estop).grid(row=0, column=2, padx=3, pady=3)
+        ttk.Button(actions, text="Release E-Stop", command=self.release_estop).grid(row=0, column=2, padx=3, pady=3)
         ttk.Button(actions, text="Quit Robot", command=self.quit_robot).grid(row=0, column=3, padx=3, pady=3)
 
         self.status = tk.StringVar(value=f"Control file: {self.control_file}")
@@ -98,7 +98,7 @@ class RestaurantControlGui:
     def estop(self):
         self.write_command(estop=1, linear=0.0, angular=0.0)
 
-    def clear_estop(self):
+    def release_estop(self):
         self.write_command(clear_estop=1)
 
     def quit_robot(self):

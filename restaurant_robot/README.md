@@ -91,7 +91,7 @@ GUI control:
 bash restaurant_robot/scripts/run_webots_gui_control.sh
 ```
 
-This starts Webots and a small Tkinter control window using `build/restaurant_robot/control_command.txt` as the command bridge. The GUI can switch between `Auto` and `Manual`, choose `TABLE_1` through `TABLE_5`, drive manually, save a map checkpoint, emergency-stop, clear, or quit the robot controller. During manual mapping, the Webots `debug display` device shows the live LiDAR-built occupancy map; yellow points are current LiDAR hits and the grid updates as you drive.
+This starts Webots and a small Tkinter control window using `build/restaurant_robot/control_command.txt` as the command bridge. The GUI can switch between `Auto` and `Manual`, choose `TABLE_1` through `TABLE_5`, drive manually, save a map checkpoint, emergency-stop, explicitly release E-stop, or quit the robot controller. Pressing `Go` changes only the destination; it does not release E-stop. During manual mapping, the Webots `debug display` device shows the live LiDAR-built occupancy map; yellow points are current LiDAR hits and the grid updates as you drive.
 
 Continue mapping from an earlier checkpoint:
 

@@ -2,15 +2,56 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
+#include <optional>
 #include <utility>
 
 #include "restaurant_robot/planning/path_smoothing.hpp"
 
 namespace restaurant_robot {
+namespace {
+
+std::optional<Point2D> nearestTraversablePoint(const OccupancyGrid& grid, const Pose2D& pose, double max_radius_m) {
+    const auto seed = grid.worldToGrid(Point2D{pose.x, pose.y});
+    if (!seed) {
+        return std::nullopt;
+    }
+    if (grid.isTraversable(seed->x, seed->y)) {
+        return Point2D{pose.x, pose.y};
+    }
+
+    const int max_radius_cells = std::max(1, static_cast<int>(std::ceil(max_radius_m / grid.resolution())));
+    std::optional<Point2D> best;
+    double best_dist_sq = std::numeric_limits<double>::infinity();
+    for (int radius = 1; radius <= max_radius_cells; ++radius) {
+        for (int y = seed->y - radius; y <= seed->y + radius; ++y) {
+            for (int x = seed->x - radius; x <= seed->x + radius; ++x) {
+                if (std::max(std::abs(x - seed->x), std::abs(y - seed->y)) != radius || !grid.isTraversable(x, y)) {
+                    continue;
+                }
+                const Point2D candidate = grid.gridToWorld(x, y);
+                const double dx = candidate.x - pose.x;
+                const double dy = candidate.y - pose.y;
+                const double dist_sq = dx * dx + dy * dy;
+                if (dist_sq < best_dist_sq) {
+                    best_dist_sq = dist_sq;
+                    best = candidate;
+                }
+            }
+        }
+        if (best) {
+            return best;
+        }
+    }
+    return std::nullopt;
+}
+
+}  // namespace
 
 Navigator::Navigator(RestaurantMap restaurant_map, NavigatorConfig config)
     : restaurant_map_(std::move(restaurant_map)),
       config_(config),
+      footprint_static_grid_(inflateObstacles(restaurant_map_.grid, config_.robot_footprint_radius_m)),
       local_obstacles_(6.0, restaurant_map_.grid.resolution(), 2.0),
       mission_(restaurant_map_.destinations) {}
 
@@ -86,7 +127,7 @@ NavigatorStepResult Navigator::update(const Pose2D& pose, const LaserScan& scan,
     }
 
     const SafetyResult final_safe = safety_.apply(tracker_.computeCommand(active_path_, pose), scan);
-    result.command = applyStaticKeepoutGuard(pose, final_safe.command, dt_s);
+    result.command = applyStaticFootprintGuard(pose, final_safe.command, dt_s);
     result.safety_state = final_safe.state;
     result.minimum_obstacle_distance = final_safe.minimum_obstacle_distance;
     result.planner_state = planner_state_;
@@ -98,9 +139,11 @@ NavigatorStepResult Navigator::update(const Pose2D& pose, const LaserScan& scan,
 }
 
 bool Navigator::planTo(const Pose2D& pose, const Pose2D& goal, bool use_dynamic_obstacles) {
-    OccupancyGrid planning_grid = restaurant_map_.grid;
+    OccupancyGrid planning_grid = footprint_static_grid_;
     if (use_dynamic_obstacles) {
-        planning_grid = local_obstacles_.overlayOnto(restaurant_map_.grid);
+        planning_grid = inflateObstacles(
+            local_obstacles_.overlayOnto(restaurant_map_.grid),
+            config_.robot_footprint_radius_m);
     }
 
     const auto plan = planner_.plan(planning_grid, pose, goal);
@@ -160,10 +203,22 @@ bool Navigator::shouldReplan(
     return blocked_timer_s_ >= config_.persistent_blockage_timeout_s || stuck_timer_s_ >= config_.stuck_timeout_s;
 }
 
-VelocityCommand Navigator::applyStaticKeepoutGuard(const Pose2D& pose, const VelocityCommand& command, double dt_s) const {
-    const auto current_cell = restaurant_map_.grid.worldToGrid(Point2D{pose.x, pose.y});
-    if (!current_cell || !restaurant_map_.grid.isTraversable(current_cell->x, current_cell->y)) {
+VelocityCommand Navigator::applyStaticFootprintGuard(const Pose2D& pose, const VelocityCommand& command, double dt_s) const {
+    const auto current_cell = footprint_static_grid_.worldToGrid(Point2D{pose.x, pose.y});
+    if (!current_cell) {
         return {};
+    }
+    if (!footprint_static_grid_.isTraversable(current_cell->x, current_cell->y)) {
+        const auto escape = nearestTraversablePoint(footprint_static_grid_, pose, 0.90);
+        if (!escape) {
+            return {};
+        }
+        const double heading_error = normalizeAngle(std::atan2(escape->y - pose.y, escape->x - pose.x) - pose.theta);
+        const double angular = std::clamp(1.6 * heading_error, -0.55, 0.55);
+        if (std::abs(heading_error) > 0.35) {
+            return VelocityCommand{0.0, angular};
+        }
+        return VelocityCommand{0.08, angular};
     }
 
     if (std::abs(command.linear) <= 1e-6) {
@@ -180,8 +235,8 @@ VelocityCommand Navigator::applyStaticKeepoutGuard(const Pose2D& pose, const Vel
         projected.y += command.linear * std::sin(projected.theta) * sample_dt_s;
         projected.theta = normalizeAngle(projected.theta + command.angular * sample_dt_s);
 
-        const auto cell = restaurant_map_.grid.worldToGrid(Point2D{projected.x, projected.y});
-        if (!cell || !restaurant_map_.grid.isTraversable(cell->x, cell->y)) {
+        const auto cell = footprint_static_grid_.worldToGrid(Point2D{projected.x, projected.y});
+        if (!cell || !footprint_static_grid_.isTraversable(cell->x, cell->y)) {
             return VelocityCommand{0.0, command.angular};
         }
     }
