@@ -23,7 +23,7 @@ enum class NavigatorPlannerState {
 
 struct NavigatorConfig {
     double planner_clearance_radius_m{0.40};
-    double persistent_blockage_timeout_s{3.0};
+    double persistent_blockage_timeout_s{0.8};
     double path_obstacle_radius_m{0.35};
     double stuck_timeout_s{3.0};
     double stuck_motion_threshold_m{0.05};
@@ -53,6 +53,7 @@ public:
     bool goToDestination(const std::string& destination_name);
     void cancelMission();
     void configure(const NavigatorConfig& config, const Pose2D& pose);
+    void updateStaticMap(const OccupancyGrid& grid);
     void setEmergencyStop(bool enabled);
     NavigatorStepResult update(const Pose2D& pose, const LaserScan& scan, double dt_s);
 

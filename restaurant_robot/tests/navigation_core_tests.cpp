@@ -518,6 +518,27 @@ void testNavigatorReplansPersistentBlockage() {
     require(result.planner_state == NavigatorPlannerState::PathReady, "alternate route should be found in open map");
 }
 
+void testNavigatorReplansDynamicObstacleOnPathBeforeStop() {
+    NavigatorConfig config;
+    config.persistent_blockage_timeout_s = 0.10;
+    config.stuck_timeout_s = 10.0;
+
+    Navigator navigator(createStraightTestMap(), config);
+    require(navigator.deliver("TABLE_3"), "navigator should accept TABLE_3 delivery for dynamic replan test");
+
+    const Pose2D pose{0.5, 0.0, 0.0};
+    auto result = navigator.update(pose, makeScan(6.0), 0.1);
+    require(result.planner_state == NavigatorPlannerState::PathReady, "dynamic replan test should have initial route");
+
+    auto path_obstacle_scan = makeScan(6.0);
+    path_obstacle_scan.ranges.at(path_obstacle_scan.ranges.size() / 2) = 1.2;
+    path_obstacle_scan.timestamp = 2.0;
+    result = navigator.update(pose, path_obstacle_scan, 0.15);
+
+    require(result.safety_state != SafetyState::Stop, "path obstacle at caution distance should not require hard stop first");
+    require(result.replanned, "dynamic obstacle on active path should trigger replanning before hard stop");
+}
+
 void testNavigatorReplansExactBoundaryCorridorBlockage() {
     NavigatorConfig config;
     config.persistent_blockage_timeout_s = 0.10;
@@ -596,6 +617,41 @@ void testNavigatorStopsBeforeStaticKeepout() {
     require(result.planner_state == NavigatorPlannerState::PathReady, "static keepout guard test should find a route around obstacle");
     require(!navigator.activePath().points.empty(), "static keepout guard route should not be empty");
     require(result.command.linear == 0.0, "navigator should stop before commanded motion enters inflated static keepout");
+}
+
+void testNavigatorPlansWithUpdatedStaticMap() {
+    NavigatorConfig config;
+    config.planner_clearance_radius_m = 0.05;
+
+    const auto map = createStraightTestMap();
+    Navigator navigator(map, config);
+    const Pose2D pose{0.5, 0.0, 0.0};
+    require(navigator.goToDestination("TABLE_3"), "updated-map test should accept TABLE_3 destination");
+
+    auto result = navigator.update(pose, makeScan(6.0), 0.1);
+    require(result.planner_state == NavigatorPlannerState::PathReady, "updated-map test should have an initial path");
+    const auto initial_path = navigator.activePath();
+    require(!initial_path.points.empty(), "updated-map initial path should not be empty");
+
+    OccupancyGrid learned_grid = map.grid;
+    for (int x = 24; x <= 27; ++x) {
+        for (int y = 10; y < learned_grid.height(); ++y) {
+            learned_grid.set(x, y, kOccupied);
+        }
+    }
+    navigator.updateStaticMap(learned_grid);
+    require(navigator.goToDestination("TABLE_3"), "updated-map test should accept TABLE_3 after map update");
+
+    result = navigator.update(pose, makeScan(6.0), 0.1);
+    require(result.planner_state == NavigatorPlannerState::PathReady, "navigator should plan after learned map update");
+    const auto updated_path = navigator.activePath();
+    require(!updated_path.points.empty(), "updated-map route should not be empty");
+
+    double min_y = std::numeric_limits<double>::infinity();
+    for (const auto& point : updated_path.points) {
+        min_y = std::min(min_y, point.y);
+    }
+    require(min_y < -0.45, "updated-map route should go around the learned obstacle through the lower gap");
 }
 
 void testNavigatorCompletesHeadlessDelivery() {
@@ -694,10 +750,12 @@ int main() {
     testDynamicObstacleLayer();
     testMissionManager();
     testNavigatorReplansPersistentBlockage();
+    testNavigatorReplansDynamicObstacleOnPathBeforeStop();
     testNavigatorReplansExactBoundaryCorridorBlockage();
     testNavigatorDestinationChange();
     testNavigatorEmergencyStopOverride();
     testNavigatorStopsBeforeStaticKeepout();
+    testNavigatorPlansWithUpdatedStaticMap();
     testNavigatorCompletesHeadlessDelivery();
     testScenarioRunnerMetrics();
     testRunLogger();

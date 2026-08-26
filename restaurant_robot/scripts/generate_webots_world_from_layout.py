@@ -283,6 +283,58 @@ def service_marker(label: str, pose: dict[str, Any]) -> str:
 }}"""
 
 
+def pedestrian_node(def_name: str, name: str, trajectory: list[tuple[float, float]], speed: float, shirt: str, pants: str) -> str:
+    start_x, start_y = trajectory[0]
+    trajectory_text = ", ".join(f"{fmt(x)} {fmt(y)}" for x, y in trajectory)
+    return f"""DEF {sanitize_def(def_name)} Pedestrian {{
+  name "{name}"
+  translation {fmt(start_x)} {fmt(start_y)} 1.27
+  controllerArgs [
+    "--trajectory={trajectory_text}"
+    "--speed={fmt(speed)}"
+  ]
+  shirtColor {shirt}
+  pantsColor {pants}
+}}"""
+
+
+def pedestrian_nodes(width: float, height: float, wall_thickness: float) -> list[str]:
+    margin = max(wall_thickness + 0.7, 0.85)
+    left = margin
+    right = max(left + 0.5, width - margin)
+    bottom = margin
+    top = max(bottom + 0.5, height - margin)
+    mid_x = width / 2.0
+    mid_y = height / 2.0
+
+    return [
+        pedestrian_node(
+            "DYNAMIC_OBSTACLE_1",
+            "walking customer 1",
+            [(left, mid_y), (right, mid_y), (right, mid_y + 0.35), (left, mid_y + 0.35)],
+            0.55,
+            "0.12 0.34 0.80",
+            "0.10 0.10 0.13",
+        ),
+        pedestrian_node(
+            "DYNAMIC_OBSTACLE_2",
+            "walking customer 2",
+            [(mid_x - 1.0, bottom), (mid_x - 1.0, top), (mid_x - 0.35, top), (mid_x - 0.35, bottom)],
+            0.45,
+            "0.12 0.58 0.42",
+            "0.16 0.16 0.18",
+        ),
+        pedestrian_node(
+            "DYNAMIC_OBSTACLE_3",
+            "walking customer 3",
+            [(mid_x + 0.8, bottom + 0.4), (right, mid_y - 0.2), (mid_x + 0.8, top - 0.4), (left + 0.8, mid_y - 0.2)],
+            0.50,
+            "0.72 0.22 0.18",
+            "0.15 0.15 0.18",
+        ),
+    ]
+
+
 def robot_node(home: dict[str, Any], map_json: str | None) -> str:
     theta = float(home.get("theta", 0.0))
     controller_args = ""
@@ -432,17 +484,9 @@ def generated_world_text(data: dict[str, Any]) -> str:
     for label, pose in sorted(destinations.items()):
         body.extend(["", service_marker(label, pose)])
 
-    body.extend(
-        [
-            "",
-            'DEF DYNAMIC_OBSTACLE_1 Pedestrian {\n  name "pedestrian customer 1"\n  translation -20 -20 1.27\n  shirtColor 0.12 0.34 0.80\n  pantsColor 0.10 0.10 0.13\n}',
-            "",
-            'DEF DYNAMIC_OBSTACLE_2 Pedestrian {\n  name "pedestrian customer 2"\n  translation -21 -20 1.27\n  shirtColor 0.12 0.58 0.42\n  pantsColor 0.16 0.16 0.18\n}',
-            "",
-            'DEF DYNAMIC_OBSTACLE_3 Pedestrian {\n  name "pedestrian customer 3"\n  translation -22 -20 1.27\n  shirtColor 0.72 0.22 0.18\n  pantsColor 0.15 0.15 0.18\n}',
-            "",
-        ]
-    )
+    for pedestrian in pedestrian_nodes(width, height, wall_thickness):
+        body.extend(["", pedestrian])
+    body.append("")
     return "\n".join(body)
 
 

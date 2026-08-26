@@ -47,6 +47,10 @@ using namespace restaurant_robot;
 
 namespace {
 
+constexpr double kLidarPlanarReturnToleranceM = 0.08;
+constexpr double kLidarNoHitMarginM = 0.20;
+constexpr double kLidarObstacleInsertMaxRangeM = 2.50;
+
 double getenvDoubleOr(const char* name, double fallback) {
     const char* value = std::getenv(name);
     return value ? std::atof(value) : fallback;
@@ -347,6 +351,7 @@ public:
 
         if (lidar_) {
             lidar_->enable(time_step_ms_);
+            lidar_->enablePointCloud();
         }
         if (imu_) {
             imu_->enable(time_step_ms_);
@@ -379,11 +384,92 @@ public:
         }
         const int count = lidar_->getHorizontalResolution();
         const float* ranges = lidar_->getRangeImage();
-        scan.ranges.assign(ranges, ranges + count);
-        scan.angle_min = -lidar_->getFov() / 2.0;
-        scan.angle_increment = count > 1 ? lidar_->getFov() / static_cast<double>(count - 1) : 0.0;
+        scan.angle_min = -kPi;
+        scan.angle_increment = count > 1 ? 2.0 * kPi / static_cast<double>(count - 1) : 0.0;
         scan.max_range = lidar_->getMaxRange();
         scan.timestamp = robot_.getTime();
+        scan.ranges.resize(count, scan.max_range);
+
+        const webots::LidarPoint* points = lidar_->isPointCloudEnabled() ? lidar_->getPointCloud() : nullptr;
+        const double min_range = lidar_->getMinRange();
+        int raw_finite = 0;
+        int rejected_max = 0;
+        int rejected_height = 0;
+        int accepted = 0;
+        double min_raw_range = std::numeric_limits<double>::infinity();
+        double max_accepted_range = 0.0;
+        double min_point_z = std::numeric_limits<double>::infinity();
+        double max_point_z = -std::numeric_limits<double>::infinity();
+        if (points && scan.angle_increment > 0.0) {
+            const int point_count = std::min(count, lidar_->getNumberOfPoints());
+            for (int i = 0; i < point_count; ++i) {
+                const auto& point = points[i];
+                const bool finite_point = std::isfinite(point.x) && std::isfinite(point.y) && std::isfinite(point.z);
+                const double range = finite_point ? std::hypot(point.x, point.y) : scan.max_range;
+                if (finite_point && std::isfinite(range)) {
+                    ++raw_finite;
+                    min_raw_range = std::min(min_raw_range, range);
+                }
+                if (std::isfinite(point.z)) {
+                    min_point_z = std::min(min_point_z, static_cast<double>(point.z));
+                    max_point_z = std::max(max_point_z, static_cast<double>(point.z));
+                }
+                bool valid = finite_point && range >= min_range && range <= kLidarObstacleInsertMaxRangeM &&
+                             range < scan.max_range - kLidarNoHitMarginM;
+                if (finite_point && (range > kLidarObstacleInsertMaxRangeM || range >= scan.max_range - kLidarNoHitMarginM)) {
+                    ++rejected_max;
+                }
+                if (valid && std::abs(point.z) > kLidarPlanarReturnToleranceM) {
+                    valid = false;
+                    ++rejected_height;
+                }
+                if (!valid) {
+                    continue;
+                }
+
+                const double angle = std::atan2(point.y, point.x);
+                const int bin = std::clamp(
+                    static_cast<int>(std::lround((angle - scan.angle_min) / scan.angle_increment)),
+                    0,
+                    count - 1);
+                scan.ranges[bin] = std::min(scan.ranges[bin], range);
+                ++accepted;
+                max_accepted_range = std::max(max_accepted_range, range);
+            }
+        } else {
+            for (int i = 0; i < count; ++i) {
+                const double range = ranges[i];
+                const bool finite_range = std::isfinite(range);
+                if (finite_range) {
+                    ++raw_finite;
+                    min_raw_range = std::min(min_raw_range, range);
+                }
+                const bool valid = finite_range && range >= min_range && range <= kLidarObstacleInsertMaxRangeM &&
+                                   range < scan.max_range - kLidarNoHitMarginM;
+                if (finite_range && (range > kLidarObstacleInsertMaxRangeM || range >= scan.max_range - kLidarNoHitMarginM)) {
+                    ++rejected_max;
+                }
+                if (valid) {
+                    scan.ranges[i] = range;
+                    ++accepted;
+                    max_accepted_range = std::max(max_accepted_range, range);
+                }
+            }
+        }
+        if (getenvBoolOr("LIDAR_FILTER_DEBUG", false)) {
+            static int debug_counter = 0;
+            if (++debug_counter % 30 == 0) {
+                std::cout << "lidar_filter raw_finite=" << raw_finite
+                          << " accepted=" << accepted
+                          << " rejected_max=" << rejected_max
+                          << " rejected_height=" << rejected_height
+                          << " min_raw_range=" << (std::isfinite(min_raw_range) ? min_raw_range : 0.0)
+                          << " max_accepted_range=" << max_accepted_range
+                          << " point_z_min=" << (std::isfinite(min_point_z) ? min_point_z : 0.0)
+                          << " point_z_max=" << (std::isfinite(max_point_z) ? max_point_z : 0.0)
+                          << "\n";
+            }
+        }
         return scan;
     }
 
@@ -804,10 +890,8 @@ int main(int argc, char** argv) {
     }
     DebugDisplayRenderer debug_renderer(hardware.display(), restaurant);
     PlannedPathWorldOverlay path_overlay(&robot);
-    OccupancyRayMapper manual_mapper;
-    if (loaded_map_from_json) {
-        manual_mapper.grid() = restaurant.grid;
-    }
+    OccupancyRayMapper learned_mapper;
+    learned_mapper.grid() = restaurant.grid;
     WheelImuOdometry odometry(0.033, 0.16);
     ScanMapLocalizationConfig localization_config;
     localization_config.search_xy_radius_m = 0.35;
@@ -894,12 +978,21 @@ int main(int argc, char** argv) {
             next_localization_update_s = robot.getTime() + localization_update_period_s;
         }
         last_estimated_pose = estimated_pose;
+        if (!scan.ranges.empty()) {
+            learned_mapper.integrateScan(estimated_pose, scan);
+            navigator.updateStaticMap(learned_mapper.grid());
+            debug_renderer.setGrid(learned_mapper.grid());
+        }
 
         bool gui_save_map = false;
         bool gui_quit = false;
         if (const auto gui = readGuiCommand(control_file_path); gui && gui->seq != last_gui_command_seq) {
             last_gui_command_seq = gui->seq;
-            if (gui->has_tuning_config) {
+            gui_save_map = gui->save_map;
+            gui_quit = gui->quit;
+            if (gui->save_map && !gui->quit) {
+                std::cout << "gui_save_map_requested\n";
+            } else if (gui->has_tuning_config) {
                 navigation_config = gui->tuning_config;
                 navigator.configure(navigation_config, estimated_pose);
                 manual_safety.configure(navigation_config.safety);
@@ -943,21 +1036,15 @@ int main(int argc, char** argv) {
                     }
                 }
             }
-            gui_save_map = gui->save_map;
-            gui_quit = gui->quit;
         }
 
         if (manual_mapping_mode) {
-            if (!scan.ranges.empty()) {
-                manual_mapper.integrateScan(estimated_pose, scan);
-                debug_renderer.setGrid(manual_mapper.grid());
-            }
             auto manual_input = manualDriveInput(keyboard);
             if (!manual_input.has_drive_command && gui_has_manual_command) {
                 manual_input.command = gui_manual_command;
             }
             if (manual_input.save_map || gui_save_map) {
-                const bool map_ok = saveManualRestaurantMap(restaurant, manual_mapper.grid(), map_output_prefix);
+                const bool map_ok = saveManualRestaurantMap(restaurant, learned_mapper.grid(), map_output_prefix);
                 manual_map_saved = manual_map_saved || map_ok;
                 std::cout << "map_checkpoint_saved=" << (map_ok ? "true" : "false") << "\n";
                 std::cout << "map_json=" << map_output_prefix << ".json\n";
@@ -1003,7 +1090,7 @@ int main(int argc, char** argv) {
         }
 
         if (gui_save_map) {
-            const bool map_ok = saveManualRestaurantMap(restaurant, manual_mapper.grid(), map_output_prefix);
+            const bool map_ok = saveManualRestaurantMap(restaurant, learned_mapper.grid(), map_output_prefix);
             manual_map_saved = manual_map_saved || map_ok;
             std::cout << "map_checkpoint_saved=" << (map_ok ? "true" : "false") << "\n";
             std::cout << "map_json=" << map_output_prefix << ".json\n";

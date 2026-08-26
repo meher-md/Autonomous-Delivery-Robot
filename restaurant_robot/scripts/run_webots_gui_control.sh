@@ -8,6 +8,7 @@ CONTROL_FILE="${CONTROL_FILE:-${ROOT_DIR}/build/restaurant_robot/control_command
 OUTPUT_PREFIX="${MAP_OUTPUT_PREFIX:-${ROOT_DIR}/build/restaurant_robot/manual_restaurant_map}"
 MAX_TIME_SECONDS="${MAX_TIME:-0}"
 MAP_INPUT="${MAP_INPUT_JSON:-}"
+SCENARIO_NAME="${SCENARIO:-autonomous_crowd}"
 
 if pgrep -f "webots-bin.*\\.wbt" >/dev/null; then
   echo "A Webots world is already running. Close it before starting GUI control."
@@ -29,5 +30,5 @@ cleanup() {
 }
 trap cleanup EXIT
 
-OPERATING_MODE=NAVIGATION CONTROL_FILE="${CONTROL_FILE}" MAP_OUTPUT_PREFIX="${OUTPUT_PREFIX}" MAP_INPUT_JSON="${MAP_INPUT}" MAX_TIME="${MAX_TIME_SECONDS}" SCENARIO=none \
+OPERATING_MODE=NAVIGATION CONTROL_FILE="${CONTROL_FILE}" MAP_OUTPUT_PREFIX="${OUTPUT_PREFIX}" MAP_INPUT_JSON="${MAP_INPUT}" MAX_TIME="${MAX_TIME_SECONDS}" SCENARIO="${SCENARIO_NAME}" \
   webots --mode=realtime --stdout --stderr "${WORLD_PATH}"

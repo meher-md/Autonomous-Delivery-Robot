@@ -11,7 +11,7 @@ TUNING_GROUPS = {
     "Planner": [
         ("tune_planner_clearance_radius_m", "No-go distance m", 0.25, 0.70, 0.01, 0.40),
         ("tune_path_obstacle_radius_m", "Dynamic path radius m", 0.15, 0.80, 0.01, 0.35),
-        ("tune_persistent_blockage_timeout_s", "Blocked replan s", 0.5, 8.0, 0.1, 3.0),
+        ("tune_persistent_blockage_timeout_s", "Blocked replan s", 0.3, 8.0, 0.1, 0.8),
         ("tune_stuck_timeout_s", "Stuck replan s", 0.5, 8.0, 0.1, 3.0),
         ("tune_stuck_motion_threshold_m", "Stuck movement m", 0.01, 0.20, 0.01, 0.05),
     ],
@@ -115,7 +115,7 @@ class RestaurantControlGui:
 
         self.write_command()
 
-    def write_command(self, **updates):
+    def write_command(self, include_tuning: bool = False, **updates):
         self.seq += 1
         data = {
             "seq": self.seq,
@@ -129,7 +129,8 @@ class RestaurantControlGui:
             "clear_estop": 0,
             "tune_only": 0,
         }
-        data.update({key: round(var.get(), 4) for key, var in self.tuning_vars.items()})
+        if include_tuning:
+            data.update({key: round(var.get(), 4) for key, var in self.tuning_vars.items()})
         data.update(updates)
         self.control_file.parent.mkdir(parents=True, exist_ok=True)
         tmp_path = self.control_file.with_suffix(self.control_file.suffix + ".tmp")
@@ -143,7 +144,7 @@ class RestaurantControlGui:
         self.tuning_labels[key].set(f"{self.tuning_vars[key].get():.2f}")
 
     def apply_tuning(self):
-        self.write_command(tune_only=1, linear=0.0, angular=0.0)
+        self.write_command(include_tuning=True, tune_only=1, goal="", linear=0.0, angular=0.0)
 
     def reset_tuning(self):
         for params in TUNING_GROUPS.values():
@@ -168,7 +169,7 @@ class RestaurantControlGui:
         self.write_command()
 
     def save_map(self):
-        self.write_command(save_map=1)
+        self.write_command(save_map=1, mode="", goal="", linear=0.0, angular=0.0)
 
     def estop(self):
         self.write_command(estop=1, linear=0.0, angular=0.0)

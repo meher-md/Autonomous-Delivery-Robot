@@ -169,6 +169,11 @@ void Navigator::configure(const NavigatorConfig& config, const Pose2D& pose) {
     }
 }
 
+void Navigator::updateStaticMap(const OccupancyGrid& grid) {
+    restaurant_map_.grid = grid;
+    footprint_static_grid_ = inflateObstacles(restaurant_map_.grid, config_.planner_clearance_radius_m);
+}
+
 void Navigator::setEmergencyStop(bool enabled) {
     emergency_stop_latched_ = enabled;
     safety_.setEmergencyStop(enabled);
@@ -304,7 +309,7 @@ bool Navigator::shouldReplan(
     const bool blocked_path = local_obstacles_.obstacleNearPath(active_path_, config_.path_obstacle_radius_m);
     const bool stopped_by_safety = safety_state == SafetyState::Stop;
     const bool forward_motion_requested = requested.linear > 0.05;
-    if (stopped_by_safety && (blocked_path || forward_motion_requested)) {
+    if ((blocked_path && forward_motion_requested) || (stopped_by_safety && forward_motion_requested)) {
         blocked_timer_s_ += dt_s;
     } else {
         blocked_timer_s_ = 0.0;

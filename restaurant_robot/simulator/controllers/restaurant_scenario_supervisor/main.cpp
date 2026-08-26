@@ -74,7 +74,9 @@ int nonFloorContactPointCount(webots::Node* robot) {
 }
 
 void updateScenario(const std::string& scenario, double time, const std::vector<Proxy>& proxies) {
-    if (scenario == "person_crossing") {
+    if (scenario == "autonomous_crowd") {
+        return;
+    } else if (scenario == "person_crossing") {
         const double phase = std::clamp((time - 8.0) / 8.0, 0.0, 1.0);
         setProxyTranslation(proxies[0], 3.4, 1.1 + phase * 2.5, kPedestrianZ);
         setProxyTranslation(proxies[1], -20.0, -20.0, kPedestrianZ);
@@ -123,7 +125,7 @@ void updateScenario(const std::string& scenario, double time, const std::vector<
 int main() {
     webots::Supervisor supervisor;
     const int time_step_ms = static_cast<int>(supervisor.getBasicTimeStep());
-    const std::string scenario = getenvOr("SCENARIO", "person_crossing");
+    const std::string scenario = getenvOr("SCENARIO", "autonomous_crowd");
     const double max_time_s = getenvDoubleOr("MAX_TIME", 45.0);
     const std::string scene_export_path = getenvOr("WORLD_SCREENSHOT_PATH", "");
     const double scene_export_time_s = getenvDoubleOr("WORLD_SCREENSHOT_TIME", 0.5);
@@ -138,6 +140,12 @@ int main() {
         {supervisor.getFromDef("DYNAMIC_OBSTACLE_2"), supervisor.getFromDef("DYNAMIC_OBSTACLE_2_KEEP_OUT"), nullptr},
         {supervisor.getFromDef("DYNAMIC_OBSTACLE_3"), supervisor.getFromDef("DYNAMIC_OBSTACLE_3_KEEP_OUT"), nullptr},
     };
+    int proxy_count = 0;
+    for (const auto& proxy : proxies) {
+        proxy_count += proxy.node ? 1 : 0;
+    }
+    std::cout << "scenario=" << scenario << "\n";
+    std::cout << "dynamic_proxy_count=" << proxy_count << "\n";
 
     std::ofstream metrics("scenario_metrics.csv");
     metrics << "timestamp,scenario,robot_x,robot_y,min_dynamic_clearance,collision_count,clearance_collision_count,contact_collision_count,contact_point_count\n";
