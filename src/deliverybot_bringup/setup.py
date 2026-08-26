@@ -2,6 +2,10 @@ from setuptools import setup
 from glob import glob
 import os
 package_name = 'deliverybot_bringup'
+cert_files = [
+    path for path in ['certs/cert.pem', 'certs/key.pem']
+    if os.path.exists(path)
+]
 setup(
     name=package_name,
     version='0.1.0',
@@ -11,10 +15,7 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
         ('share/' + package_name + '/launch', glob('launch/*.launch.py')),
-        ('share/' + package_name + '/certs', [
-            'certs/cert.pem',
-            'certs/key.pem',
-        ]),
+        ('share/' + package_name + '/certs', cert_files),
         ('lib/' + package_name, glob('scripts/*.py')),
     ],
     install_requires=['setuptools'],
