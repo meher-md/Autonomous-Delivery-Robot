@@ -2,11 +2,14 @@
 #include <algorithm>
 #include <cstdlib>
 #include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <limits>
 #include <memory>
 #include <optional>
+#include <sstream>
 #include <string>
+#include <unordered_map>
 
 #include "restaurant_robot/control/differential_drive.hpp"
 #include "restaurant_robot/estimation/localization.hpp"
@@ -33,6 +36,7 @@
 #include <webots/Display.hpp>
 #include <webots/Gyro.hpp>
 #include <webots/InertialUnit.hpp>
+#include <webots/Keyboard.hpp>
 #include <webots/Lidar.hpp>
 #include <webots/Motor.hpp>
 #include <webots/PositionSensor.hpp>
@@ -63,6 +67,164 @@ bool getenvBoolOr(const char* name, bool fallback) {
 
 bool isKnownTable(const RestaurantMap& restaurant, const std::string& destination) {
     return destination.rfind("TABLE_", 0) == 0 && restaurant.destinations.find(destination) != restaurant.destinations.end();
+}
+
+std::optional<std::string> tableFromKey(int key) {
+    const int plain_key = key & webots::Keyboard::KEY;
+    if (plain_key >= '1' && plain_key <= '5') {
+        return "TABLE_" + std::to_string(plain_key - '0');
+    }
+    return std::nullopt;
+}
+
+struct ManualDriveInput {
+    VelocityCommand command;
+    bool has_drive_command{false};
+    bool save_map{false};
+    bool quit{false};
+};
+
+struct GuiCommand {
+    int seq{-1};
+    std::string mode;
+    std::optional<std::string> goal;
+    VelocityCommand manual_command;
+    bool has_manual_command{false};
+    bool save_map{false};
+    bool quit{false};
+    bool estop{false};
+    bool clear_estop{false};
+};
+
+std::string trim(std::string text) {
+    const auto begin = text.find_first_not_of(" \t\r\n");
+    if (begin == std::string::npos) {
+        return "";
+    }
+    const auto end = text.find_last_not_of(" \t\r\n");
+    return text.substr(begin, end - begin + 1);
+}
+
+bool boolValue(const std::string& value) {
+    return value == "1" || value == "true" || value == "TRUE" || value == "on" || value == "yes";
+}
+
+std::optional<GuiCommand> readGuiCommand(const std::string& path) {
+    if (path.empty()) {
+        return std::nullopt;
+    }
+    std::ifstream in(path);
+    if (!in) {
+        return std::nullopt;
+    }
+
+    std::unordered_map<std::string, std::string> values;
+    std::string line;
+    while (std::getline(in, line)) {
+        const auto split = line.find('=');
+        if (split == std::string::npos) {
+            continue;
+        }
+        values[trim(line.substr(0, split))] = trim(line.substr(split + 1));
+    }
+
+    GuiCommand command;
+    const auto seq = values.find("seq");
+    if (seq == values.end()) {
+        return std::nullopt;
+    }
+    try {
+        command.seq = std::stoi(seq->second);
+        if (const auto mode = values.find("mode"); mode != values.end()) {
+            command.mode = mode->second;
+        }
+        if (const auto goal = values.find("goal"); goal != values.end() && !goal->second.empty()) {
+            command.goal = goal->second;
+        }
+        if (const auto linear = values.find("linear"); linear != values.end()) {
+            command.manual_command.linear = std::stod(linear->second);
+            command.has_manual_command = true;
+        }
+        if (const auto angular = values.find("angular"); angular != values.end()) {
+            command.manual_command.angular = std::stod(angular->second);
+            command.has_manual_command = true;
+        }
+    } catch (const std::exception&) {
+        return std::nullopt;
+    }
+
+    if (const auto save = values.find("save_map"); save != values.end()) {
+        command.save_map = boolValue(save->second);
+    }
+    if (const auto quit = values.find("quit"); quit != values.end()) {
+        command.quit = boolValue(quit->second);
+    }
+    if (const auto estop = values.find("estop"); estop != values.end()) {
+        command.estop = boolValue(estop->second);
+    }
+    if (const auto clear = values.find("clear_estop"); clear != values.end()) {
+        command.clear_estop = boolValue(clear->second);
+    }
+    return command;
+}
+
+ManualDriveInput manualDriveInput(webots::Keyboard* keyboard) {
+    ManualDriveInput input;
+    if (!keyboard) {
+        return input;
+    }
+
+    bool forward = false;
+    bool reverse = false;
+    bool left = false;
+    bool right = false;
+    bool stop = false;
+    for (int key = keyboard->getKey(); key != -1; key = keyboard->getKey()) {
+        const int plain_key = key & webots::Keyboard::KEY;
+        switch (plain_key) {
+            case webots::Keyboard::UP:
+            case 'W':
+            case 'w':
+                forward = true;
+                break;
+            case webots::Keyboard::DOWN:
+            case 'S':
+            case 's':
+                reverse = true;
+                break;
+            case webots::Keyboard::LEFT:
+            case 'A':
+            case 'a':
+                left = true;
+                break;
+            case webots::Keyboard::RIGHT:
+            case 'D':
+            case 'd':
+                right = true;
+                break;
+            case ' ':
+                stop = true;
+                input.has_drive_command = true;
+                break;
+            case 'Q':
+            case 'q':
+                input.quit = true;
+                break;
+            case 'M':
+            case 'm':
+                input.save_map = true;
+                break;
+            default:
+                break;
+        }
+    }
+
+    if (!stop) {
+        input.command.linear = forward == reverse ? 0.0 : (forward ? 0.18 : -0.10);
+        input.command.angular = left == right ? 0.0 : (left ? 0.9 : -0.9);
+        input.has_drive_command = forward || reverse || left || right;
+    }
+    return input;
 }
 
 class WebotsHardware final : public INavigationHardware {
@@ -186,6 +348,10 @@ class DebugDisplayRenderer {
 public:
     DebugDisplayRenderer(webots::Display* display, RestaurantMap map)
         : display_(display), map_(std::move(map)) {}
+
+    void setGrid(const OccupancyGrid& grid) {
+        map_.grid = grid;
+    }
 
     void draw(const Pose2D& pose, const LaserScan& scan, const Navigator& navigator, const NavigatorStepResult& nav) {
         if (!display_) {
@@ -362,10 +528,29 @@ private:
 int main() {
     webots::Robot robot;
     const int time_step_ms = static_cast<int>(robot.getBasicTimeStep());
+    webots::Keyboard* keyboard = robot.getKeyboard();
+    if (keyboard) {
+        keyboard->enable(time_step_ms);
+    }
     WebotsHardware hardware(robot, time_step_ms);
 
-    const auto restaurant = createPrototypeRestaurantMap(0.05);
+    auto restaurant = createPrototypeRestaurantMap(0.05);
+    const std::string map_input_json = getenvOr("MAP_INPUT_JSON", "");
+    bool loaded_map_from_json = false;
+    if (!map_input_json.empty()) {
+        OccupancyGrid loaded_grid;
+        loaded_map_from_json = loadOccupancyGridJson(map_input_json, loaded_grid);
+        if (loaded_map_from_json) {
+            restaurant.grid = std::move(loaded_grid);
+        }
+        std::cout << "map_input_json=" << map_input_json << "\n";
+        std::cout << "map_loaded=" << (loaded_map_from_json ? "true" : "false") << "\n";
+    }
     DebugDisplayRenderer debug_renderer(hardware.display(), restaurant);
+    OccupancyRayMapper manual_mapper;
+    if (loaded_map_from_json) {
+        manual_mapper.grid() = restaurant.grid;
+    }
     WheelImuOdometry odometry(0.033, 0.16);
     ScanMapLocalizationConfig localization_config;
     localization_config.search_xy_radius_m = 0.35;
@@ -379,13 +564,17 @@ int main() {
     localization_config.max_scan_points = 72;
     ScanMapLocalizer localizer(restaurant.grid, localization_config);
     Navigator navigator(restaurant);
+    SafetySupervisor manual_safety;
     auto slam_backend = createSlamBackend(getenvOr("SLAM_BACKEND", "known_pose"));
     RunLogger logger("restaurant_run.csv");
     const double max_time_s = getenvDoubleOr("MAX_TIME", 0.0);
     const std::string operating_mode = getenvOr("OPERATING_MODE", "NAVIGATION");
-    const bool mapping_mode = operating_mode == "MAPPING";
+    const bool batch_mapping_mode = operating_mode == "MAPPING";
+    bool manual_mapping_mode = operating_mode == "MANUAL_MAPPING" || operating_mode == "TELEOP_MAPPING";
+    bool mapping_mode = batch_mapping_mode || manual_mapping_mode;
     const bool scan_localization_enabled = !mapping_mode && getenvBoolOr("ENABLE_SCAN_LOCALIZATION", false);
     const std::string map_output_prefix = getenvOr("MAP_OUTPUT_PREFIX", "webots_restaurant_map");
+    const std::string control_file_path = getenvOr("CONTROL_FILE", "");
     const std::string debug_export_path = getenvOr("DEBUG_EXPORT_PATH", "");
     const double debug_export_interval_s = getenvDoubleOr("DEBUG_EXPORT_INTERVAL", 0.0);
     std::string requested_destination = getenvOr("GOAL_TABLE", "TABLE_3");
@@ -401,7 +590,15 @@ int main() {
     double next_debug_export_s = debug_export_interval_s > 0.0 ? debug_export_interval_s : std::numeric_limits<double>::infinity();
     bool debug_image_drawn = false;
     bool debug_image_saved = false;
+    bool manual_map_saved = false;
+    int last_gui_command_seq = -1;
+    VelocityCommand gui_manual_command;
+    bool gui_has_manual_command = false;
     constexpr double localization_update_period_s = 0.25;
+
+    if (!control_file_path.empty()) {
+        std::cout << "control_file=" << control_file_path << "\n";
+    }
 
     if (!isKnownTable(restaurant, requested_destination)) {
         requested_destination = "TABLE_3";
@@ -427,7 +624,7 @@ int main() {
             odometry_pose.y + localization_offset.y,
             normalizeAngle(odometry_pose.theta + localization_offset.theta),
         };
-        if (scan_localization_enabled && scan_localization_active && !scan.ranges.empty() &&
+        if (!mapping_mode && scan_localization_enabled && scan_localization_active && !scan.ranges.empty() &&
             robot.getTime() >= next_localization_update_s) {
             estimated_pose = localizer.update(estimated_pose, scan);
             localization_offset = Pose2D{
@@ -438,6 +635,125 @@ int main() {
             next_localization_update_s = robot.getTime() + localization_update_period_s;
         }
         last_estimated_pose = estimated_pose;
+
+        bool gui_save_map = false;
+        bool gui_quit = false;
+        if (const auto gui = readGuiCommand(control_file_path); gui && gui->seq != last_gui_command_seq) {
+            last_gui_command_seq = gui->seq;
+            if (gui->mode == "manual" || gui->mode == "MANUAL") {
+                manual_mapping_mode = true;
+                mapping_mode = true;
+                std::cout << "control_mode=manual\n";
+            } else if (gui->mode == "auto" || gui->mode == "AUTO") {
+                manual_mapping_mode = false;
+                mapping_mode = batch_mapping_mode;
+                navigator.deliver(requested_destination);
+                navigator.setEmergencyStop(false);
+                std::cout << "control_mode=auto\n";
+            }
+            if (gui->has_manual_command) {
+                gui_manual_command = gui->manual_command;
+                gui_has_manual_command = true;
+            }
+            if (gui->goal && isKnownTable(restaurant, *gui->goal)) {
+                requested_destination = *gui->goal;
+                navigator.deliver(requested_destination);
+                navigator.setEmergencyStop(false);
+                std::cout << "gui_destination=" << requested_destination << "\n";
+            }
+            if (gui->estop) {
+                navigator.setEmergencyStop(true);
+                manual_safety.setEmergencyStop(true);
+            }
+            if (gui->clear_estop) {
+                navigator.setEmergencyStop(false);
+                manual_safety.setEmergencyStop(false);
+            }
+            gui_save_map = gui->save_map;
+            gui_quit = gui->quit;
+        }
+
+        if (manual_mapping_mode) {
+            if (!scan.ranges.empty()) {
+                manual_mapper.integrateScan(estimated_pose, scan);
+                debug_renderer.setGrid(manual_mapper.grid());
+            }
+            auto manual_input = manualDriveInput(keyboard);
+            if (!manual_input.has_drive_command && gui_has_manual_command) {
+                manual_input.command = gui_manual_command;
+            }
+            if (manual_input.save_map || gui_save_map) {
+                const bool map_ok = saveOccupancyGridJson(manual_mapper.grid(), map_output_prefix + ".json") &&
+                                    manual_mapper.grid().savePgm(map_output_prefix + ".pgm");
+                manual_map_saved = manual_map_saved || map_ok;
+                std::cout << "map_checkpoint_saved=" << (map_ok ? "true" : "false") << "\n";
+                std::cout << "map_json=" << map_output_prefix << ".json\n";
+                std::cout << "map_pgm=" << map_output_prefix << ".pgm\n";
+            }
+            const SafetyResult safe = manual_safety.apply(manual_input.command, scan);
+            hardware.setVelocity(safe.command.linear, safe.command.angular);
+
+            NavigatorStepResult manual_nav;
+            manual_nav.command = safe.command;
+            manual_nav.safety_state = safe.state;
+            manual_nav.minimum_obstacle_distance = safe.minimum_obstacle_distance;
+            manual_nav.active_goal = "MANUAL_MAP";
+            if (++draw_counter % 5 == 0) {
+                debug_renderer.draw(estimated_pose, scan, navigator, manual_nav);
+                debug_image_drawn = true;
+                if (!debug_export_path.empty() && debug_export_interval_s > 0.0 && robot.getTime() >= next_debug_export_s) {
+                    debug_image_saved = debug_renderer.saveImage(debug_export_path);
+                    next_debug_export_s = robot.getTime() + debug_export_interval_s;
+                }
+            }
+            logger.write(RunLogRecord{
+                robot.getTime(),
+                odometry_pose,
+                estimated_pose,
+                manual_nav.active_goal,
+                requested_destination,
+                safe.command.linear,
+                safe.command.angular,
+                safe.minimum_obstacle_distance,
+                toString(manual_nav.planner_state),
+                safe.state,
+                0,
+                0.0,
+                0,
+            });
+            if (manual_input.quit || gui_quit) {
+                hardware.setVelocity(0.0, 0.0);
+                break;
+            }
+            continue;
+        }
+
+        if (gui_save_map) {
+            const bool map_ok = saveOccupancyGridJson(manual_mapper.grid(), map_output_prefix + ".json") &&
+                                manual_mapper.grid().savePgm(map_output_prefix + ".pgm");
+            manual_map_saved = manual_map_saved || map_ok;
+            std::cout << "map_checkpoint_saved=" << (map_ok ? "true" : "false") << "\n";
+            std::cout << "map_json=" << map_output_prefix << ".json\n";
+            std::cout << "map_pgm=" << map_output_prefix << ".pgm\n";
+        }
+        if (gui_quit) {
+            hardware.setVelocity(0.0, 0.0);
+            break;
+        }
+
+        if (keyboard) {
+            for (int key = keyboard->getKey(); key != -1; key = keyboard->getKey()) {
+                const auto keyboard_destination = tableFromKey(key);
+                if (keyboard_destination && isKnownTable(restaurant, *keyboard_destination) &&
+                    *keyboard_destination != requested_destination) {
+                    requested_destination = *keyboard_destination;
+                    navigator.deliver(requested_destination);
+                    navigator.setEmergencyStop(false);
+                    robot.setCustomData(requested_destination);
+                    std::cout << "keyboard_destination=" << requested_destination << "\n";
+                }
+            }
+        }
 
         const std::string command = robot.getCustomData();
         if (command != last_command) {
@@ -529,7 +845,7 @@ int main() {
     std::cout << "replanning_events=" << final_replanning_events << "\n";
     std::cout << "elapsed_time_s=" << robot.getTime() << "\n";
 
-    if (mapping_mode) {
+    if (mapping_mode && !manual_mapping_mode) {
         const std::string json_path = map_output_prefix + ".json";
         const std::string pgm_path = map_output_prefix + ".pgm";
         const bool map_ok = slam_backend->saveMap(map_output_prefix);
@@ -538,6 +854,12 @@ int main() {
         std::cout << "map_json=" << json_path << "\n";
         std::cout << "map_pgm=" << pgm_path << "\n";
         std::cout << "map_saved=" << (map_ok ? "true" : "false") << "\n";
+    } else if (manual_mapping_mode) {
+        std::cout << "manual_mapping_mode=true\n";
+        std::cout << "slam_backend=" << slam_backend->name() << "\n";
+        std::cout << "map_json=" << map_output_prefix << ".json\n";
+        std::cout << "map_pgm=" << map_output_prefix << ".pgm\n";
+        std::cout << "map_saved=" << (manual_map_saved ? "true" : "false") << "\n";
     }
 
     return 0;

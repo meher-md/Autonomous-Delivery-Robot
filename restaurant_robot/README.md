@@ -52,6 +52,36 @@ SLAM_BACKEND=ceres_scan_match bash restaurant_robot/scripts/run_webots_mapping.s
 
 The default mapping backend is `known_pose`. When Ceres is available at configure time, `SLAM_BACKEND=ceres_scan_match` enables scan-to-current-map pose refinement before each LiDAR ray insertion. This is external-library scan matching, not graph SLAM or loop closure.
 
+Manual Webots mapping:
+
+```bash
+bash restaurant_robot/scripts/run_webots_manual_mapping.sh
+```
+
+Controls in the Webots window are `W/A/S/D` or arrow keys to drive, `Space` to stop, `M` to save the current map checkpoint, and `Q` to quit the controller. The default output is `build/restaurant_robot/manual_restaurant_map.json` and `.pgm`. Manual mode does not save on exit unless `M` was pressed.
+
+GUI control:
+
+```bash
+bash restaurant_robot/scripts/run_webots_gui_control.sh
+```
+
+This starts Webots and a small Tkinter control window using `build/restaurant_robot/control_command.txt` as the command bridge. The GUI can switch between `Auto` and `Manual`, choose `TABLE_1` through `TABLE_5`, drive manually, save a map checkpoint, emergency-stop, clear, or quit the robot controller. During manual mapping, the Webots `debug display` device shows the live LiDAR-built occupancy map; yellow points are current LiDAR hits and the grid updates as you drive.
+
+Continue mapping from an earlier checkpoint:
+
+```bash
+MAP_INPUT_JSON=build/restaurant_robot/manual_restaurant_map.json bash restaurant_robot/scripts/run_webots_gui_control.sh
+```
+
+Navigate using a saved manual map:
+
+```bash
+MAP_INPUT_JSON=build/restaurant_robot/manual_restaurant_map.json bash restaurant_robot/scripts/run_webots_scenario.sh none 240
+```
+
+The saved map replaces the hand-coded occupancy grid, while the existing `HOME`, `KITCHEN`, and `TABLE_1` through `TABLE_5` goal labels remain available. In the Webots window, pressing number keys `1` through `5` changes the requested table live.
+
 Run a Webots batch scenario:
 
 ```bash

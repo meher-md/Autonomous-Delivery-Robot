@@ -3,6 +3,13 @@
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackground.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/floors/protos/Floor.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/appearances/protos/Parquetry.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/appearances/protos/MattePaint.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/appearances/protos/VarnishedPine.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/lights/protos/CeilingLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/tables/protos/Table.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/humans/pedestrian/protos/Pedestrian.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/plants/protos/PottedTree.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/robots/robotis/turtlebot/protos/TurtleBot3Burger.proto"
 
 WorldInfo {
@@ -10,8 +17,8 @@ WorldInfo {
 }
 
 Viewpoint {
-  orientation -0.47 0.86 0.20 4.42
-  position 4.0 -8.0 7.0
+  orientation 0 1 0 1.5708
+  position 4 4 12
 }
 
 TexturedBackground {
@@ -21,7 +28,30 @@ TexturedBackgroundLight {
 }
 
 Floor {
+  translation 4 4 0
   size 9 9
+  appearance Parquetry {
+    type "light strip"
+    textureTransform TextureTransform {
+      scale 0.5 0.5
+    }
+  }
+}
+
+CeilingLight {
+  translation 2.2 2.2 2.5
+  name "dining ceiling light 1"
+  bulbColor 1 0.86 0.62
+  pointLightColor 1 0.86 0.62
+  pointLightIntensity 2.5
+}
+
+CeilingLight {
+  translation 6.2 5.3 2.5
+  name "dining ceiling light 2"
+  bulbColor 1 0.86 0.62
+  pointLightColor 1 0.86 0.62
+  pointLightIntensity 2.5
 }
 
 DEF DELIVERY_ROBOT TurtleBot3Burger {
@@ -135,97 +165,267 @@ DEF CORRIDOR_DIVIDER Solid {
 }
 
 DEF TABLE_1 Solid {
-  name "table 1"
-  translation 2.0 2.0 0.36
+  name "table marker 1"
+  translation 2.0 2.0 0.01
   children [
-    Shape {
-      appearance PBRAppearance { baseColor 0.40 0.32 0.26 roughness 0.6 }
-      geometry Cylinder { radius 0.32 height 0.72 }
+    Table {
+      translation 0 0 0
+      name "TABLE_1"
+      size 0.65 0.65 0.72
+      feetSize 0 0
+      trayAppearance DEF RESTAURANT_TABLE_TOP VarnishedPine {
+        textureTransform TextureTransform {
+          scale 6 6
+        }
+      }
+      legAppearance MattePaint {
+        baseColor 0.12 0.12 0.12
+      }
     }
   ]
   boundingObject Cylinder { radius 0.32 height 0.72 }
 }
 
 DEF TABLE_2 Solid {
-  name "table 2"
-  translation 4.3 2.1 0.36
+  name "table marker 2"
+  translation 4.3 2.1 0.01
   children [
-    Shape {
-      appearance PBRAppearance { baseColor 0.40 0.32 0.26 roughness 0.6 }
-      geometry Cylinder { radius 0.32 height 0.72 }
+    Table {
+      translation 0 0 0
+      name "TABLE_2"
+      size 0.65 0.65 0.72
+      feetSize 0 0
+      trayAppearance USE RESTAURANT_TABLE_TOP
+      legAppearance MattePaint {
+        baseColor 0.12 0.12 0.12
+      }
     }
   ]
   boundingObject Cylinder { radius 0.32 height 0.72 }
 }
 
 DEF TABLE_3 Solid {
-  name "table 3"
-  translation 6.4 2.0 0.36
+  name "table marker 3"
+  translation 6.4 2.0 0.01
   children [
-    Shape {
-      appearance PBRAppearance { baseColor 0.40 0.32 0.26 roughness 0.6 }
-      geometry Cylinder { radius 0.32 height 0.72 }
+    Table {
+      translation 0 0 0
+      name "TABLE_3"
+      size 0.65 0.65 0.72
+      feetSize 0 0
+      trayAppearance USE RESTAURANT_TABLE_TOP
+      legAppearance MattePaint {
+        baseColor 0.12 0.12 0.12
+      }
     }
   ]
   boundingObject Cylinder { radius 0.32 height 0.72 }
 }
 
 DEF TABLE_4 Solid {
-  name "table 4"
-  translation 3.1 5.0 0.36
+  name "table marker 4"
+  translation 3.1 5.0 0.01
   children [
-    Shape {
-      appearance PBRAppearance { baseColor 0.40 0.32 0.26 roughness 0.6 }
-      geometry Cylinder { radius 0.32 height 0.72 }
+    Table {
+      translation 0 0 0
+      name "TABLE_4"
+      size 0.65 0.65 0.72
+      feetSize 0 0
+      trayAppearance USE RESTAURANT_TABLE_TOP
+      legAppearance MattePaint {
+        baseColor 0.12 0.12 0.12
+      }
     }
   ]
   boundingObject Cylinder { radius 0.32 height 0.72 }
 }
 
 DEF TABLE_5 Solid {
-  name "table 5"
-  translation 6.2 5.2 0.36
+  name "table marker 5"
+  translation 6.2 5.2 0.01
   children [
-    Shape {
-      appearance PBRAppearance { baseColor 0.40 0.32 0.26 roughness 0.6 }
-      geometry Cylinder { radius 0.32 height 0.72 }
+    Table {
+      translation 0 0 0
+      name "TABLE_5"
+      size 0.65 0.65 0.72
+      feetSize 0 0
+      trayAppearance USE RESTAURANT_TABLE_TOP
+      legAppearance MattePaint {
+        baseColor 0.12 0.12 0.12
+      }
     }
   ]
   boundingObject Cylinder { radius 0.32 height 0.72 }
 }
 
-DEF DYNAMIC_OBSTACLE_1 Solid {
-  name "dynamic obstacle 1"
-  translation -20 -20 0.45
-  children [
-    Shape {
-      appearance PBRAppearance { baseColor 0.12 0.34 0.80 roughness 0.45 }
-      geometry Cylinder { radius 0.18 height 0.9 }
-    }
-  ]
-  boundingObject Cylinder { radius 0.18 height 0.9 }
+PottedTree {
+  translation 7.75 7.45 0
+  name "corner plant"
 }
 
-DEF DYNAMIC_OBSTACLE_2 Solid {
-  name "dynamic obstacle 2"
-  translation -21 -20 0.45
+Solid {
+  name "keyboard destination pad"
+  translation 0.75 0.35 0.015
   children [
-    Shape {
-      appearance PBRAppearance { baseColor 0.12 0.58 0.42 roughness 0.45 }
-      geometry Cylinder { radius 0.18 height 0.9 }
+    Transform {
+      translation -0.24 0 0
+      children [
+        Shape {
+          appearance PBRAppearance { baseColor 0.10 0.20 0.70 roughness 0.45 }
+          geometry Cylinder { radius 0.08 height 0.012 }
+        }
+      ]
+    }
+    Transform {
+      translation -0.12 0 0
+      children [
+        Shape {
+          appearance PBRAppearance { baseColor 0.10 0.45 0.20 roughness 0.45 }
+          geometry Cylinder { radius 0.08 height 0.012 }
+        }
+      ]
+    }
+    Transform {
+      translation 0 0 0
+      children [
+        Shape {
+          appearance PBRAppearance { baseColor 0.65 0.18 0.16 roughness 0.45 }
+          geometry Cylinder { radius 0.08 height 0.012 }
+        }
+      ]
+    }
+    Transform {
+      translation 0.12 0 0
+      children [
+        Shape {
+          appearance PBRAppearance { baseColor 0.62 0.45 0.08 roughness 0.45 }
+          geometry Cylinder { radius 0.08 height 0.012 }
+        }
+      ]
+    }
+    Transform {
+      translation 0.24 0 0
+      children [
+        Shape {
+          appearance PBRAppearance { baseColor 0.35 0.12 0.55 roughness 0.45 }
+          geometry Cylinder { radius 0.08 height 0.012 }
+        }
+      ]
     }
   ]
-  boundingObject Cylinder { radius 0.18 height 0.9 }
 }
 
-DEF DYNAMIC_OBSTACLE_3 Solid {
-  name "dynamic obstacle 3"
-  translation -22 -20 0.45
+Solid {
+  name "kitchen service marker"
+  translation 2.4 5.75 0.015
   children [
     Shape {
-      appearance PBRAppearance { baseColor 0.72 0.22 0.18 roughness 0.45 }
-      geometry Cylinder { radius 0.18 height 0.9 }
+      appearance PBRAppearance { baseColor 0.05 0.30 0.10 roughness 0.6 }
+      geometry Cylinder { radius 0.18 height 0.012 }
     }
   ]
-  boundingObject Cylinder { radius 0.18 height 0.9 }
+}
+
+Solid {
+  name "table service number markers"
+  translation 0 0 0.025
+  children [
+    Transform {
+      translation 2.0 2.85 0
+      children [
+        Shape {
+          appearance PBRAppearance { baseColor 0.10 0.20 0.70 roughness 0.45 }
+          geometry Cylinder { radius 0.22 height 0.012 }
+        }
+        Transform {
+          translation 0.07 0.05 0.014
+          children [
+            Shape { appearance DEF NUMBER_BLACK PBRAppearance { baseColor 0.02 0.02 0.02 roughness 0.5 } geometry Box { size 0.04 0.18 0.012 } }
+          ]
+        }
+        Transform {
+          translation 0.07 -0.12 0.014
+          children [
+            Shape { appearance USE NUMBER_BLACK geometry Box { size 0.04 0.18 0.012 } }
+          ]
+        }
+      ]
+    }
+    Transform {
+      translation 4.3 2.95 0
+      children [
+        Shape {
+          appearance PBRAppearance { baseColor 0.10 0.45 0.20 roughness 0.45 }
+          geometry Cylinder { radius 0.22 height 0.012 }
+        }
+        Transform { translation 0 0.14 0.014 children [ Shape { appearance USE NUMBER_BLACK geometry Box { size 0.26 0.04 0.012 } } ] }
+        Transform { translation 0.10 0.05 0.014 children [ Shape { appearance USE NUMBER_BLACK geometry Box { size 0.04 0.16 0.012 } } ] }
+        Transform { translation 0 0 0.014 children [ Shape { appearance USE NUMBER_BLACK geometry Box { size 0.26 0.04 0.012 } } ] }
+        Transform { translation -0.10 -0.09 0.014 children [ Shape { appearance USE NUMBER_BLACK geometry Box { size 0.04 0.16 0.012 } } ] }
+        Transform { translation 0 -0.17 0.014 children [ Shape { appearance USE NUMBER_BLACK geometry Box { size 0.26 0.04 0.012 } } ] }
+      ]
+    }
+    Transform {
+      translation 6.4 3.15 0
+      children [
+        Shape {
+          appearance PBRAppearance { baseColor 0.65 0.18 0.16 roughness 0.45 }
+          geometry Cylinder { radius 0.22 height 0.012 }
+        }
+        Transform { translation 0 0.14 0.014 children [ Shape { appearance USE NUMBER_BLACK geometry Box { size 0.26 0.04 0.012 } } ] }
+        Transform { translation 0.10 0.05 0.014 children [ Shape { appearance USE NUMBER_BLACK geometry Box { size 0.04 0.16 0.012 } } ] }
+        Transform { translation 0 0 0.014 children [ Shape { appearance USE NUMBER_BLACK geometry Box { size 0.26 0.04 0.012 } } ] }
+        Transform { translation 0.10 -0.09 0.014 children [ Shape { appearance USE NUMBER_BLACK geometry Box { size 0.04 0.16 0.012 } } ] }
+        Transform { translation 0 -0.17 0.014 children [ Shape { appearance USE NUMBER_BLACK geometry Box { size 0.26 0.04 0.012 } } ] }
+      ]
+    }
+    Transform {
+      translation 3.1 5.85 0
+      children [
+        Shape {
+          appearance PBRAppearance { baseColor 0.62 0.45 0.08 roughness 0.45 }
+          geometry Cylinder { radius 0.22 height 0.012 }
+        }
+        Transform { translation -0.10 0.05 0.014 children [ Shape { appearance USE NUMBER_BLACK geometry Box { size 0.04 0.16 0.012 } } ] }
+        Transform { translation 0.10 0.05 0.014 children [ Shape { appearance USE NUMBER_BLACK geometry Box { size 0.04 0.16 0.012 } } ] }
+        Transform { translation 0 0 0.014 children [ Shape { appearance USE NUMBER_BLACK geometry Box { size 0.26 0.04 0.012 } } ] }
+        Transform { translation 0.10 -0.09 0.014 children [ Shape { appearance USE NUMBER_BLACK geometry Box { size 0.04 0.16 0.012 } } ] }
+      ]
+    }
+    Transform {
+      translation 7.25 5.45 0
+      children [
+        Shape {
+          appearance PBRAppearance { baseColor 0.35 0.12 0.55 roughness 0.45 }
+          geometry Cylinder { radius 0.22 height 0.012 }
+        }
+        Transform { translation 0 0.14 0.014 children [ Shape { appearance USE NUMBER_BLACK geometry Box { size 0.26 0.04 0.012 } } ] }
+        Transform { translation -0.10 0.05 0.014 children [ Shape { appearance USE NUMBER_BLACK geometry Box { size 0.04 0.16 0.012 } } ] }
+        Transform { translation 0 0 0.014 children [ Shape { appearance USE NUMBER_BLACK geometry Box { size 0.26 0.04 0.012 } } ] }
+        Transform { translation 0.10 -0.09 0.014 children [ Shape { appearance USE NUMBER_BLACK geometry Box { size 0.04 0.16 0.012 } } ] }
+        Transform { translation 0 -0.17 0.014 children [ Shape { appearance USE NUMBER_BLACK geometry Box { size 0.26 0.04 0.012 } } ] }
+      ]
+    }
+  ]
+}
+
+DEF DYNAMIC_OBSTACLE_1 Pedestrian {
+  name "pedestrian customer 1"
+  translation -20 -20 1.27
+  shirtColor 0.12 0.34 0.80
+  pantsColor 0.10 0.10 0.13
+}
+
+DEF DYNAMIC_OBSTACLE_2 Pedestrian {
+  name "pedestrian customer 2"
+  translation -21 -20 1.27
+  shirtColor 0.12 0.58 0.42
+  pantsColor 0.16 0.16 0.18
+}
+
+DEF DYNAMIC_OBSTACLE_3 Pedestrian {
+  name "pedestrian customer 3"
+  translation -22 -20 1.27
+  shirtColor 0.72 0.22 0.18
+  pantsColor 0.15 0.15 0.18
 }

@@ -48,6 +48,8 @@ double distance2d(const double* a, const double* b) {
     return std::hypot(a[0] - b[0], a[1] - b[1]);
 }
 
+constexpr double kPedestrianZ = 1.27;
+
 int nonFloorContactPointCount(webots::Node* robot) {
     if (!robot) {
         return 0;
@@ -68,45 +70,45 @@ int nonFloorContactPointCount(webots::Node* robot) {
 void updateScenario(const std::string& scenario, double time, const std::vector<Proxy>& proxies) {
     if (scenario == "person_crossing") {
         const double phase = std::clamp((time - 8.0) / 8.0, 0.0, 1.0);
-        setTranslation(proxies[0].node, 3.4, 1.1 + phase * 2.5, 0.45);
-        setTranslation(proxies[1].node, -20.0, -20.0, 0.45);
-        setTranslation(proxies[2].node, -21.0, -20.0, 0.45);
+        setTranslation(proxies[0].node, 3.4, 1.1 + phase * 2.5, kPedestrianZ);
+        setTranslation(proxies[1].node, -20.0, -20.0, kPedestrianZ);
+        setTranslation(proxies[2].node, -21.0, -20.0, kPedestrianZ);
     } else if (scenario == "stationary_blockage") {
-        setTranslation(proxies[0].node, 1.50, 2.95, 0.45);
-        setTranslation(proxies[1].node, -20.0, -20.0, 0.45);
-        setTranslation(proxies[2].node, -21.0, -20.0, 0.45);
+        setTranslation(proxies[0].node, 1.50, 2.95, kPedestrianZ);
+        setTranslation(proxies[1].node, -20.0, -20.0, kPedestrianZ);
+        setTranslation(proxies[2].node, -21.0, -20.0, kPedestrianZ);
     } else if (scenario == "moving_crowd") {
-        setTranslation(proxies[0].node, 2.8 + std::sin(time * 0.45), 2.2, 0.45);
-        setTranslation(proxies[1].node, 4.2, 1.2 + 1.2 * std::sin(time * 0.35), 0.45);
-        setTranslation(proxies[2].node, 5.8 + 0.7 * std::sin(time * 0.55), 3.5, 0.45);
+        setTranslation(proxies[0].node, 2.8 + std::sin(time * 0.45), 2.2, kPedestrianZ);
+        setTranslation(proxies[1].node, 4.2, 1.2 + 1.2 * std::sin(time * 0.35), kPedestrianZ);
+        setTranslation(proxies[2].node, 5.8 + 0.7 * std::sin(time * 0.55), 3.5, kPedestrianZ);
     } else if (scenario == "destination_change") {
-        setTranslation(proxies[0].node, -20.0, -20.0, 0.45);
-        setTranslation(proxies[1].node, -21.0, -20.0, 0.45);
-        setTranslation(proxies[2].node, -22.0, -20.0, 0.45);
+        setTranslation(proxies[0].node, -20.0, -20.0, kPedestrianZ);
+        setTranslation(proxies[1].node, -21.0, -20.0, kPedestrianZ);
+        setTranslation(proxies[2].node, -22.0, -20.0, kPedestrianZ);
     } else if (scenario == "emergency_stop") {
-        setTranslation(proxies[0].node, -20.0, -20.0, 0.45);
-        setTranslation(proxies[1].node, -21.0, -20.0, 0.45);
-        setTranslation(proxies[2].node, -22.0, -20.0, 0.45);
+        setTranslation(proxies[0].node, -20.0, -20.0, kPedestrianZ);
+        setTranslation(proxies[1].node, -21.0, -20.0, kPedestrianZ);
+        setTranslation(proxies[2].node, -22.0, -20.0, kPedestrianZ);
     } else if (scenario == "chair_moved") {
         if (time < 6.0) {
-            setTranslation(proxies[0].node, -20.0, -20.0, 0.45);
+            setTranslation(proxies[0].node, -20.0, -20.0, kPedestrianZ);
         } else {
-            setTranslation(proxies[0].node, 1.50, 2.95, 0.45);
+            setTranslation(proxies[0].node, 1.50, 2.95, kPedestrianZ);
         }
-        setTranslation(proxies[1].node, -21.0, -20.0, 0.45);
-        setTranslation(proxies[2].node, -22.0, -20.0, 0.45);
+        setTranslation(proxies[1].node, -21.0, -20.0, kPedestrianZ);
+        setTranslation(proxies[2].node, -22.0, -20.0, kPedestrianZ);
     } else if (scenario == "blocked_corridor") {
-        setTranslation(proxies[0].node, 1.35, 2.90, 0.45);
-        setTranslation(proxies[1].node, 1.55, 3.10, 0.45);
-        setTranslation(proxies[2].node, 1.75, 3.30, 0.45);
+        setTranslation(proxies[0].node, 1.35, 2.90, kPedestrianZ);
+        setTranslation(proxies[1].node, 1.55, 3.10, kPedestrianZ);
+        setTranslation(proxies[2].node, 1.75, 3.30, kPedestrianZ);
     } else if (scenario == "localization_disturbance") {
-        setTranslation(proxies[0].node, -20.0, -20.0, 0.45);
-        setTranslation(proxies[1].node, -21.0, -20.0, 0.45);
-        setTranslation(proxies[2].node, -22.0, -20.0, 0.45);
+        setTranslation(proxies[0].node, -20.0, -20.0, kPedestrianZ);
+        setTranslation(proxies[1].node, -21.0, -20.0, kPedestrianZ);
+        setTranslation(proxies[2].node, -22.0, -20.0, kPedestrianZ);
     } else {
-        setTranslation(proxies[0].node, -20.0, -20.0, 0.45);
-        setTranslation(proxies[1].node, -21.0, -20.0, 0.45);
-        setTranslation(proxies[2].node, -22.0, -20.0, 0.45);
+        setTranslation(proxies[0].node, -20.0, -20.0, kPedestrianZ);
+        setTranslation(proxies[1].node, -21.0, -20.0, kPedestrianZ);
+        setTranslation(proxies[2].node, -22.0, -20.0, kPedestrianZ);
     }
 }
 
@@ -117,6 +119,8 @@ int main() {
     const int time_step_ms = static_cast<int>(supervisor.getBasicTimeStep());
     const std::string scenario = getenvOr("SCENARIO", "person_crossing");
     const double max_time_s = getenvDoubleOr("MAX_TIME", 45.0);
+    const std::string scene_export_path = getenvOr("WORLD_SCREENSHOT_PATH", "");
+    const double scene_export_time_s = getenvDoubleOr("WORLD_SCREENSHOT_TIME", 0.5);
 
     webots::Node* robot = supervisor.getFromDef("DELIVERY_ROBOT");
     webots::Field* robot_custom_data = robot ? robot->getField("customData") : nullptr;
@@ -135,9 +139,15 @@ int main() {
     CollisionCounts collisions;
     double previous_clearance_collision_time = -10.0;
     double previous_contact_collision_time = -10.0;
+    bool scene_exported = false;
     while (supervisor.step(time_step_ms) != -1) {
         const double time = supervisor.getTime();
         updateScenario(scenario, time, proxies);
+        if (!scene_exported && !scene_export_path.empty() && time >= scene_export_time_s) {
+            supervisor.exportImage(scene_export_path, 95);
+            scene_exported = true;
+            std::cout << "world_screenshot=" << scene_export_path << "\n";
+        }
         if (scenario == "destination_change" && robot_custom_data) {
             robot_custom_data->setSFString(time < 6.0 ? "TABLE_2" : "TABLE_4");
         } else if (scenario == "emergency_stop" && robot_custom_data) {
