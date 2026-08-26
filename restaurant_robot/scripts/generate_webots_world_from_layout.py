@@ -7,7 +7,7 @@ import pathlib
 import re
 from typing import Any
 
-ROBOT_CLEARANCE_RADIUS_M = 0.40
+ROBOT_CLEARANCE_RADIUS_M = 0.32
 FRONT_STOP_DISTANCE_M = 0.32
 FRONT_CAUTION_DISTANCE_M = 1.0
 
@@ -39,6 +39,27 @@ def zone_size(zone: dict[str, Any]) -> tuple[float, float]:
     return max(0.01, float(zone["max_x"]) - float(zone["min_x"])), max(0.01, float(zone["max_y"]) - float(zone["min_y"]))
 
 
+def distance_to_zone(zone: dict[str, Any], pose: dict[str, Any]) -> float:
+    x = float(pose["x"])
+    y = float(pose["y"])
+    dx = max(float(zone["min_x"]) - x, 0.0, x - float(zone["max_x"]))
+    dy = max(float(zone["min_y"]) - y, 0.0, y - float(zone["max_y"]))
+    return (dx * dx + dy * dy) ** 0.5
+
+
+def nearest_table_destination_label(zone: dict[str, Any], destinations: dict[str, Any]) -> str | None:
+    best_label: str | None = None
+    best_distance = 1.25
+    for label, pose in destinations.items():
+        if not str(label).startswith("TABLE_"):
+            continue
+        distance = distance_to_zone(zone, pose)
+        if distance < best_distance:
+            best_label = str(label)
+            best_distance = distance
+    return best_label
+
+
 def solid_box(def_name: str, name: str, x: float, y: float, sx: float, sy: float, sz: float, color: str) -> str:
     return f"""DEF {sanitize_def(def_name)} Solid {{
   name "{name}"
@@ -65,9 +86,20 @@ def visual_box(def_name: str, name: str, x: float, y: float, sx: float, sy: floa
         roughness 0.5
       }}
       geometry Box {{ size {fmt(sx)} {fmt(sy)} 0.018 }}
+      castShadows FALSE
     }}
   ]
 }}"""
+
+
+def visual_rect_outline(def_name: str, name: str, x: float, y: float, sx: float, sy: float, z: float, color: str) -> str:
+    thickness = 0.035
+    return "\n\n".join([
+        visual_box(f"{def_name}_N", f"{name} north edge", x, y + sy / 2.0, sx, thickness, z, color, 0.12),
+        visual_box(f"{def_name}_S", f"{name} south edge", x, y - sy / 2.0, sx, thickness, z, color, 0.12),
+        visual_box(f"{def_name}_E", f"{name} east edge", x + sx / 2.0, y, thickness, sy, z, color, 0.12),
+        visual_box(f"{def_name}_W", f"{name} west edge", x - sx / 2.0, y, thickness, sy, z, color, 0.12),
+    ])
 
 
 def visual_disk(def_name: str, name: str, x: float, y: float, z: float, radius: float, color: str, transparency: float) -> str:
@@ -82,6 +114,7 @@ def visual_disk(def_name: str, name: str, x: float, y: float, z: float, radius: 
         roughness 0.5
       }}
       geometry Cylinder {{ radius {fmt(radius)} height 0.018 subdivision 64 }}
+      castShadows FALSE
     }}
   ]
 }}"""
@@ -139,17 +172,18 @@ def floor_marker(name: str, x: float, y: float, sx: float, sy: float, color: str
     Shape {{
       appearance PBRAppearance {{ baseColor {color} roughness 0.6 }}
       geometry Box {{ size {fmt(sx)} {fmt(sy)} 0.012 }}
+      castShadows FALSE
     }}
   ]
 }}"""
 
 
-def table_solid(zone: dict[str, Any], table_index: int) -> str:
+def table_solid(zone: dict[str, Any], table_index: int, label_override: str | None = None) -> str:
     x, y = zone_center(zone)
     sx, sy = zone_size(zone)
     table_x = min(max(sx * 0.82, 0.45), 1.4)
     table_y = min(max(sy * 0.82, 0.45), 1.4)
-    label = str(zone.get("name") or f"TABLE_ZONE_{table_index}")
+    label = label_override or str(zone.get("name") or f"TABLE_ZONE_{table_index}")
     tray = "DEF GENERATED_TABLE_TOP VarnishedPine {\n        textureTransform TextureTransform { scale 6 6 }\n      }" if table_index == 1 else "USE GENERATED_TABLE_TOP"
     return f"""DEF {sanitize_def(label + "_PROP")} Solid {{
   name "{label} table"
@@ -386,9 +420,10 @@ def generated_world_text(data: dict[str, Any]) -> str:
             body.extend(["", visual_box(f"ALGO_RAW_NO_GO_{index}", f"algorithm raw no-go {index}", x, y, sx, sy, 0.022, "0.75 0.05 0.05", 0.42)])
         elif zone_type == "table_zone":
             table_count += 1
-            body.extend(["", table_solid(zone, table_count)])
-            label = str(zone.get("name") or f"table zone {index}")
-            body.extend(["", visual_box(f"ALGO_RAW_{label}", f"algorithm raw footprint {label}", x, y, sx, sy, 0.022, "0.28 0.10 0.00", 0.38)])
+            label = nearest_table_destination_label(zone, destinations) or str(zone.get("name") or f"table zone {index}")
+            body.extend(["", table_solid(zone, table_count, label)])
+            body.extend(["", visual_box(f"ALGO_RAW_{label}", f"algorithm raw footprint {label}", x, y, sx, sy, 0.022, "0.70 0.34 0.05", 0.70)])
+            body.extend(["", visual_rect_outline(f"ALGO_BOUNDARY_{label}", f"algorithm table boundary {label}", x, y, sx, sy, 0.04, "1.00 0.20 0.00")])
         elif zone_type == "kitchen_zone":
             body.extend(["", floor_marker(f"kitchen zone {index}", x, y, sx, sy, "0.86 0.53 0.14")])
         elif zone_type == "charging_zone":

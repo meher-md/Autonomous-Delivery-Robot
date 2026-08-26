@@ -177,6 +177,35 @@ void testPlannerRejectsOccupiedGoalCell() {
     require(result.path.points.empty(), "occupied-goal plan should not return a path");
 }
 
+void testPathCornerSmoothingUsesLookaheadScale() {
+    OccupancyGrid grid(40, 40, 0.05, Point2D{-0.5, -0.5}, kFree);
+    Path path;
+    path.points = {Point2D{0.0, 0.0}, Point2D{1.0, 0.0}, Point2D{1.0, 1.0}};
+
+    const auto smoothed = smoothPathCorners(grid, path, 0.20);
+    require(smoothed.points.size() > path.points.size(), "corner smoothing should add intermediate route points");
+    require(distance(smoothed.points.front(), path.points.front()) < 1e-9, "smoothed path should keep the original start");
+    require(distance(smoothed.points.back(), path.points.back()) < 1e-9, "smoothed path should keep the original goal");
+    require(distance(smoothed.points.at(1), Point2D{0.8, 0.0}) < 1e-6,
+            "corner smoothing should trim the corner by the requested lookahead scale");
+}
+
+void testPathCornerSmoothingRejectsDisconnectedFinalCorner() {
+    OccupancyGrid grid(40, 40, 0.05, Point2D{-0.5, -0.5}, kFree);
+    const auto blocked = grid.worldToGrid(Point2D{1.0, 0.6});
+    require(blocked.has_value(), "test obstacle should be inside grid");
+    grid.set(blocked->x, blocked->y, kOccupied);
+
+    Path path;
+    path.points = {Point2D{0.0, 0.0}, Point2D{1.0, 0.0}, Point2D{1.0, 1.0}};
+
+    const auto smoothed = smoothPathCorners(grid, path, 0.20);
+    require(smoothed.points.size() == path.points.size(),
+            "final corner smoothing should be rejected when the smoothed exit cannot connect to the goal");
+    require(distance(smoothed.points.at(1), path.points.at(1)) < 1e-9,
+            "rejected final smoothing should keep the original corner instead of adding a backward kink");
+}
+
 void testMapPersistence() {
     const auto restaurant = createPrototypeRestaurantMap(0.10);
     const std::string json_path = "restaurant_map_test.json";
@@ -328,6 +357,15 @@ void testDifferentialDriveAndOdometry() {
     odom.reset(Pose2D{}, EncoderData{0.0, 0.0, 0.0});
     const auto pose = odom.update(EncoderData{3.0, 3.0, 1.0}, ImuData{0.0, 0.0, 0.0, 1.0});
     require(pose.x > 0.09 && std::abs(pose.y) < 1e-6, "odometry should move forward with equal wheel angles");
+
+    WheelImuOdometry wrapped_odom(0.033, 0.16, 0.15);
+    wrapped_odom.reset(Pose2D{0.0, 0.0, 3.10}, EncoderData{0.0, 0.0, 0.0});
+    const double wheel_delta = 0.02 * 0.16 / 0.033 / 2.0;
+    const auto wrapped_pose = wrapped_odom.update(
+        EncoderData{-wheel_delta, wheel_delta, 1.0},
+        ImuData{-3.12, 0.0, 0.0, 1.0});
+    require(std::abs(normalizeAngle(wrapped_pose.theta - 3.1265)) < 0.05,
+            "odometry should fuse IMU yaw across +/-pi without a heading jump");
 }
 
 void testScanMapLocalizationCorrectsDisturbance() {
@@ -373,12 +411,14 @@ void testPurePursuit() {
     Path left_path;
     left_path.points = {Point2D{0.0, 0.0}, Point2D{0.0, 1.0}};
     const auto left_turn = controller.computeCommand(left_path, Pose2D{0.0, 0.0, 0.0});
-    require(left_turn.linear == 0.0 && left_turn.angular > 0.0, "large left heading error should rotate anticlockwise in place");
+    require(left_turn.linear > 0.0 && left_turn.angular > 0.0,
+            "side target should crawl while turning anticlockwise instead of spinning in place");
 
     Path right_path;
     right_path.points = {Point2D{0.0, 0.0}, Point2D{0.0, -1.0}};
     const auto right_turn = controller.computeCommand(right_path, Pose2D{0.0, 0.0, 0.0});
-    require(right_turn.linear == 0.0 && right_turn.angular < 0.0, "large right heading error should rotate clockwise in place");
+    require(right_turn.linear > 0.0 && right_turn.angular < 0.0,
+            "side target should crawl while turning clockwise instead of spinning in place");
 
     Path near_goal_path;
     near_goal_path.points = {Point2D{0.0, 0.0}, Point2D{0.4, 0.0}};
@@ -505,12 +545,16 @@ void testNavigatorDestinationChange() {
     require(navigator.deliver("TABLE_2"), "first delivery command should be accepted");
     const Pose2D pose{0.5, 0.0, 0.0};
     auto result = navigator.update(pose, makeScan(6.0), 0.1);
-    require(result.active_goal == "KITCHEN", "first active mission goal should be KITCHEN");
+    require(result.active_goal == "KITCHEN", "fresh delivery should start by going to KITCHEN");
 
-    require(navigator.deliver("TABLE_4"), "destination change command should reset active route");
+    require(navigator.deliver("TABLE_4"), "destination change command should reroute active mission");
     result = navigator.update(pose, makeScan(6.0), 0.1);
-    require(result.active_goal == "KITCHEN", "new command should publish a fresh KITCHEN goal");
+    require(result.active_goal == "TABLE_4", "active destination change should go directly to the new table");
     require(result.planner_state == NavigatorPlannerState::PathReady, "destination change should create a new path");
+
+    result = navigator.update(Pose2D{5.0, -0.8, 0.0}, makeScan(6.0), 0.1);
+    result = navigator.update(Pose2D{5.0, -0.8, 0.0}, makeScan(6.0), 1.0);
+    require(result.active_goal == "KITCHEN", "direct table reroute should still return to KITCHEN after service");
 }
 
 void testNavigatorEmergencyStopOverride() {
@@ -526,10 +570,19 @@ void testNavigatorEmergencyStopOverride() {
     require(result.safety_state == SafetyState::EmergencyStop, "emergency stop should be final safety state");
     require(result.command.linear == 0.0 && result.command.angular == 0.0,
             "emergency stop should zero command in the next cycle");
+    require(!navigator.deliver("TABLE_1"), "mission command should be rejected while emergency stop is latched");
+    require(!navigator.goToDestination("HOME"), "direct destination should be rejected while emergency stop is latched");
 
     navigator.setEmergencyStop(false);
     result = navigator.update(pose, makeScan(6.0), 0.1);
     require(result.safety_state != SafetyState::EmergencyStop, "clear emergency stop should restore normal safety processing");
+    require(result.planner_state == NavigatorPlannerState::Idle, "released emergency stop should leave navigator idle");
+    require(result.command.linear == 0.0 && result.command.angular == 0.0,
+            "released emergency stop should not resume old mission");
+
+    require(navigator.deliver("TABLE_3"), "new mission after emergency-stop release should be accepted");
+    result = navigator.update(pose, makeScan(6.0), 0.1);
+    require(result.command.linear > 0.0, "new mission after release should command motion");
 }
 
 void testNavigatorStopsBeforeStaticKeepout() {
@@ -626,6 +679,8 @@ int main() {
     testRestaurantRoutes();
     testPlannerSnapsInflatedStartCell();
     testPlannerRejectsOccupiedGoalCell();
+    testPathCornerSmoothingUsesLookaheadScale();
+    testPathCornerSmoothingRejectsDisconnectedFinalCorner();
     testMapPersistence();
     testOccupancyRayMapper();
     testKnownPoseSlamBackend();

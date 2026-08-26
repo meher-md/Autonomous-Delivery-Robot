@@ -22,11 +22,13 @@ enum class NavigatorPlannerState {
 };
 
 struct NavigatorConfig {
-    double robot_footprint_radius_m{0.40};
+    double planner_clearance_radius_m{0.40};
     double persistent_blockage_timeout_s{3.0};
     double path_obstacle_radius_m{0.35};
     double stuck_timeout_s{3.0};
     double stuck_motion_threshold_m{0.05};
+    PurePursuitConfig pure_pursuit;
+    SafetyConfig safety;
 };
 
 struct NavigatorStepResult {
@@ -49,6 +51,8 @@ public:
 
     bool deliver(const std::string& table_name);
     bool goToDestination(const std::string& destination_name);
+    void cancelMission();
+    void configure(const NavigatorConfig& config, const Pose2D& pose);
     void setEmergencyStop(bool enabled);
     NavigatorStepResult update(const Pose2D& pose, const LaserScan& scan, double dt_s);
 
@@ -78,6 +82,7 @@ private:
     double blocked_timer_s_{0.0};
     double stuck_timer_s_{0.0};
     Pose2D last_progress_pose_{};
+    bool emergency_stop_latched_{false};
 };
 
 std::string toString(NavigatorPlannerState state);

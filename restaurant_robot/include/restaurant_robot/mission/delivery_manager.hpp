@@ -32,7 +32,9 @@ public:
     explicit DeliveryManager(std::map<std::string, Pose2D> destinations);
 
     bool deliver(const std::string& table_name);
+    bool deliverDirect(const std::string& table_name);
     bool goToDestination(const std::string& destination_name);
+    void cancel();
     MissionOutput update(const Pose2D& pose, bool planner_has_path, double dt_s);
 
     MissionState state() const { return state_; }

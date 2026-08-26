@@ -140,11 +140,14 @@ struct GuiCommand {
     std::string mode;
     std::optional<std::string> goal;
     VelocityCommand manual_command;
+    NavigatorConfig tuning_config;
     bool has_manual_command{false};
+    bool has_tuning_config{false};
     bool save_map{false};
     bool quit{false};
     bool estop{false};
     bool clear_estop{false};
+    bool tune_only{false};
 };
 
 std::string trim(std::string text) {
@@ -158,6 +161,24 @@ std::string trim(std::string text) {
 
 bool boolValue(const std::string& value) {
     return value == "1" || value == "true" || value == "TRUE" || value == "on" || value == "yes";
+}
+
+bool assignDoubleValue(
+    const std::unordered_map<std::string, std::string>& values,
+    const std::string& key,
+    double& target,
+    bool& assigned) {
+    const auto value = values.find(key);
+    if (value == values.end()) {
+        return true;
+    }
+    try {
+        target = std::stod(value->second);
+        assigned = true;
+        return true;
+    } catch (const std::exception&) {
+        return false;
+    }
 }
 
 std::optional<GuiCommand> readGuiCommand(const std::string& path) {
@@ -215,6 +236,33 @@ std::optional<GuiCommand> readGuiCommand(const std::string& path) {
     }
     if (const auto clear = values.find("clear_estop"); clear != values.end()) {
         command.clear_estop = boolValue(clear->second);
+    }
+    if (const auto tune = values.find("tune_only"); tune != values.end()) {
+        command.tune_only = boolValue(tune->second);
+    }
+    if (!assignDoubleValue(values, "tune_planner_clearance_radius_m", command.tuning_config.planner_clearance_radius_m, command.has_tuning_config) ||
+        !assignDoubleValue(values, "tune_path_obstacle_radius_m", command.tuning_config.path_obstacle_radius_m, command.has_tuning_config) ||
+        !assignDoubleValue(values, "tune_persistent_blockage_timeout_s", command.tuning_config.persistent_blockage_timeout_s, command.has_tuning_config) ||
+        !assignDoubleValue(values, "tune_stuck_timeout_s", command.tuning_config.stuck_timeout_s, command.has_tuning_config) ||
+        !assignDoubleValue(values, "tune_stuck_motion_threshold_m", command.tuning_config.stuck_motion_threshold_m, command.has_tuning_config) ||
+        !assignDoubleValue(values, "tune_lookahead_distance_m", command.tuning_config.pure_pursuit.lookahead_distance, command.has_tuning_config) ||
+        !assignDoubleValue(values, "tune_final_lookahead_distance_m", command.tuning_config.pure_pursuit.final_lookahead_distance, command.has_tuning_config) ||
+        !assignDoubleValue(values, "tune_final_approach_distance_m", command.tuning_config.pure_pursuit.final_approach_distance, command.has_tuning_config) ||
+        !assignDoubleValue(values, "tune_max_linear_velocity_mps", command.tuning_config.pure_pursuit.max_linear_velocity, command.has_tuning_config) ||
+        !assignDoubleValue(values, "tune_max_angular_velocity_rps", command.tuning_config.pure_pursuit.max_angular_velocity, command.has_tuning_config) ||
+        !assignDoubleValue(values, "tune_angular_gain", command.tuning_config.pure_pursuit.angular_gain, command.has_tuning_config) ||
+        !assignDoubleValue(values, "tune_rotate_in_place_heading_error_rad", command.tuning_config.pure_pursuit.rotate_in_place_heading_error, command.has_tuning_config) ||
+        !assignDoubleValue(values, "tune_heading_slowdown_error_rad", command.tuning_config.pure_pursuit.heading_slowdown_error, command.has_tuning_config) ||
+        !assignDoubleValue(values, "tune_goal_slowdown_distance_m", command.tuning_config.pure_pursuit.goal_slowdown_distance, command.has_tuning_config) ||
+        !assignDoubleValue(values, "tune_goal_tolerance_m", command.tuning_config.pure_pursuit.goal_tolerance, command.has_tuning_config) ||
+        !assignDoubleValue(values, "tune_front_caution_distance_m", command.tuning_config.safety.front_caution_distance, command.has_tuning_config) ||
+        !assignDoubleValue(values, "tune_front_stop_distance_m", command.tuning_config.safety.front_stop_distance, command.has_tuning_config) ||
+        !assignDoubleValue(values, "tune_rear_caution_distance_m", command.tuning_config.safety.rear_caution_distance, command.has_tuning_config) ||
+        !assignDoubleValue(values, "tune_rear_stop_distance_m", command.tuning_config.safety.rear_stop_distance, command.has_tuning_config) ||
+        !assignDoubleValue(values, "tune_caution_max_velocity_mps", command.tuning_config.safety.caution_max_velocity, command.has_tuning_config) ||
+        !assignDoubleValue(values, "tune_front_angle_limit_rad", command.tuning_config.safety.front_angle_limit_rad, command.has_tuning_config) ||
+        !assignDoubleValue(values, "tune_front_stop_angle_limit_rad", command.tuning_config.safety.front_stop_angle_limit_rad, command.has_tuning_config)) {
+        return std::nullopt;
     }
     return command;
 }
@@ -596,6 +644,14 @@ public:
                 hideSegment(i);
             }
         }
+        const std::size_t joint_count = std::min<std::size_t>(path.points.size(), kMaxJoints);
+        for (std::size_t i = 0; i < kMaxJoints; ++i) {
+            if (i < joint_count) {
+                showJoint(i, path.points[i]);
+            } else {
+                hideJoint(i);
+            }
+        }
     }
 
     void hide() {
@@ -606,10 +662,14 @@ public:
         for (std::size_t i = 0; ready_ && i < kMaxSegments; ++i) {
             hideSegment(i);
         }
+        for (std::size_t i = 0; ready_ && i < kMaxJoints; ++i) {
+            hideJoint(i);
+        }
     }
 
 private:
     static constexpr std::size_t kMaxSegments = 96;
+    static constexpr std::size_t kMaxJoints = kMaxSegments + 1;
 
     void ensureNodes() {
         if (initialized_) {
@@ -635,7 +695,21 @@ private:
             children->importMFNodeFromString(-1, node.str());
             segments_.push_back(supervisor_->getFromDef(def_name));
         }
+        for (std::size_t i = 0; i < kMaxJoints; ++i) {
+            const std::string def_name = "PLANNED_PATH_JOINT_" + std::to_string(i);
+            std::ostringstream node;
+            node << "DEF " << def_name << " Transform { "
+                 << "translation -20 -20 0.048 "
+                 << "children [ Shape { "
+                 << "appearance PBRAppearance { baseColor 0.05 0.25 1 roughness 0.45 transparency 0.18 } "
+                 << "geometry Cylinder { radius 0.035 height 0.007 subdivision 16 } "
+                 << "} ] }";
+            children->importMFNodeFromString(-1, node.str());
+            joints_.push_back(supervisor_->getFromDef(def_name));
+        }
         ready_ = std::all_of(segments_.begin(), segments_.end(), [](const webots::Node* node) {
+            return node != nullptr;
+        }) && std::all_of(joints_.begin(), joints_.end(), [](const webots::Node* node) {
             return node != nullptr;
         });
     }
@@ -668,10 +742,29 @@ private:
         node->getField("scale")->setSFVec3f(scale);
     }
 
+    void showJoint(std::size_t index, const Point2D& point) {
+        webots::Node* node = joints_.at(index);
+        if (!node) {
+            return;
+        }
+        const double translation[3] = {point.x, point.y, 0.048};
+        node->getField("translation")->setSFVec3f(translation);
+    }
+
+    void hideJoint(std::size_t index) {
+        webots::Node* node = joints_.at(index);
+        if (!node) {
+            return;
+        }
+        const double translation[3] = {-20.0, -20.0, 0.048};
+        node->getField("translation")->setSFVec3f(translation);
+    }
+
     webots::Supervisor* supervisor_{nullptr};
     bool initialized_{false};
     bool ready_{false};
     std::vector<webots::Node*> segments_;
+    std::vector<webots::Node*> joints_;
 };
 
 }  // namespace
@@ -727,8 +820,9 @@ int main(int argc, char** argv) {
     localization_config.max_rotation_correction_rad = 2.0 * kPi / 180.0;
     localization_config.max_scan_points = 72;
     ScanMapLocalizer localizer(restaurant.grid, localization_config);
-    Navigator navigator(restaurant);
-    SafetySupervisor manual_safety;
+    NavigatorConfig navigation_config;
+    Navigator navigator(restaurant, navigation_config);
+    SafetySupervisor manual_safety(navigation_config.safety);
     auto slam_backend = createSlamBackend(getenvOr("SLAM_BACKEND", "known_pose"));
     RunLogger logger("restaurant_run.csv");
     const double max_time_s = getenvDoubleOr("MAX_TIME", 0.0);
@@ -805,34 +899,49 @@ int main(int argc, char** argv) {
         bool gui_quit = false;
         if (const auto gui = readGuiCommand(control_file_path); gui && gui->seq != last_gui_command_seq) {
             last_gui_command_seq = gui->seq;
-            if (gui->mode == "manual" || gui->mode == "MANUAL") {
-                manual_mapping_mode = true;
-                mapping_mode = true;
-                std::cout << "control_mode=manual\n";
-            } else if (gui->mode == "auto" || gui->mode == "AUTO") {
-                manual_mapping_mode = false;
-                mapping_mode = batch_mapping_mode;
-                commandDestination(navigator, restaurant, requested_destination);
-                std::cout << "control_mode=auto\n";
+            if (gui->has_tuning_config) {
+                navigation_config = gui->tuning_config;
+                navigator.configure(navigation_config, estimated_pose);
+                manual_safety.configure(navigation_config.safety);
+                std::cout << "navigation_tuning planner_clearance=" << navigation_config.planner_clearance_radius_m
+                          << " lookahead=" << navigation_config.pure_pursuit.lookahead_distance
+                          << " front_stop=" << navigation_config.safety.front_stop_distance << "\n";
             }
-            if (gui->has_manual_command) {
-                gui_manual_command = gui->manual_command;
-                gui_has_manual_command = true;
-            }
-            if (gui->goal && isKnownDestination(restaurant, *gui->goal)) {
-                requested_destination = *gui->goal;
-                commandDestination(navigator, restaurant, requested_destination);
-                std::cout << "gui_destination=" << requested_destination << "\n";
-            }
-            if (gui->estop) {
+            if (gui->tune_only) {
+                std::cout << "gui_tuning_applied\n";
+            } else if (gui->estop) {
                 navigator.setEmergencyStop(true);
                 manual_safety.setEmergencyStop(true);
                 std::cout << "gui_estop=latched\n";
-            }
-            if (gui->clear_estop) {
+            } else if (gui->clear_estop) {
                 navigator.setEmergencyStop(false);
                 manual_safety.setEmergencyStop(false);
                 std::cout << "gui_estop=released\n";
+            } else {
+                if (gui->mode == "manual" || gui->mode == "MANUAL") {
+                    manual_mapping_mode = true;
+                    mapping_mode = true;
+                    std::cout << "control_mode=manual\n";
+                } else if (gui->mode == "auto" || gui->mode == "AUTO") {
+                    manual_mapping_mode = false;
+                    mapping_mode = batch_mapping_mode;
+                    if (!commandDestination(navigator, restaurant, requested_destination)) {
+                        std::cout << "control_mode=auto command_rejected=" << requested_destination << "\n";
+                    }
+                    std::cout << "control_mode=auto\n";
+                }
+                if (gui->has_manual_command) {
+                    gui_manual_command = gui->manual_command;
+                    gui_has_manual_command = true;
+                }
+                if (gui->goal && isKnownDestination(restaurant, *gui->goal)) {
+                    if (commandDestination(navigator, restaurant, *gui->goal)) {
+                        requested_destination = *gui->goal;
+                        std::cout << "gui_destination=" << requested_destination << "\n";
+                    } else {
+                        std::cout << "gui_destination_rejected=" << *gui->goal << "\n";
+                    }
+                }
             }
             gui_save_map = gui->save_map;
             gui_quit = gui->quit;
@@ -910,10 +1019,13 @@ int main(int argc, char** argv) {
                 const auto keyboard_destination = tableFromKey(key);
                 if (keyboard_destination && isKnownTable(restaurant, *keyboard_destination) &&
                     *keyboard_destination != requested_destination) {
-                    requested_destination = *keyboard_destination;
-                    commandDestination(navigator, restaurant, requested_destination);
-                    robot.setCustomData(requested_destination);
-                    std::cout << "keyboard_destination=" << requested_destination << "\n";
+                    if (commandDestination(navigator, restaurant, *keyboard_destination)) {
+                        requested_destination = *keyboard_destination;
+                        robot.setCustomData(requested_destination);
+                        std::cout << "keyboard_destination=" << requested_destination << "\n";
+                    } else {
+                        std::cout << "keyboard_destination_rejected=" << *keyboard_destination << "\n";
+                    }
                 }
             }
         }
@@ -926,8 +1038,11 @@ int main(int argc, char** argv) {
             } else if (command == "CLEAR_ESTOP") {
                 navigator.setEmergencyStop(false);
             } else if (isKnownDestination(restaurant, command) && command != requested_destination) {
-                requested_destination = command;
-                commandDestination(navigator, restaurant, requested_destination);
+                if (commandDestination(navigator, restaurant, command)) {
+                    requested_destination = command;
+                } else {
+                    std::cout << "custom_destination_rejected=" << command << "\n";
+                }
             } else if (command == "DISTURB_POSE") {
                 const Pose2D pose_belief_before_disturbance = estimated_pose;
                 const Pose2D disturbed{

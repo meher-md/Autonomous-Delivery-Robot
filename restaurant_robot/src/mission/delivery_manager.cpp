@@ -20,6 +20,18 @@ bool DeliveryManager::deliver(const std::string& table_name) {
     return true;
 }
 
+bool DeliveryManager::deliverDirect(const std::string& table_name) {
+    if (!destination(table_name) || !destination("KITCHEN")) {
+        return false;
+    }
+    requested_table_ = table_name;
+    direct_destination_.clear();
+    state_ = MissionState::GoToTable;
+    active_destination_.clear();
+    wait_timer_s_ = 0.0;
+    return true;
+}
+
 bool DeliveryManager::goToDestination(const std::string& destination_name) {
     if (!destination(destination_name)) {
         return false;
@@ -30,6 +42,14 @@ bool DeliveryManager::goToDestination(const std::string& destination_name) {
     active_destination_.clear();
     wait_timer_s_ = 0.0;
     return true;
+}
+
+void DeliveryManager::cancel() {
+    requested_table_.clear();
+    direct_destination_.clear();
+    active_destination_.clear();
+    wait_timer_s_ = 0.0;
+    state_ = MissionState::Idle;
 }
 
 MissionOutput DeliveryManager::update(const Pose2D& pose, bool planner_has_path, double dt_s) {

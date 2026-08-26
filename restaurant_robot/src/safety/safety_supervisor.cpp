@@ -8,6 +8,10 @@ namespace restaurant_robot {
 
 SafetySupervisor::SafetySupervisor(SafetyConfig config) : config_(config) {}
 
+void SafetySupervisor::configure(SafetyConfig config) {
+    config_ = config;
+}
+
 void SafetySupervisor::setEmergencyStop(bool enabled) {
     emergency_stop_ = enabled;
 }

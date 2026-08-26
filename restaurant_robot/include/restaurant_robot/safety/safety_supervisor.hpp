@@ -33,6 +33,7 @@ class SafetySupervisor {
 public:
     explicit SafetySupervisor(SafetyConfig config = {});
 
+    void configure(SafetyConfig config);
     void setEmergencyStop(bool enabled);
     SafetyResult apply(const VelocityCommand& requested, const LaserScan& scan) const;
 

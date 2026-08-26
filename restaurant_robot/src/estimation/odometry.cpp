@@ -31,9 +31,8 @@ Pose2D WheelImuOdometry::update(const EncoderData& encoders, const ImuData& imu)
     pose_.x += distance_center * std::cos(theta_mid);
     pose_.y += distance_center * std::sin(theta_mid);
 
-    const double fused_yaw = normalizeAngle((1.0 - imu_yaw_weight_) * normalizeAngle(pose_.theta + dtheta_enc) +
-                                           imu_yaw_weight_ * imu.yaw);
-    pose_.theta = fused_yaw;
+    const double encoder_yaw = normalizeAngle(pose_.theta + dtheta_enc);
+    pose_.theta = normalizeAngle(encoder_yaw + imu_yaw_weight_ * normalizeAngle(imu.yaw - encoder_yaw));
     return pose_;
 }
 

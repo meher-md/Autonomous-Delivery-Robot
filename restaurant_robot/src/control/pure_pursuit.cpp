@@ -6,6 +6,11 @@
 #include <vector>
 
 namespace restaurant_robot {
+namespace {
+
+constexpr double kHardTurnInPlaceHeadingError = 1.85;
+
+}  // namespace
 
 PurePursuitController::PurePursuitController(PurePursuitConfig config) : config_(config) {}
 
@@ -26,9 +31,6 @@ VelocityCommand PurePursuitController::computeCommand(const Path& path, const Po
         return {};
     }
     Point2D target = *maybe_target;
-    if (distance_to_goal <= config_.final_approach_distance) {
-        target = goal;
-    }
 
     const double dx = target.x - pose.x;
     const double dy = target.y - pose.y;
@@ -39,7 +41,8 @@ VelocityCommand PurePursuitController::computeCommand(const Path& path, const Po
         -config_.max_angular_velocity,
         config_.max_angular_velocity);
 
-    if (abs_heading_error >= config_.rotate_in_place_heading_error) {
+    if (abs_heading_error >= config_.rotate_in_place_heading_error &&
+        (abs_heading_error >= kHardTurnInPlaceHeadingError || distance_to_goal <= config_.final_approach_distance)) {
         return VelocityCommand{0.0, angular};
     }
 
@@ -48,9 +51,15 @@ VelocityCommand PurePursuitController::computeCommand(const Path& path, const Po
         linear *= std::max(0.18, distance_to_goal / config_.goal_slowdown_distance);
     }
     if (abs_heading_error > config_.heading_slowdown_error) {
-        const double span = std::max(1e-6, config_.rotate_in_place_heading_error - config_.heading_slowdown_error);
-        const double blend = std::clamp((config_.rotate_in_place_heading_error - abs_heading_error) / span, 0.0, 1.0);
-        linear *= blend;
+        if (abs_heading_error >= config_.rotate_in_place_heading_error) {
+            const double span = std::max(1e-6, kHardTurnInPlaceHeadingError - config_.rotate_in_place_heading_error);
+            const double blend = std::clamp((kHardTurnInPlaceHeadingError - abs_heading_error) / span, 0.0, 1.0);
+            linear *= std::clamp(0.10 + 0.25 * blend, 0.10, 0.35);
+        } else {
+            const double span = std::max(1e-6, config_.rotate_in_place_heading_error - config_.heading_slowdown_error);
+            const double blend = std::clamp((config_.rotate_in_place_heading_error - abs_heading_error) / span, 0.0, 1.0);
+            linear *= blend;
+        }
     }
 
     return VelocityCommand{linear, angular};
