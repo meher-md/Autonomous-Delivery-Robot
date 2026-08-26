@@ -12,8 +12,14 @@ fi
 source install/setup.bash
 
 pkg_share="$(ros2 pkg prefix andino_gz)/share/andino_gz"
+export IGN_IP="${IGN_IP:-127.0.0.1}"
+export GZ_IP="${GZ_IP:-127.0.0.1}"
 export GZ_SIM_RESOURCE_PATH="$pkg_share/models:$pkg_share/worlds:${GZ_SIM_RESOURCE_PATH:-}"
 export IGN_GAZEBO_RESOURCE_PATH="$pkg_share/models:$pkg_share/worlds:${IGN_GAZEBO_RESOURCE_PATH:-}"
+
+if [ "${AUTO_INITIAL_POSE:-1}" = "1" ]; then
+  python3 scripts/publish_initial_pose.py &
+fi
 
 ros2 launch andino_gz andino_gz.launch.py \
   nav2:=True \
