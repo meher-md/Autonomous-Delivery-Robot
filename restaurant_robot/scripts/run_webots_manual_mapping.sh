@@ -3,13 +3,14 @@ set -euo pipefail
 
 MAX_TIME_SECONDS="${1:-0}"
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-WORLD_PATH="${ROOT_DIR}/restaurant_robot/simulator/worlds/restaurant_delivery.wbt"
+DEFAULT_WORLD_PATH="${ROOT_DIR}/restaurant_robot/simulator/worlds/restaurant_delivery.wbt"
+WORLD_PATH="${WEBOTS_WORLD:-${WORLD_PATH:-${DEFAULT_WORLD_PATH}}}"
 OUTPUT_PREFIX="${MAP_OUTPUT_PREFIX:-${ROOT_DIR}/build/restaurant_robot/manual_restaurant_map}"
 CONTROL_FILE="${CONTROL_FILE:-${ROOT_DIR}/build/restaurant_robot/control_command.txt}"
 MAP_INPUT="${MAP_INPUT_JSON:-}"
 
-if pgrep -f "webots-bin.*restaurant_delivery.wbt" >/dev/null; then
-  echo "A restaurant Webots world is already running. Close it before starting manual mapping."
+if pgrep -f "webots-bin.*\\.wbt" >/dev/null; then
+  echo "A Webots world is already running. Close it before starting manual mapping."
   exit 1
 fi
 

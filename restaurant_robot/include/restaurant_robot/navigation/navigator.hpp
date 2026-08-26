@@ -9,7 +9,6 @@
 #include "restaurant_robot/mission/delivery_manager.hpp"
 #include "restaurant_robot/obstacle/local_obstacle_map.hpp"
 #include "restaurant_robot/planning/astar.hpp"
-#include "restaurant_robot/planning/inflation.hpp"
 #include "restaurant_robot/safety/safety_supervisor.hpp"
 
 namespace restaurant_robot {
@@ -22,7 +21,6 @@ enum class NavigatorPlannerState {
 };
 
 struct NavigatorConfig {
-    double obstacle_inflation_radius_m{0.40};
     double persistent_blockage_timeout_s{3.0};
     double path_obstacle_radius_m{0.35};
     double stuck_timeout_s{3.0};
@@ -48,6 +46,7 @@ public:
     Navigator(RestaurantMap restaurant_map, NavigatorConfig config = {});
 
     bool deliver(const std::string& table_name);
+    bool goToDestination(const std::string& destination_name);
     void setEmergencyStop(bool enabled);
     NavigatorStepResult update(const Pose2D& pose, const LaserScan& scan, double dt_s);
 
@@ -59,11 +58,11 @@ public:
 private:
     bool planTo(const Pose2D& pose, const Pose2D& goal, bool use_dynamic_obstacles);
     bool shouldReplan(const Pose2D& pose, const VelocityCommand& requested, SafetyState safety_state, double dt_s);
+    VelocityCommand applyStaticKeepoutGuard(const Pose2D& pose, const VelocityCommand& command, double dt_s) const;
     double currentDistanceToGoal(const Pose2D& pose) const;
 
     RestaurantMap restaurant_map_;
     NavigatorConfig config_;
-    OccupancyGrid inflated_static_grid_;
     AStarPlanner planner_;
     PurePursuitController tracker_;
     SafetySupervisor safety_;

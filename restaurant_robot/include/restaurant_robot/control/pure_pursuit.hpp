@@ -7,11 +7,16 @@
 namespace restaurant_robot {
 
 struct PurePursuitConfig {
-    double lookahead_distance{0.32};
-    double max_linear_velocity{0.35};
-    double max_angular_velocity{0.8};
-    double goal_slowdown_distance{0.6};
-    double goal_tolerance{0.15};
+    double lookahead_distance{0.22};
+    double final_lookahead_distance{0.12};
+    double final_approach_distance{0.55};
+    double max_linear_velocity{0.28};
+    double max_angular_velocity{0.7};
+    double angular_gain{1.8};
+    double rotate_in_place_heading_error{0.45};
+    double heading_slowdown_error{0.20};
+    double goal_slowdown_distance{0.75};
+    double goal_tolerance{0.18};
 };
 
 class PurePursuitController {

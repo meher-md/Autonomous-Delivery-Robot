@@ -1,5 +1,6 @@
 #include "restaurant_robot/navigation/navigator.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <utility>
 
@@ -10,7 +11,6 @@ namespace restaurant_robot {
 Navigator::Navigator(RestaurantMap restaurant_map, NavigatorConfig config)
     : restaurant_map_(std::move(restaurant_map)),
       config_(config),
-      inflated_static_grid_(inflateObstacles(restaurant_map_.grid, config_.obstacle_inflation_radius_m)),
       local_obstacles_(6.0, restaurant_map_.grid.resolution(), 2.0),
       mission_(restaurant_map_.destinations) {}
 
@@ -22,6 +22,16 @@ bool Navigator::deliver(const std::string& table_name) {
     stuck_timer_s_ = 0.0;
     replanning_events_ = 0;
     return mission_.deliver(table_name);
+}
+
+bool Navigator::goToDestination(const std::string& destination_name) {
+    active_path_ = {};
+    active_goal_pose_.reset();
+    planner_state_ = NavigatorPlannerState::Idle;
+    blocked_timer_s_ = 0.0;
+    stuck_timer_s_ = 0.0;
+    replanning_events_ = 0;
+    return mission_.goToDestination(destination_name);
 }
 
 void Navigator::setEmergencyStop(bool enabled) {
@@ -76,7 +86,7 @@ NavigatorStepResult Navigator::update(const Pose2D& pose, const LaserScan& scan,
     }
 
     const SafetyResult final_safe = safety_.apply(tracker_.computeCommand(active_path_, pose), scan);
-    result.command = final_safe.command;
+    result.command = applyStaticKeepoutGuard(pose, final_safe.command, dt_s);
     result.safety_state = final_safe.state;
     result.minimum_obstacle_distance = final_safe.minimum_obstacle_distance;
     result.planner_state = planner_state_;
@@ -88,11 +98,9 @@ NavigatorStepResult Navigator::update(const Pose2D& pose, const LaserScan& scan,
 }
 
 bool Navigator::planTo(const Pose2D& pose, const Pose2D& goal, bool use_dynamic_obstacles) {
-    OccupancyGrid planning_grid = inflated_static_grid_;
+    OccupancyGrid planning_grid = restaurant_map_.grid;
     if (use_dynamic_obstacles) {
-        planning_grid = inflateObstacles(
-            local_obstacles_.overlayOnto(restaurant_map_.grid),
-            config_.obstacle_inflation_radius_m);
+        planning_grid = local_obstacles_.overlayOnto(restaurant_map_.grid);
     }
 
     const auto plan = planner_.plan(planning_grid, pose, goal);
@@ -103,6 +111,9 @@ bool Navigator::planTo(const Pose2D& pose, const Pose2D& goal, bool use_dynamic_
     }
 
     active_path_ = simplifyPathLineOfSight(planning_grid, plan.path);
+    if (!active_path_.points.empty()) {
+        active_path_.points.back() = Point2D{goal.x, goal.y};
+    }
     planner_state_ = NavigatorPlannerState::PathReady;
     blocked_timer_s_ = 0.0;
     stuck_timer_s_ = 0.0;
@@ -147,6 +158,35 @@ bool Navigator::shouldReplan(
     }
 
     return blocked_timer_s_ >= config_.persistent_blockage_timeout_s || stuck_timer_s_ >= config_.stuck_timeout_s;
+}
+
+VelocityCommand Navigator::applyStaticKeepoutGuard(const Pose2D& pose, const VelocityCommand& command, double dt_s) const {
+    const auto current_cell = restaurant_map_.grid.worldToGrid(Point2D{pose.x, pose.y});
+    if (!current_cell || !restaurant_map_.grid.isTraversable(current_cell->x, current_cell->y)) {
+        return {};
+    }
+
+    if (std::abs(command.linear) <= 1e-6) {
+        return command;
+    }
+
+    const double simulation_dt_s = dt_s > 1e-6 ? dt_s : 0.05;
+    const double sample_dt_s = std::clamp(simulation_dt_s, 0.02, 0.05);
+    const double horizon_s = std::max(0.20, simulation_dt_s);
+    const int samples = std::max(1, static_cast<int>(std::ceil(horizon_s / sample_dt_s)));
+    Pose2D projected = pose;
+    for (int i = 0; i < samples; ++i) {
+        projected.x += command.linear * std::cos(projected.theta) * sample_dt_s;
+        projected.y += command.linear * std::sin(projected.theta) * sample_dt_s;
+        projected.theta = normalizeAngle(projected.theta + command.angular * sample_dt_s);
+
+        const auto cell = restaurant_map_.grid.worldToGrid(Point2D{projected.x, projected.y});
+        if (!cell || !restaurant_map_.grid.isTraversable(cell->x, cell->y)) {
+            return VelocityCommand{0.0, command.angular};
+        }
+    }
+
+    return command;
 }
 
 double Navigator::currentDistanceToGoal(const Pose2D& pose) const {

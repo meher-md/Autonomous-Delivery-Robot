@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import json
 import os
 import pathlib
 import tkinter as tk
@@ -7,12 +8,13 @@ from tkinter import ttk
 
 
 class RestaurantControlGui:
-    def __init__(self, root: tk.Tk, control_file: pathlib.Path):
+    def __init__(self, root: tk.Tk, control_file: pathlib.Path, destination_values: list[str]):
         self.root = root
         self.control_file = control_file
         self.seq = 0
         self.mode = tk.StringVar(value="auto")
-        self.goal = tk.StringVar(value="TABLE_3")
+        self.destination_values = destination_values
+        self.goal = tk.StringVar(value="TABLE_3" if "TABLE_3" in destination_values else destination_values[0])
         self.linear = 0.0
         self.angular = 0.0
 
@@ -28,9 +30,9 @@ class RestaurantControlGui:
         ttk.Radiobutton(mode_frame, text="Auto", value="auto", variable=self.mode, command=self.send_mode).grid(row=0, column=0, padx=2)
         ttk.Radiobutton(mode_frame, text="Manual", value="manual", variable=self.mode, command=self.send_mode).grid(row=0, column=1, padx=2)
 
-        ttk.Label(frame, text="Table").grid(row=1, column=0, sticky="w")
-        table_menu = ttk.Combobox(frame, textvariable=self.goal, values=[f"TABLE_{i}" for i in range(1, 6)], width=10, state="readonly")
-        table_menu.grid(row=1, column=1, sticky="w", pady=3)
+        ttk.Label(frame, text="Destination").grid(row=1, column=0, sticky="w")
+        destination_menu = ttk.Combobox(frame, textvariable=self.goal, values=self.destination_values, width=12, state="readonly")
+        destination_menu.grid(row=1, column=1, sticky="w", pady=3)
         ttk.Button(frame, text="Go", command=self.send_goal).grid(row=1, column=2, padx=3)
 
         drive = ttk.LabelFrame(frame, text="Manual Drive", padding=8)
@@ -108,13 +110,34 @@ def default_control_file() -> pathlib.Path:
     return root / "build" / "restaurant_robot" / "control_command.txt"
 
 
+def load_destination_values(map_input_json: pathlib.Path | None) -> list[str]:
+    def table_sort_key(value: str) -> tuple[int, int | str]:
+        suffix = value.split("_", 1)[1]
+        return (0, int(suffix)) if suffix.isdigit() else (1, suffix)
+
+    destinations = ["HOME", "KITCHEN", "CHARGING"]
+    if map_input_json and map_input_json.exists():
+        try:
+            with map_input_json.open("r", encoding="utf-8") as handle:
+                data = json.load(handle)
+            names = list(data.get("destinations", {}).keys())
+            tables = sorted([name for name in names if name.startswith("TABLE_")], key=table_sort_key)
+            fixed = [name for name in destinations if name in names]
+            if tables or fixed:
+                return tables + fixed
+        except (OSError, json.JSONDecodeError, ValueError):
+            pass
+    return [f"TABLE_{i}" for i in range(1, 6)] + destinations
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--control-file", type=pathlib.Path, default=default_control_file())
+    parser.add_argument("--map-input-json", type=pathlib.Path, default=os.environ.get("MAP_INPUT_JSON") or None)
     args = parser.parse_args()
 
     root = tk.Tk()
-    RestaurantControlGui(root, args.control_file.resolve())
+    RestaurantControlGui(root, args.control_file.resolve(), load_destination_values(args.map_input_json))
     root.mainloop()
 
 

@@ -21,7 +21,7 @@ int main(int argc, char** argv) {
 
     ScenarioConfig scenario;
     scenario.initial_pose = map.destinations.at("HOME");
-    scenario.expected_final_pose = map.destinations.at("HOME");
+    scenario.expected_final_pose = map.destinations.at("KITCHEN");
     scenario.table_goal = table;
     scenario.max_steps = max_steps;
 

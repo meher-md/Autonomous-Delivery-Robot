@@ -9,11 +9,24 @@ DeliveryManager::DeliveryManager(std::map<std::string, Pose2D> destinations)
     : destinations_(std::move(destinations)) {}
 
 bool DeliveryManager::deliver(const std::string& table_name) {
-    if (!destination(table_name) || !destination("KITCHEN") || !destination("HOME")) {
+    if (!destination(table_name) || !destination("KITCHEN")) {
         return false;
     }
     requested_table_ = table_name;
+    direct_destination_.clear();
     state_ = MissionState::GoToKitchen;
+    active_destination_.clear();
+    wait_timer_s_ = 0.0;
+    return true;
+}
+
+bool DeliveryManager::goToDestination(const std::string& destination_name) {
+    if (!destination(destination_name)) {
+        return false;
+    }
+    requested_table_.clear();
+    direct_destination_ = destination_name;
+    state_ = MissionState::GoToNamedDestination;
     active_destination_.clear();
     wait_timer_s_ = 0.0;
     return true;
@@ -23,7 +36,7 @@ MissionOutput DeliveryManager::update(const Pose2D& pose, bool planner_has_path,
     MissionOutput output;
 
     if ((state_ == MissionState::GoToKitchen || state_ == MissionState::GoToTable ||
-         state_ == MissionState::ReturnHome) &&
+         state_ == MissionState::ReturnKitchen || state_ == MissionState::GoToNamedDestination) &&
         !planner_has_path && !active_destination_.empty()) {
         state_ = MissionState::NoPath;
         return output;
@@ -61,23 +74,31 @@ MissionOutput DeliveryManager::update(const Pose2D& pose, bool planner_has_path,
             state_ = MissionState::WaitForCollection;
             wait_timer_s_ = dt_s;
             if (wait_timer_s_ >= wait_duration_s_) {
-                state_ = MissionState::ReturnHome;
+                state_ = MissionState::ReturnKitchen;
                 active_destination_.clear();
-                setGoal("HOME", output);
+                setGoal("KITCHEN", output);
             }
             break;
         case MissionState::WaitForCollection:
             wait_timer_s_ += dt_s;
             if (wait_timer_s_ >= wait_duration_s_) {
-                state_ = MissionState::ReturnHome;
+                state_ = MissionState::ReturnKitchen;
                 active_destination_.clear();
-                setGoal("HOME", output);
+                setGoal("KITCHEN", output);
             }
             break;
-        case MissionState::ReturnHome:
-            if (active_destination_ != "HOME") {
-                setGoal("HOME", output);
-            } else if (reached(pose, *destination("HOME"))) {
+        case MissionState::ReturnKitchen:
+            if (active_destination_ != "KITCHEN") {
+                setGoal("KITCHEN", output);
+            } else if (reached(pose, *destination("KITCHEN"))) {
+                state_ = MissionState::Complete;
+                output.mission_complete = true;
+            }
+            break;
+        case MissionState::GoToNamedDestination:
+            if (active_destination_ != direct_destination_) {
+                setGoal(direct_destination_, output);
+            } else if (reached(pose, *destination(direct_destination_))) {
                 state_ = MissionState::Complete;
                 output.mission_complete = true;
             }
@@ -124,8 +145,10 @@ std::string toString(MissionState state) {
             return "ARRIVED";
         case MissionState::WaitForCollection:
             return "WAIT_FOR_COLLECTION";
-        case MissionState::ReturnHome:
-            return "RETURN_HOME";
+        case MissionState::ReturnKitchen:
+            return "RETURN_KITCHEN";
+        case MissionState::GoToNamedDestination:
+            return "GO_TO_NAMED_DESTINATION";
         case MissionState::Complete:
             return "COMPLETE";
         case MissionState::NoPath:

@@ -77,12 +77,10 @@ AStarResult AStarPlanner::plan(const OccupancyGrid& grid, const Pose2D& start, c
     if (!traversable_start) {
         return {PlannerStatus::StartOccupied, {}, 0};
     }
-    auto traversable_goal = nearestTraversableCell(grid, *goal_cell, 0.75);
-    if (!traversable_goal) {
+    if (!grid.isTraversable(goal_cell->x, goal_cell->y)) {
         return {PlannerStatus::GoalOccupied, {}, 0};
     }
     start_cell = traversable_start;
-    goal_cell = traversable_goal;
 
     const int total = grid.width() * grid.height();
     std::vector<double> g_score(total, std::numeric_limits<double>::infinity());

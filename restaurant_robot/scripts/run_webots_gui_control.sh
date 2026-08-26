@@ -2,14 +2,15 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-WORLD_PATH="${ROOT_DIR}/restaurant_robot/simulator/worlds/restaurant_delivery.wbt"
+DEFAULT_WORLD_PATH="${ROOT_DIR}/restaurant_robot/simulator/worlds/restaurant_delivery.wbt"
+WORLD_PATH="${WEBOTS_WORLD:-${WORLD_PATH:-${DEFAULT_WORLD_PATH}}}"
 CONTROL_FILE="${CONTROL_FILE:-${ROOT_DIR}/build/restaurant_robot/control_command.txt}"
 OUTPUT_PREFIX="${MAP_OUTPUT_PREFIX:-${ROOT_DIR}/build/restaurant_robot/manual_restaurant_map}"
 MAX_TIME_SECONDS="${MAX_TIME:-0}"
 MAP_INPUT="${MAP_INPUT_JSON:-}"
 
-if pgrep -f "webots-bin.*restaurant_delivery.wbt" >/dev/null; then
-  echo "A restaurant Webots world is already running. Close it before starting GUI control."
+if pgrep -f "webots-bin.*\\.wbt" >/dev/null; then
+  echo "A Webots world is already running. Close it before starting GUI control."
   exit 1
 fi
 
@@ -18,7 +19,7 @@ cmake --build "${ROOT_DIR}/build" --target restaurant_delivery_controller restau
 
 mkdir -p "$(dirname "${CONTROL_FILE}")"
 
-python3 "${ROOT_DIR}/restaurant_robot/scripts/restaurant_control_gui.py" --control-file "${CONTROL_FILE}" &
+python3 "${ROOT_DIR}/restaurant_robot/scripts/restaurant_control_gui.py" --control-file "${CONTROL_FILE}" --map-input-json "${MAP_INPUT}" &
 GUI_PID="$!"
 
 cleanup() {

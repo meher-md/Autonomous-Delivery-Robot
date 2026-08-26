@@ -10,37 +10,49 @@ namespace restaurant_robot {
 PurePursuitController::PurePursuitController(PurePursuitConfig config) : config_(config) {}
 
 VelocityCommand PurePursuitController::computeCommand(const Path& path, const Pose2D& pose) const {
+    if (path.points.empty()) {
+        return {};
+    }
+
+    const Point2D robot{pose.x, pose.y};
+    const Point2D goal = path.points.back();
+    const double distance_to_goal = distance(robot, goal);
+    if (distance_to_goal < config_.goal_tolerance) {
+        return {};
+    }
+
     const auto maybe_target = selectLookaheadTarget(path, pose);
     if (!maybe_target) {
         return {};
     }
-    const Point2D target = *maybe_target;
-    const Point2D robot{pose.x, pose.y};
-    const Point2D goal = path.points.back();
-    const double distance_to_goal = distance(robot, goal);
+    Point2D target = *maybe_target;
+    if (distance_to_goal <= config_.final_approach_distance) {
+        target = goal;
+    }
 
     const double dx = target.x - pose.x;
     const double dy = target.y - pose.y;
-    const double cos_t = std::cos(pose.theta);
-    const double sin_t = std::sin(pose.theta);
-    const double target_x_robot = cos_t * dx + sin_t * dy;
-    const double target_y_robot = -sin_t * dx + cos_t * dy;
     const double heading_error = normalizeAngle(std::atan2(dy, dx) - pose.theta);
+    const double abs_heading_error = std::abs(heading_error);
+    const double angular = std::clamp(
+        config_.angular_gain * heading_error,
+        -config_.max_angular_velocity,
+        config_.max_angular_velocity);
 
-    if (target_x_robot < 0.0) {
-        const double angular = std::clamp(heading_error, -config_.max_angular_velocity, config_.max_angular_velocity);
+    if (abs_heading_error >= config_.rotate_in_place_heading_error) {
         return VelocityCommand{0.0, angular};
     }
 
-    const double ld2 = std::max(0.001, target_x_robot * target_x_robot + target_y_robot * target_y_robot);
-    const double curvature = 2.0 * target_y_robot / ld2;
-
     double linear = config_.max_linear_velocity;
     if (distance_to_goal < config_.goal_slowdown_distance) {
-        linear *= std::max(0.25, distance_to_goal / config_.goal_slowdown_distance);
+        linear *= std::max(0.18, distance_to_goal / config_.goal_slowdown_distance);
     }
-    double angular = curvature * linear;
-    angular = std::clamp(angular, -config_.max_angular_velocity, config_.max_angular_velocity);
+    if (abs_heading_error > config_.heading_slowdown_error) {
+        const double span = std::max(1e-6, config_.rotate_in_place_heading_error - config_.heading_slowdown_error);
+        const double blend = std::clamp((config_.rotate_in_place_heading_error - abs_heading_error) / span, 0.0, 1.0);
+        linear *= blend;
+    }
+
     return VelocityCommand{linear, angular};
 }
 
@@ -86,7 +98,10 @@ std::optional<Point2D> PurePursuitController::selectLookaheadTarget(const Path& 
         }
     }
 
-    const double target_path_s = std::min(cumulative.back(), nearest_path_s + config_.lookahead_distance);
+    const double active_lookahead = distance_to_goal <= config_.final_approach_distance
+                                        ? config_.final_lookahead_distance
+                                        : config_.lookahead_distance;
+    const double target_path_s = std::min(cumulative.back(), nearest_path_s + active_lookahead);
     for (std::size_t i = 0; i + 1 < path.points.size(); ++i) {
         if (target_path_s > cumulative[i + 1]) {
             continue;

@@ -56,6 +56,20 @@ std::string getenvOr(const char* name, const std::string& fallback) {
     return value ? std::string(value) : fallback;
 }
 
+std::string argValueOr(int argc, char** argv, const std::string& name, const std::string& fallback) {
+    for (int i = 1; i < argc; ++i) {
+        const std::string arg(argv[i]);
+        const std::string prefix = name + "=";
+        if (arg == name && i + 1 < argc) {
+            return argv[i + 1];
+        }
+        if (arg.rfind(prefix, 0) == 0) {
+            return arg.substr(prefix.size());
+        }
+    }
+    return fallback;
+}
+
 bool getenvBoolOr(const char* name, bool fallback) {
     const char* value = std::getenv(name);
     if (!value) {
@@ -69,12 +83,48 @@ bool isKnownTable(const RestaurantMap& restaurant, const std::string& destinatio
     return destination.rfind("TABLE_", 0) == 0 && restaurant.destinations.find(destination) != restaurant.destinations.end();
 }
 
+bool isKnownDestination(const RestaurantMap& restaurant, const std::string& destination) {
+    return restaurant.destinations.find(destination) != restaurant.destinations.end();
+}
+
+bool commandDestination(Navigator& navigator, const RestaurantMap& restaurant, const std::string& destination) {
+    if (isKnownTable(restaurant, destination)) {
+        return navigator.deliver(destination);
+    }
+    if (isKnownDestination(restaurant, destination)) {
+        return navigator.goToDestination(destination);
+    }
+    return false;
+}
+
+std::optional<std::string> firstKnownTable(const RestaurantMap& restaurant) {
+    const auto preferred = restaurant.destinations.find("TABLE_3");
+    if (preferred != restaurant.destinations.end()) {
+        return preferred->first;
+    }
+    for (const auto& [name, pose] : restaurant.destinations) {
+        (void)pose;
+        if (name.rfind("TABLE_", 0) == 0) {
+            return name;
+        }
+    }
+    return std::nullopt;
+}
+
 std::optional<std::string> tableFromKey(int key) {
     const int plain_key = key & webots::Keyboard::KEY;
-    if (plain_key >= '1' && plain_key <= '5') {
+    if (plain_key >= '1' && plain_key <= '9') {
         return "TABLE_" + std::to_string(plain_key - '0');
     }
     return std::nullopt;
+}
+
+bool saveManualRestaurantMap(const RestaurantMap& restaurant,
+                             const OccupancyGrid& mapped_grid,
+                             const std::string& output_prefix) {
+    RestaurantMap snapshot = restaurant;
+    snapshot.grid = mapped_grid;
+    return saveRestaurantMapJson(snapshot, output_prefix + ".json") && mapped_grid.savePgm(output_prefix + ".pgm");
 }
 
 struct ManualDriveInput {
@@ -525,7 +575,7 @@ private:
 
 }  // namespace
 
-int main() {
+int main(int argc, char** argv) {
     webots::Robot robot;
     const int time_step_ms = static_cast<int>(robot.getBasicTimeStep());
     webots::Keyboard* keyboard = robot.getKeyboard();
@@ -535,16 +585,28 @@ int main() {
     WebotsHardware hardware(robot, time_step_ms);
 
     auto restaurant = createPrototypeRestaurantMap(0.05);
-    const std::string map_input_json = getenvOr("MAP_INPUT_JSON", "");
+    const std::string map_input_json = argValueOr(argc, argv, "--map-input-json", getenvOr("MAP_INPUT_JSON", ""));
     bool loaded_map_from_json = false;
+    bool loaded_destinations_from_json = false;
     if (!map_input_json.empty()) {
-        OccupancyGrid loaded_grid;
-        loaded_map_from_json = loadOccupancyGridJson(map_input_json, loaded_grid);
+        RestaurantMap loaded_map;
+        loaded_map_from_json = loadRestaurantMapJson(map_input_json, loaded_map);
         if (loaded_map_from_json) {
-            restaurant.grid = std::move(loaded_grid);
+            restaurant.grid = std::move(loaded_map.grid);
+            if (!loaded_map.destinations.empty()) {
+                restaurant.destinations = std::move(loaded_map.destinations);
+                loaded_destinations_from_json = true;
+            }
         }
         std::cout << "map_input_json=" << map_input_json << "\n";
         std::cout << "map_loaded=" << (loaded_map_from_json ? "true" : "false") << "\n";
+        std::cout << "destinations_loaded=" << (loaded_destinations_from_json ? "true" : "false") << "\n";
+    }
+    if (restaurant.destinations.find("HOME") == restaurant.destinations.end() ||
+        restaurant.destinations.find("KITCHEN") == restaurant.destinations.end() ||
+        !firstKnownTable(restaurant)) {
+        std::cerr << "restaurant map must contain HOME, KITCHEN, and at least one TABLE_N destination.\n";
+        return 2;
     }
     DebugDisplayRenderer debug_renderer(hardware.display(), restaurant);
     OccupancyRayMapper manual_mapper;
@@ -575,6 +637,7 @@ int main() {
     const bool scan_localization_enabled = !mapping_mode && getenvBoolOr("ENABLE_SCAN_LOCALIZATION", false);
     const std::string map_output_prefix = getenvOr("MAP_OUTPUT_PREFIX", "webots_restaurant_map");
     const std::string control_file_path = getenvOr("CONTROL_FILE", "");
+    const bool gui_control_mode = !control_file_path.empty();
     const std::string debug_export_path = getenvOr("DEBUG_EXPORT_PATH", "");
     const double debug_export_interval_s = getenvDoubleOr("DEBUG_EXPORT_INTERVAL", 0.0);
     std::string requested_destination = getenvOr("GOAL_TABLE", "TABLE_3");
@@ -601,9 +664,9 @@ int main() {
     }
 
     if (!isKnownTable(restaurant, requested_destination)) {
-        requested_destination = "TABLE_3";
+        requested_destination = firstKnownTable(restaurant).value();
     }
-    navigator.deliver(requested_destination);
+    commandDestination(navigator, restaurant, requested_destination);
 
     while (robot.step(time_step_ms) != -1) {
         if (max_time_s > 0.0 && robot.getTime() >= max_time_s) {
@@ -647,7 +710,7 @@ int main() {
             } else if (gui->mode == "auto" || gui->mode == "AUTO") {
                 manual_mapping_mode = false;
                 mapping_mode = batch_mapping_mode;
-                navigator.deliver(requested_destination);
+                commandDestination(navigator, restaurant, requested_destination);
                 navigator.setEmergencyStop(false);
                 std::cout << "control_mode=auto\n";
             }
@@ -655,9 +718,9 @@ int main() {
                 gui_manual_command = gui->manual_command;
                 gui_has_manual_command = true;
             }
-            if (gui->goal && isKnownTable(restaurant, *gui->goal)) {
+            if (gui->goal && isKnownDestination(restaurant, *gui->goal)) {
                 requested_destination = *gui->goal;
-                navigator.deliver(requested_destination);
+                commandDestination(navigator, restaurant, requested_destination);
                 navigator.setEmergencyStop(false);
                 std::cout << "gui_destination=" << requested_destination << "\n";
             }
@@ -683,8 +746,7 @@ int main() {
                 manual_input.command = gui_manual_command;
             }
             if (manual_input.save_map || gui_save_map) {
-                const bool map_ok = saveOccupancyGridJson(manual_mapper.grid(), map_output_prefix + ".json") &&
-                                    manual_mapper.grid().savePgm(map_output_prefix + ".pgm");
+                const bool map_ok = saveManualRestaurantMap(restaurant, manual_mapper.grid(), map_output_prefix);
                 manual_map_saved = manual_map_saved || map_ok;
                 std::cout << "map_checkpoint_saved=" << (map_ok ? "true" : "false") << "\n";
                 std::cout << "map_json=" << map_output_prefix << ".json\n";
@@ -729,8 +791,7 @@ int main() {
         }
 
         if (gui_save_map) {
-            const bool map_ok = saveOccupancyGridJson(manual_mapper.grid(), map_output_prefix + ".json") &&
-                                manual_mapper.grid().savePgm(map_output_prefix + ".pgm");
+            const bool map_ok = saveManualRestaurantMap(restaurant, manual_mapper.grid(), map_output_prefix);
             manual_map_saved = manual_map_saved || map_ok;
             std::cout << "map_checkpoint_saved=" << (map_ok ? "true" : "false") << "\n";
             std::cout << "map_json=" << map_output_prefix << ".json\n";
@@ -747,7 +808,7 @@ int main() {
                 if (keyboard_destination && isKnownTable(restaurant, *keyboard_destination) &&
                     *keyboard_destination != requested_destination) {
                     requested_destination = *keyboard_destination;
-                    navigator.deliver(requested_destination);
+                    commandDestination(navigator, restaurant, requested_destination);
                     navigator.setEmergencyStop(false);
                     robot.setCustomData(requested_destination);
                     std::cout << "keyboard_destination=" << requested_destination << "\n";
@@ -762,9 +823,9 @@ int main() {
                 navigator.setEmergencyStop(true);
             } else if (command == "CLEAR_ESTOP") {
                 navigator.setEmergencyStop(false);
-            } else if (isKnownTable(restaurant, command) && command != requested_destination) {
+            } else if (isKnownDestination(restaurant, command) && command != requested_destination) {
                 requested_destination = command;
-                navigator.deliver(requested_destination);
+                commandDestination(navigator, restaurant, requested_destination);
                 navigator.setEmergencyStop(false);
             } else if (command == "DISTURB_POSE") {
                 const Pose2D pose_belief_before_disturbance = estimated_pose;
@@ -819,7 +880,9 @@ int main() {
         if (!mapping_mode && nav.mission_complete) {
             mission_complete = true;
             hardware.setVelocity(0.0, 0.0);
-            break;
+            if (!gui_control_mode) {
+                break;
+            }
         }
     }
 
@@ -836,9 +899,11 @@ int main() {
     }
 
     const double final_home_error = distance(last_estimated_pose, restaurant.destinations.at("HOME"));
+    const double final_kitchen_error = distance(last_estimated_pose, restaurant.destinations.at("KITCHEN"));
     std::cout << "mission_success=" << (mission_complete ? "true" : "false") << "\n";
     std::cout << "requested_destination=" << requested_destination << "\n";
     std::cout << "final_home_error_m=" << final_home_error << "\n";
+    std::cout << "final_kitchen_error_m=" << final_kitchen_error << "\n";
     std::cout << "final_pose_x=" << last_estimated_pose.x << "\n";
     std::cout << "final_pose_y=" << last_estimated_pose.y << "\n";
     std::cout << "final_pose_theta=" << last_estimated_pose.theta << "\n";

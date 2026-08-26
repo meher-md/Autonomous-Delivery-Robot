@@ -19,9 +19,10 @@ Current implemented slice:
 - Dynamic obstacle detection from LiDAR returns in mapped free space.
 - Local obstacle map with timeout decay.
 - Safety supervisor with normal, caution, stop, and emergency-stop states.
-- Kitchen -> Table -> Home delivery mission manager.
+- Kitchen -> Table -> Kitchen delivery mission manager, with explicit direct commands for home and charging.
 - Navigator coordinator that ties mission goals, A*, Pure Pursuit, safety override, persistent-blockage timers, stuck detection, and replanning together.
 - JSON/PGM occupancy-grid persistence and CSV run logging.
+- Facility layout editor for scale, walls, go/no-go zones, kitchen, charging/home, and numbered table delivery points.
 - Headless scenario runner for mission success, clearance, replanning, final accuracy, and collision metrics.
 - Webots supervisor metrics with dynamic-obstacle clearance count and contact-point collision count.
 - Webots Display debug view for occupancy map, LiDAR hits, dynamic hits, current path, Pure Pursuit target, active goal, robot pose, heading, safety zones, and safety state, with PNG snapshot export for automated runs.
@@ -52,6 +53,30 @@ SLAM_BACKEND=ceres_scan_match bash restaurant_robot/scripts/run_webots_mapping.s
 
 The default mapping backend is `known_pose`. When Ceres is available at configure time, `SLAM_BACKEND=ceres_scan_match` enables scan-to-current-map pose refinement before each LiDAR ray insertion. This is external-library scan matching, not graph SLAM or loop closure.
 
+Create a facility seed map:
+
+```bash
+bash restaurant_robot/scripts/run_facility_layout_editor.sh
+```
+
+Use the editor to set the floor scale, drag `Wall`, `Go zone`, `No-go zone`, and optional `Table zone` rectangles from the selected corner reference, and place `HOME`, `CHARGING`, `KITCHEN`, and numbered `TABLE_N` delivery points. `Open` loads an existing saved layout, and the default output is auto-loaded on startup when present. Use `Select/edit` to click a zone or point, drag it to move it, edit exact coordinates/name/type in the selected panel, press `Delete` to remove it, or press `Escape` to clear selection. `Kitchen zone` and `Charging zone` can supply the missing point when saving. A `Table zone` supplies one nearby `TABLE_N` service point if the point was not placed separately. `Wall`, `No-go zone`, and `Table zone` block the occupancy grid; the Webots generator turns walls into wall solids and each table zone into one simple table at the zone center. It also adds non-colliding algorithm overlays: dark raw static footprints, red inflated planner keepout areas, red dynamic obstacle keepout disks, and robot-attached blue/red/yellow clearance and safety markers. The default map output is `build/restaurant_robot/facility_layout_map.json`, and saving also writes `restaurant_robot/simulator/worlds/facility_layout_generated.wbt`. The generated world embeds that JSON path in the robot `controllerArgs`, so opening the generated `.wbt` directly still loads the generated table coordinates. If no go zones are drawn, the editor saves the whole interior as free space, then applies walls, no-go/table zones, and occupied boundaries.
+
+Run the generated facility world:
+
+```bash
+bash restaurant_robot/scripts/run_generated_facility_world.sh
+```
+
+Seed manual mapping from that facility layout using an explicit world path:
+
+```bash
+MAP_INPUT_JSON=build/restaurant_robot/facility_layout_map.json \
+WEBOTS_WORLD=restaurant_robot/simulator/worlds/facility_layout_generated.wbt \
+bash restaurant_robot/scripts/run_webots_gui_control.sh
+```
+
+When `Save Map` is pressed in manual mode, the refined occupancy grid is saved with the same destination labels, so the next run can navigate using table numbers from the improved map.
+
 Manual Webots mapping:
 
 ```bash
@@ -80,7 +105,7 @@ Navigate using a saved manual map:
 MAP_INPUT_JSON=build/restaurant_robot/manual_restaurant_map.json bash restaurant_robot/scripts/run_webots_scenario.sh none 240
 ```
 
-The saved map replaces the hand-coded occupancy grid, while the existing `HOME`, `KITCHEN`, and `TABLE_1` through `TABLE_5` goal labels remain available. In the Webots window, pressing number keys `1` through `5` changes the requested table live.
+The saved map replaces the hand-coded occupancy grid. If the JSON contains `destinations`, those `HOME`, `KITCHEN`, and `TABLE_N` labels are used; otherwise the prototype destination labels remain available. In the Webots window, pressing number keys `1` through `9` changes the requested table live when that table exists.
 
 Run a Webots batch scenario:
 

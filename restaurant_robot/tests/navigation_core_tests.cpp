@@ -77,6 +77,22 @@ RestaurantMap createNarrowCorridorTestMap() {
     return map;
 }
 
+RestaurantMap createStaticKeepoutGuardTestMap() {
+    RestaurantMap map;
+    map.grid = OccupancyGrid(45, 30, 0.10, Point2D{0.0, -1.5}, kFree);
+    for (int x = 6; x <= 12; ++x) {
+        for (int y = 13; y <= 16; ++y) {
+            map.grid.set(x, y, kOccupied);
+        }
+    }
+    map.destinations = {
+        {"HOME", Pose2D{0.2, 0.0, 0.0}},
+        {"KITCHEN", Pose2D{2.5, 0.0, 0.0}},
+        {"TABLE_1", Pose2D{3.7, 0.0, 0.0}},
+    };
+    return map;
+}
+
 OccupancyGrid createLocalizationTestMap() {
     OccupancyGrid grid(70, 60, 0.10, Point2D{0.0, 0.0}, kFree);
     for (int x = 0; x < grid.width(); ++x) {
@@ -151,6 +167,16 @@ void testPlannerSnapsInflatedStartCell() {
     require(!result.path.points.empty(), "snapped-start path should not be empty");
 }
 
+void testPlannerRejectsOccupiedGoalCell() {
+    OccupancyGrid grid(20, 20, 0.10, Point2D{0.0, 0.0}, kFree);
+    grid.set(15, 15, kOccupied);
+
+    const AStarPlanner planner;
+    const auto result = planner.plan(grid, Pose2D{0.5, 0.5, 0.0}, Pose2D{1.55, 1.55, 0.0});
+    require(result.status == PlannerStatus::GoalOccupied, "A* should reject occupied destination instead of moving it");
+    require(result.path.points.empty(), "occupied-goal plan should not return a path");
+}
+
 void testMapPersistence() {
     const auto restaurant = createPrototypeRestaurantMap(0.10);
     const std::string json_path = "restaurant_map_test.json";
@@ -165,6 +191,19 @@ void testMapPersistence() {
     require(loaded.height() == restaurant.grid.height(), "loaded map height mismatch");
     require(std::abs(loaded.resolution() - restaurant.grid.resolution()) < 1e-9, "loaded map resolution mismatch");
     require(loaded.cells() == restaurant.grid.cells(), "loaded map cells mismatch");
+
+    const std::string semantic_json_path = "restaurant_semantic_map_test.json";
+    require(saveRestaurantMapJson(restaurant, semantic_json_path), "semantic map JSON save should succeed");
+
+    RestaurantMap semantic_loaded;
+    require(loadRestaurantMapJson(semantic_json_path, semantic_loaded), "semantic map JSON load should succeed");
+    require(semantic_loaded.grid.width() == restaurant.grid.width(), "semantic loaded map width mismatch");
+    require(semantic_loaded.grid.cells() == restaurant.grid.cells(), "semantic loaded map cells mismatch");
+    require(semantic_loaded.destinations.size() == restaurant.destinations.size(), "semantic destinations count mismatch");
+    require(std::abs(semantic_loaded.destinations.at("TABLE_3").x - restaurant.destinations.at("TABLE_3").x) < 1e-9,
+            "semantic TABLE_3 x mismatch");
+    require(std::abs(semantic_loaded.destinations.at("KITCHEN").theta - restaurant.destinations.at("KITCHEN").theta) < 1e-9,
+            "semantic KITCHEN theta mismatch");
 }
 
 void testOccupancyRayMapper() {
@@ -319,7 +358,7 @@ void testPurePursuit() {
     path.points = {Point2D{0.0, 0.0}, Point2D{1.0, 0.0}, Point2D{2.0, 0.0}};
     PurePursuitController controller;
     const auto target = controller.selectLookaheadTarget(path, Pose2D{0.0, 0.0, 0.0});
-    require(target && target->x > 0.25 && target->x < 0.40 && std::abs(target->y) < 1e-9,
+    require(target && target->x > 0.15 && target->x < 0.30 && std::abs(target->y) < 1e-9,
             "pure pursuit should expose an interpolated forward lookahead target for visualization");
     const auto command = controller.computeCommand(path, Pose2D{0.0, 0.0, 0.0});
     require(command.linear > 0.0, "pure pursuit should command forward motion");
@@ -330,6 +369,22 @@ void testPurePursuit() {
     const auto turn_command = controller.computeCommand(return_path, Pose2D{2.0, 0.0, 0.0});
     require(turn_command.linear == 0.0, "target behind robot should rotate before driving");
     require(std::abs(turn_command.angular) > 0.1, "target behind robot should command turn-in-place");
+
+    Path left_path;
+    left_path.points = {Point2D{0.0, 0.0}, Point2D{0.0, 1.0}};
+    const auto left_turn = controller.computeCommand(left_path, Pose2D{0.0, 0.0, 0.0});
+    require(left_turn.linear == 0.0 && left_turn.angular > 0.0, "large left heading error should rotate anticlockwise in place");
+
+    Path right_path;
+    right_path.points = {Point2D{0.0, 0.0}, Point2D{0.0, -1.0}};
+    const auto right_turn = controller.computeCommand(right_path, Pose2D{0.0, 0.0, 0.0});
+    require(right_turn.linear == 0.0 && right_turn.angular < 0.0, "large right heading error should rotate clockwise in place");
+
+    Path near_goal_path;
+    near_goal_path.points = {Point2D{0.0, 0.0}, Point2D{0.4, 0.0}};
+    const auto near_goal_command = controller.computeCommand(near_goal_path, Pose2D{0.0, 0.0, 0.0});
+    require(near_goal_command.linear > 0.0 && near_goal_command.linear < command.linear,
+            "final approach should slow down instead of overshooting around the goal");
 }
 
 void testSafetySupervisor() {
@@ -384,17 +439,22 @@ void testMissionManager() {
 
     manager.update(restaurant.destinations.at("TABLE_3"), true, 0.1);
     out = manager.update(restaurant.destinations.at("TABLE_3"), true, 1.0);
-    require(out.new_goal && manager.activeDestinationName() == "HOME", "mission should return home after collection wait");
+    require(out.new_goal && manager.activeDestinationName() == "KITCHEN", "mission should return kitchen after collection wait");
 
+    out = manager.update(restaurant.destinations.at("KITCHEN"), true, 0.1);
+    require(out.mission_complete && manager.state() == MissionState::Complete, "mission should complete at KITCHEN");
+
+    require(manager.goToDestination("HOME"), "manager should accept explicit HOME command");
+    out = manager.update(restaurant.destinations.at("KITCHEN"), true, 0.1);
+    require(out.new_goal && manager.activeDestinationName() == "HOME", "explicit HOME command should go directly home");
     out = manager.update(restaurant.destinations.at("HOME"), true, 0.1);
-    require(out.mission_complete && manager.state() == MissionState::Complete, "mission should complete at HOME");
+    require(out.mission_complete && manager.state() == MissionState::Complete, "explicit HOME command should complete at HOME");
 }
 
 void testNavigatorReplansPersistentBlockage() {
     NavigatorConfig config;
     config.persistent_blockage_timeout_s = 0.20;
     config.stuck_timeout_s = 10.0;
-    config.obstacle_inflation_radius_m = 0.25;
 
     Navigator navigator(createStraightTestMap(), config);
     require(navigator.deliver("TABLE_3"), "navigator should accept TABLE_3 delivery");
@@ -418,27 +478,26 @@ void testNavigatorReplansPersistentBlockage() {
     require(result.planner_state == NavigatorPlannerState::PathReady, "alternate route should be found in open map");
 }
 
-void testNavigatorReportsNoPathForBlockedCorridor() {
+void testNavigatorReplansExactBoundaryCorridorBlockage() {
     NavigatorConfig config;
     config.persistent_blockage_timeout_s = 0.10;
     config.stuck_timeout_s = 10.0;
-    config.obstacle_inflation_radius_m = 0.25;
 
     Navigator navigator(createNarrowCorridorTestMap(), config);
-    require(navigator.deliver("TABLE_3"), "navigator should accept blocked-corridor mission");
+    require(navigator.deliver("TABLE_3"), "navigator should accept corridor mission");
 
     const Pose2D pose{0.5, 0.0, 0.0};
     auto result = navigator.update(pose, makeScan(6.0), 0.1);
-    require(result.planner_state == NavigatorPlannerState::PathReady, "blocked-corridor test should have initial route");
+    require(result.planner_state == NavigatorPlannerState::PathReady, "corridor test should have initial route");
 
     auto blocked_scan = makeScan(6.0);
     blocked_scan.ranges.at(blocked_scan.ranges.size() / 2) = 0.28;
     blocked_scan.timestamp = 2.0;
     result = navigator.update(pose, blocked_scan, 0.15);
 
-    require(result.no_path, "fully blocked corridor should report NO_PATH after timeout");
-    require(result.command.linear == 0.0 && result.command.angular == 0.0, "NO_PATH should leave robot stopped");
-    require(result.planner_state == NavigatorPlannerState::NoPath, "planner state should be NO_PATH");
+    require(result.replanned, "persistent blockage should still trigger replanning");
+    require(!result.no_path, "exact-boundary corridor should not become NO_PATH from one occupied scan cell");
+    require(result.planner_state == NavigatorPlannerState::PathReady, "exact-boundary corridor should keep a route");
 }
 
 void testNavigatorDestinationChange() {
@@ -473,6 +532,19 @@ void testNavigatorEmergencyStopOverride() {
     require(result.safety_state != SafetyState::EmergencyStop, "clear emergency stop should restore normal safety processing");
 }
 
+void testNavigatorStopsBeforeStaticKeepout() {
+    NavigatorConfig config;
+
+    Navigator navigator(createStaticKeepoutGuardTestMap(), config);
+    require(navigator.goToDestination("KITCHEN"), "static keepout guard test should accept KITCHEN destination");
+
+    const Pose2D pose{0.45, 0.0, 0.0};
+    const auto result = navigator.update(pose, makeScan(6.0), 0.1);
+    require(result.planner_state == NavigatorPlannerState::PathReady, "static keepout guard test should find a route around obstacle");
+    require(!navigator.activePath().points.empty(), "static keepout guard route should not be empty");
+    require(result.command.linear == 0.0, "navigator should stop before commanded motion enters inflated static keepout");
+}
+
 void testNavigatorCompletesHeadlessDelivery() {
     Navigator navigator(createStraightTestMap());
     require(navigator.deliver("TABLE_3"), "headless delivery should accept TABLE_3");
@@ -495,7 +567,7 @@ void testNavigatorCompletesHeadlessDelivery() {
     }
 
     require(complete, "headless navigator should complete Kitchen -> Table -> Home");
-    require(distance(pose, Pose2D{0.5, 0.0, 0.0}) < 0.25, "headless delivery should finish near HOME");
+    require(distance(pose, Pose2D{2.0, 0.0, 0.0}) < 0.25, "headless delivery should finish near KITCHEN");
 }
 
 void testScenarioRunnerMetrics() {
@@ -504,7 +576,7 @@ void testScenarioRunnerMetrics() {
 
     ScenarioConfig scenario;
     scenario.initial_pose = map.destinations.at("HOME");
-    scenario.expected_final_pose = map.destinations.at("HOME");
+    scenario.expected_final_pose = map.destinations.at("KITCHEN");
     scenario.table_goal = "TABLE_3";
     scenario.max_steps = 1200;
 
@@ -553,6 +625,7 @@ void testRunLogger() {
 int main() {
     testRestaurantRoutes();
     testPlannerSnapsInflatedStartCell();
+    testPlannerRejectsOccupiedGoalCell();
     testMapPersistence();
     testOccupancyRayMapper();
     testKnownPoseSlamBackend();
@@ -566,9 +639,10 @@ int main() {
     testDynamicObstacleLayer();
     testMissionManager();
     testNavigatorReplansPersistentBlockage();
-    testNavigatorReportsNoPathForBlockedCorridor();
+    testNavigatorReplansExactBoundaryCorridorBlockage();
     testNavigatorDestinationChange();
     testNavigatorEmergencyStopOverride();
+    testNavigatorStopsBeforeStaticKeepout();
     testNavigatorCompletesHeadlessDelivery();
     testScenarioRunnerMetrics();
     testRunLogger();

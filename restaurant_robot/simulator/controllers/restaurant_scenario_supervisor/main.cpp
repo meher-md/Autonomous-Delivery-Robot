@@ -15,6 +15,7 @@ namespace {
 
 struct Proxy {
     webots::Node* node{nullptr};
+    webots::Node* boundary{nullptr};
     const double* position{nullptr};
 };
 
@@ -39,6 +40,11 @@ void setTranslation(webots::Node* node, double x, double y, double z) {
     }
     double value[3] = {x, y, z};
     node->getField("translation")->setSFVec3f(value);
+}
+
+void setProxyTranslation(const Proxy& proxy, double x, double y, double z) {
+    setTranslation(proxy.node, x, y, z);
+    setTranslation(proxy.boundary, x, y, 0.03);
 }
 
 double distance2d(const double* a, const double* b) {
@@ -70,45 +76,45 @@ int nonFloorContactPointCount(webots::Node* robot) {
 void updateScenario(const std::string& scenario, double time, const std::vector<Proxy>& proxies) {
     if (scenario == "person_crossing") {
         const double phase = std::clamp((time - 8.0) / 8.0, 0.0, 1.0);
-        setTranslation(proxies[0].node, 3.4, 1.1 + phase * 2.5, kPedestrianZ);
-        setTranslation(proxies[1].node, -20.0, -20.0, kPedestrianZ);
-        setTranslation(proxies[2].node, -21.0, -20.0, kPedestrianZ);
+        setProxyTranslation(proxies[0], 3.4, 1.1 + phase * 2.5, kPedestrianZ);
+        setProxyTranslation(proxies[1], -20.0, -20.0, kPedestrianZ);
+        setProxyTranslation(proxies[2], -21.0, -20.0, kPedestrianZ);
     } else if (scenario == "stationary_blockage") {
-        setTranslation(proxies[0].node, 1.50, 2.95, kPedestrianZ);
-        setTranslation(proxies[1].node, -20.0, -20.0, kPedestrianZ);
-        setTranslation(proxies[2].node, -21.0, -20.0, kPedestrianZ);
+        setProxyTranslation(proxies[0], 1.50, 2.95, kPedestrianZ);
+        setProxyTranslation(proxies[1], -20.0, -20.0, kPedestrianZ);
+        setProxyTranslation(proxies[2], -21.0, -20.0, kPedestrianZ);
     } else if (scenario == "moving_crowd") {
-        setTranslation(proxies[0].node, 2.8 + std::sin(time * 0.45), 2.2, kPedestrianZ);
-        setTranslation(proxies[1].node, 4.2, 1.2 + 1.2 * std::sin(time * 0.35), kPedestrianZ);
-        setTranslation(proxies[2].node, 5.8 + 0.7 * std::sin(time * 0.55), 3.5, kPedestrianZ);
+        setProxyTranslation(proxies[0], 2.8 + std::sin(time * 0.45), 2.2, kPedestrianZ);
+        setProxyTranslation(proxies[1], 4.2, 1.2 + 1.2 * std::sin(time * 0.35), kPedestrianZ);
+        setProxyTranslation(proxies[2], 5.8 + 0.7 * std::sin(time * 0.55), 3.5, kPedestrianZ);
     } else if (scenario == "destination_change") {
-        setTranslation(proxies[0].node, -20.0, -20.0, kPedestrianZ);
-        setTranslation(proxies[1].node, -21.0, -20.0, kPedestrianZ);
-        setTranslation(proxies[2].node, -22.0, -20.0, kPedestrianZ);
+        setProxyTranslation(proxies[0], -20.0, -20.0, kPedestrianZ);
+        setProxyTranslation(proxies[1], -21.0, -20.0, kPedestrianZ);
+        setProxyTranslation(proxies[2], -22.0, -20.0, kPedestrianZ);
     } else if (scenario == "emergency_stop") {
-        setTranslation(proxies[0].node, -20.0, -20.0, kPedestrianZ);
-        setTranslation(proxies[1].node, -21.0, -20.0, kPedestrianZ);
-        setTranslation(proxies[2].node, -22.0, -20.0, kPedestrianZ);
+        setProxyTranslation(proxies[0], -20.0, -20.0, kPedestrianZ);
+        setProxyTranslation(proxies[1], -21.0, -20.0, kPedestrianZ);
+        setProxyTranslation(proxies[2], -22.0, -20.0, kPedestrianZ);
     } else if (scenario == "chair_moved") {
         if (time < 6.0) {
-            setTranslation(proxies[0].node, -20.0, -20.0, kPedestrianZ);
+            setProxyTranslation(proxies[0], -20.0, -20.0, kPedestrianZ);
         } else {
-            setTranslation(proxies[0].node, 1.50, 2.95, kPedestrianZ);
+            setProxyTranslation(proxies[0], 1.50, 2.95, kPedestrianZ);
         }
-        setTranslation(proxies[1].node, -21.0, -20.0, kPedestrianZ);
-        setTranslation(proxies[2].node, -22.0, -20.0, kPedestrianZ);
+        setProxyTranslation(proxies[1], -21.0, -20.0, kPedestrianZ);
+        setProxyTranslation(proxies[2], -22.0, -20.0, kPedestrianZ);
     } else if (scenario == "blocked_corridor") {
-        setTranslation(proxies[0].node, 1.35, 2.90, kPedestrianZ);
-        setTranslation(proxies[1].node, 1.55, 3.10, kPedestrianZ);
-        setTranslation(proxies[2].node, 1.75, 3.30, kPedestrianZ);
+        setProxyTranslation(proxies[0], 1.35, 2.90, kPedestrianZ);
+        setProxyTranslation(proxies[1], 1.55, 3.10, kPedestrianZ);
+        setProxyTranslation(proxies[2], 1.75, 3.30, kPedestrianZ);
     } else if (scenario == "localization_disturbance") {
-        setTranslation(proxies[0].node, -20.0, -20.0, kPedestrianZ);
-        setTranslation(proxies[1].node, -21.0, -20.0, kPedestrianZ);
-        setTranslation(proxies[2].node, -22.0, -20.0, kPedestrianZ);
+        setProxyTranslation(proxies[0], -20.0, -20.0, kPedestrianZ);
+        setProxyTranslation(proxies[1], -21.0, -20.0, kPedestrianZ);
+        setProxyTranslation(proxies[2], -22.0, -20.0, kPedestrianZ);
     } else {
-        setTranslation(proxies[0].node, -20.0, -20.0, kPedestrianZ);
-        setTranslation(proxies[1].node, -21.0, -20.0, kPedestrianZ);
-        setTranslation(proxies[2].node, -22.0, -20.0, kPedestrianZ);
+        setProxyTranslation(proxies[0], -20.0, -20.0, kPedestrianZ);
+        setProxyTranslation(proxies[1], -21.0, -20.0, kPedestrianZ);
+        setProxyTranslation(proxies[2], -22.0, -20.0, kPedestrianZ);
     }
 }
 
@@ -128,9 +134,9 @@ int main() {
         robot->enableContactPointsTracking(time_step_ms, true);
     }
     std::vector<Proxy> proxies = {
-        {supervisor.getFromDef("DYNAMIC_OBSTACLE_1"), nullptr},
-        {supervisor.getFromDef("DYNAMIC_OBSTACLE_2"), nullptr},
-        {supervisor.getFromDef("DYNAMIC_OBSTACLE_3"), nullptr},
+        {supervisor.getFromDef("DYNAMIC_OBSTACLE_1"), supervisor.getFromDef("DYNAMIC_OBSTACLE_1_KEEP_OUT"), nullptr},
+        {supervisor.getFromDef("DYNAMIC_OBSTACLE_2"), supervisor.getFromDef("DYNAMIC_OBSTACLE_2_KEEP_OUT"), nullptr},
+        {supervisor.getFromDef("DYNAMIC_OBSTACLE_3"), supervisor.getFromDef("DYNAMIC_OBSTACLE_3_KEEP_OUT"), nullptr},
     };
 
     std::ofstream metrics("scenario_metrics.csv");
