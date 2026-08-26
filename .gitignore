@@ -1,40 +1,161 @@
-# --- colcon build artifacts ---
+# ROS 2 / colcon
 build/
 install/
 log/
 .colcon/
+*.repos.bak
 
-# --- Python cache ---
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-*.egg-info/
-
-# --- Editors / IDE ---
-.vscode/
-.idea/
-*.code-workspace
-
-# --- CMake cache ---
+# CMake / native build output
 CMakeFiles/
 CMakeCache.txt
 cmake_install.cmake
+CTestTestfile.cmake
 Makefile
+compile_commands.json
+*.cmake.user
+*.o
+*.so
+*.a
+*.dll
+*.dylib
+*.exe
 
-# --- Gazebo / Ignition temp (فقط الملفات المؤقتة) ---
-*~            # أي ملف مؤقت بينتهي بـ ~
-*.log         # لوجات المحاكاة
-*.bak         # نسخ مؤقتة
-*.tmp
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+.eggs/
+dist/
+htmlcov/
+.coverage
+.coverage.*
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+.venv/
+venv/
+env/
+ENV/
+pip-wheel-metadata/
 
-# --- OS / Misc ---
-.DS_Store
-Thumbs.db
-.history/
+# Node / web UI
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.npm/
+.pnpm-store/
+.yarn/
+coverage/
+.next/
+.nuxt/
+.svelte-kit/
+out/
+web-build/
+frontend-build/
+
+# ROS runtime data
+*.bag
+*.bag.active
+rosbag2_*/
+*.db3
+*.mcap
 frames_*.pdf
 frames_*.gv
 generated_qr/
-.~lock.*
-*.zip
+
+# Gazebo / Ignition / gz runtime state
+.gazebo/
+.ignition/
+.gz/
+ogre.log
+gzclient.log
+gzserver.log
+server_console.log
+state.log
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
 *~
+
+# Android / Gradle
+mobile/DeliveryBotApp/.gradle/
+mobile/DeliveryBotApp/build/
+mobile/DeliveryBotApp/app/build/
+mobile/DeliveryBotApp/**/build/
+mobile/DeliveryBotApp/local.properties
+mobile/DeliveryBotApp/captures/
+mobile/DeliveryBotApp/.externalNativeBuild/
+mobile/DeliveryBotApp/.cxx/
+mobile/DeliveryBotApp/*.iml
+mobile/DeliveryBotApp/.idea/
+mobile/DeliveryBotApp/**/generated/
+mobile/DeliveryBotApp/**/outputs/
+mobile/**/*.apk
+mobile/**/*.aab
+mobile/**/*.ap_
+
+# Local secrets / device-specific config
+*.pem
+*.key
+*.crt
+*.p12
+*.jks
+*.keystore
+certs/
+**/certs/
+.env
+.env.*
+!.env.example
+
+# Model and dataset caches
+*.pt
+*.pth
+*.onnx
+*.engine
+*.tflite
+*.weights
+*.h5
+*.hdf5
+*.npy
+*.npz
+datasets/
+runs/
+wandb/
+
+# Generated media / mission evidence
+mission_proof/
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.webm
+*.png.tmp
+
+# Archives
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.7z
+*.rar
+
+# Editors / IDEs
+.vscode/
+.idea/
+*.code-workspace
+*.sublime-project
+*.sublime-workspace
+
+# OS / file manager
+.DS_Store
+Thumbs.db
+.history/
+.~lock.*
