@@ -208,8 +208,8 @@ def table_solid(zone: dict[str, Any], table_index: int, label_override: str | No
     sx, sy = zone_size(zone)
     # Use most of the reserved footprint so full-size people look proportional
     # without changing the navigation coordinates represented by the layout.
-    table_x = min(max(sx * 0.94, 0.80), 1.5)
-    table_y = min(max(sy * 0.94, 0.80), 1.5)
+    table_x = min(max(sx * 0.55, 0.70), 1.20)
+    table_y = min(max(sy * 0.45, 0.65), 0.80)
     label = label_override or str(zone.get("name") or f"TABLE_ZONE_{table_index}")
     tray = "DEF GENERATED_TABLE_TOP VarnishedPine {\n        textureTransform TextureTransform { scale 6 6 }\n      }" if table_index == 1 else "USE GENERATED_TABLE_TOP"
     return f"""DEF {sanitize_def(label + "_PROP")} Solid {{
@@ -219,7 +219,7 @@ def table_solid(zone: dict[str, Any], table_index: int, label_override: str | No
     Table {{
       translation 0 0 0
       name "{label}"
-      size {fmt(table_x)} {fmt(table_y)} 0.90
+      size {fmt(table_x)} {fmt(table_y)} 0.75
       feetSize 0 0
       trayAppearance {tray}
       legAppearance MattePaint {{
@@ -227,7 +227,31 @@ def table_solid(zone: dict[str, Any], table_index: int, label_override: str | No
       }}
     }}
   ]
-  boundingObject Box {{ size {fmt(sx)} {fmt(sy)} 0.90 }}
+  boundingObject Box {{ size {fmt(sx)} {fmt(sy)} 0.75 }}
+}}
+
+Chair {{
+  translation {fmt(x - table_x / 2.0 - 0.38)} {fmt(y)} 0
+  rotation 0 0 1 0
+  name "{label} chair west"
+}}
+
+Chair {{
+  translation {fmt(x + table_x / 2.0 + 0.38)} {fmt(y)} 0
+  rotation 0 0 1 3.14159
+  name "{label} chair east"
+}}
+
+Chair {{
+  translation {fmt(x)} {fmt(y - table_y / 2.0 - 0.38)} 0
+  rotation 0 0 1 1.5708
+  name "{label} chair south"
+}}
+
+Chair {{
+  translation {fmt(x)} {fmt(y + table_y / 2.0 + 0.38)} 0
+  rotation 0 0 1 -1.5708
+  name "{label} chair north"
 }}"""
 
 
@@ -405,6 +429,7 @@ def generated_world_text(data: dict[str, Any]) -> str:
         'EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/appearances/protos/VarnishedPine.proto"',
         'EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/lights/protos/CeilingLight.proto"',
         'EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/tables/protos/Table.proto"',
+        'EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/chairs/protos/Chair.proto"',
         'EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/humans/pedestrian/protos/Pedestrian.proto"',
         'EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/robots/robotis/turtlebot/protos/TurtleBot3Burger.proto"',
         "",
@@ -435,7 +460,7 @@ def generated_world_text(data: dict[str, Any]) -> str:
         "}",
         "",
         "CeilingLight {",
-        f"  translation {fmt(width * 0.35)} {fmt(height * 0.35)} 2.5",
+        f"  translation {fmt(width * 0.25)} {fmt(height * 0.25)} 2.8",
         '  name "facility ceiling light 1"',
         "  bulbColor 1 0.86 0.62",
         "  pointLightColor 1 0.86 0.62",
@@ -443,8 +468,24 @@ def generated_world_text(data: dict[str, Any]) -> str:
         "}",
         "",
         "CeilingLight {",
-        f"  translation {fmt(width * 0.72)} {fmt(height * 0.70)} 2.5",
+        f"  translation {fmt(width * 0.75)} {fmt(height * 0.25)} 2.8",
         '  name "facility ceiling light 2"',
+        "  bulbColor 1 0.86 0.62",
+        "  pointLightColor 1 0.86 0.62",
+        "  pointLightIntensity 2.5",
+        "}",
+        "",
+        "CeilingLight {",
+        f"  translation {fmt(width * 0.25)} {fmt(height * 0.75)} 2.8",
+        '  name "facility ceiling light 3"',
+        "  bulbColor 1 0.86 0.62",
+        "  pointLightColor 1 0.86 0.62",
+        "  pointLightIntensity 2.5",
+        "}",
+        "",
+        "CeilingLight {",
+        f"  translation {fmt(width * 0.75)} {fmt(height * 0.75)} 2.8",
+        '  name "facility ceiling light 4"',
         "  bulbColor 1 0.86 0.62",
         "  pointLightColor 1 0.86 0.62",
         "  pointLightIntensity 2.5",
@@ -469,7 +510,11 @@ def generated_world_text(data: dict[str, Any]) -> str:
         sx, sy = zone_size(zone)
         zone_type = zone.get("type", "")
         if zone_type == "wall":
-            body.extend(["", solid_box(f"WALL_{index}", f"layout wall {index}", x, y, sx, sy, 1.2, "0.48 0.50 0.50")])
+            zone_name = str(zone.get("name") or f"layout wall {index}")
+            is_counter = zone_name.startswith("KITCHEN_COUNTER")
+            height_m = 0.90 if is_counter else 1.2
+            color = "0.42 0.30 0.18" if is_counter else "0.48 0.50 0.50"
+            body.extend(["", solid_box(f"WALL_{index}", zone_name, x, y, sx, sy, height_m, color)])
             body.extend(["", visual_box(f"ALGO_RAW_WALL_{index}", f"algorithm raw wall {index}", x, y, sx, sy, 0.022, "0.05 0.05 0.05", 0.45)])
         elif zone_type == "no_go":
             body.extend(["", solid_box(f"NO_GO_{index}", f"no go zone {index}", x, y, sx, sy, 0.18, "0.75 0.22 0.18")])

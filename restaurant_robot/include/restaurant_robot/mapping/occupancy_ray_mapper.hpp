@@ -6,10 +6,10 @@
 namespace restaurant_robot {
 
 struct RayMappingConfig {
-    double map_width_m{9.0};
-    double map_height_m{9.0};
+    double map_width_m{18.0};
+    double map_height_m{18.0};
     double resolution_m{0.05};
-    Point2D origin{-0.5, -0.5};
+    Point2D origin{0.0, 0.0};
     double occupied_endpoint_margin_m{0.05};
 };
 

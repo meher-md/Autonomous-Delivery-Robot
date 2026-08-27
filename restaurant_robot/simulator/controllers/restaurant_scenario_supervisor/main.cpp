@@ -144,16 +144,16 @@ RoutePose sampleRoute(const Route& route, double distance) {
 
 const std::vector<Route>& crowdRoutes(bool generated_facility) {
     static const std::vector<Route> prototype_routes = {
-        {{0.8, 0.8}, {7.7, 0.8}, {7.7, 7.4}, {3.0, 7.4}, {3.0, 6.1}, {0.8, 6.1}},
-        {{0.8, 0.9}, {7.6, 0.9}, {7.6, 2.85}, {0.8, 2.85}},
-        {{0.8, 3.3}, {4.5, 3.3}, {4.5, 6.0}, {3.8, 6.0}, {3.8, 4.2}, {0.8, 4.2}},
-        {{7.2, 0.8}, {7.7, 0.8}, {7.7, 7.4}, {7.2, 7.4}},
+        {{5.45, 1.0}, {17.2, 1.0}, {17.2, 17.2}, {5.45, 17.2}},
+        {{1.0, 1.0}, {17.0, 1.0}, {17.0, 2.2}, {1.0, 2.2}},
+        {{4.7, 2.4}, {5.3, 2.4}, {5.3, 13.5}, {4.7, 13.5}},
+        {{9.8, 5.5}, {10.3, 5.5}, {10.3, 16.8}, {9.8, 16.8}},
     };
     static const std::vector<Route> generated_routes = {
-        {{0.9, 1.2}, {7.8, 1.2}, {7.8, 7.8}, {6.5, 7.8}, {6.5, 3.1}, {3.5, 3.1}, {3.5, 7.8}, {0.9, 7.8}},
-        {{0.9, 1.2}, {7.8, 1.2}, {7.8, 3.0}, {0.9, 3.0}},
-        {{3.4, 1.2}, {4.2, 1.2}, {4.2, 7.8}, {3.4, 7.8}},
-        {{6.4, 3.0}, {7.8, 3.0}, {7.8, 7.4}, {6.4, 7.4}},
+        {{5.45, 1.0}, {17.2, 1.0}, {17.2, 17.2}, {5.45, 17.2}},
+        {{1.0, 1.0}, {17.0, 1.0}, {17.0, 2.2}, {1.0, 2.2}},
+        {{4.7, 2.4}, {5.3, 2.4}, {5.3, 13.5}, {4.7, 13.5}},
+        {{9.8, 5.5}, {10.3, 5.5}, {10.3, 16.8}, {9.8, 16.8}},
     };
     return generated_facility ? generated_routes : prototype_routes;
 }
@@ -197,11 +197,11 @@ void updateScenario(
     }
     if (scenario == "person_crossing") {
         const double phase = std::clamp((time - 8.0) / 8.0, 0.0, 1.0);
-        setProxyPose(proxies[0], 3.4, 1.1 + phase * 2.5, 1.5708, phase * 2.5);
+        setProxyPose(proxies[0], 5.0, 1.1 + phase * 2.0, 1.5708, phase * 2.0);
         hideProxy(proxies[1], 1);
         hideProxy(proxies[2], 2);
     } else if (scenario == "stationary_blockage") {
-        setProxyPose(proxies[0], 1.50, 2.95, 0.0, 0.0, false);
+        setProxyPose(proxies[0], 1.50, 2.40, 0.0, 0.0, false);
         hideProxy(proxies[1], 1);
         hideProxy(proxies[2], 2);
     } else if (scenario == "moving_crowd") {
@@ -230,14 +230,14 @@ void updateScenario(
         if (time < 6.0) {
             hideProxy(proxies[0], 0);
         } else {
-            setProxyPose(proxies[0], 1.50, 2.95, 0.0, 0.0, false);
+            setProxyPose(proxies[0], 1.50, 2.40, 0.0, 0.0, false);
         }
         hideProxy(proxies[1], 1);
         hideProxy(proxies[2], 2);
     } else if (scenario == "blocked_corridor") {
-        setProxyPose(proxies[0], 1.35, 2.90, 0.0, 0.0, false);
-        setProxyPose(proxies[1], 1.55, 3.10, 0.0, 0.0, false);
-        setProxyPose(proxies[2], 1.75, 3.30, 0.0, 0.0, false);
+        setProxyPose(proxies[0], 4.65, 2.25, 0.0, 0.0, false);
+        setProxyPose(proxies[1], 5.00, 2.25, 0.0, 0.0, false);
+        setProxyPose(proxies[2], 5.35, 2.25, 0.0, 0.0, false);
     } else if (scenario == "localization_disturbance") {
         hideProxy(proxies[0], 0);
         hideProxy(proxies[1], 1);

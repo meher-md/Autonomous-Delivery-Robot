@@ -24,8 +24,8 @@ class FacilityLayoutEditor:
     def __init__(self, root: tk.Tk, output_path: pathlib.Path):
         self.root = root
         self.output_path = output_path
-        self.width_m = tk.DoubleVar(value=9.0)
-        self.height_m = tk.DoubleVar(value=9.0)
+        self.width_m = tk.DoubleVar(value=18.0)
+        self.height_m = tk.DoubleVar(value=18.0)
         self.resolution_m = tk.DoubleVar(value=0.05)
         self.wall_thickness_m = tk.DoubleVar(value=0.12)
         self.origin_corner = tk.StringVar(value="bottom-left")

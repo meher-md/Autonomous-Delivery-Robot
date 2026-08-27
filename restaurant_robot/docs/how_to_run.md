@@ -14,6 +14,17 @@ Only keep one Webots world open at a time. The launcher scripts stop if another 
 cmake -S . -B build
 cmake --build build --target restaurant_delivery_controller restaurant_scenario_supervisor
 ```
+Use the generated layout with the moving-crowd scenario:
+
+```bash
+SCENARIO=moving_crowd HUMAN_COUNT=8 \
+bash restaurant_robot/scripts/run_generated_facility_world.sh
+```
+
+Change `8` to any value from `1` to `12`. You don’t need to add humans through the layout editor.
+
+Currently, they follow internal walking loops rather than truly random motion. If you substantially move tables, those loops might cross furniture; truly random, obstacle-aware roaming would require another code change.
+
 
 The run scripts also build automatically, so this step is optional.
 

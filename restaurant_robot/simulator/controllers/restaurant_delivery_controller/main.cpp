@@ -446,7 +446,17 @@ private:
 class DebugDisplayRenderer {
 public:
     DebugDisplayRenderer(webots::Display* display, RestaurantMap map)
-        : display_(display), map_(std::move(map)) {}
+        : display_(display), map_(std::move(map)) {
+        if (display_) {
+            const double map_width_m = map_.grid.width() * map_.grid.resolution();
+            const double map_height_m = map_.grid.height() * map_.grid.resolution();
+            if (map_width_m > 0.0 && map_height_m > 0.0) {
+                scale_ = std::min(
+                    static_cast<double>(display_->getWidth()) / map_width_m,
+                    static_cast<double>(display_->getHeight()) / map_height_m);
+            }
+        }
+    }
 
     void setGrid(const OccupancyGrid& grid) {
         map_.grid = grid;
@@ -619,7 +629,7 @@ private:
 
     webots::Display* display_{nullptr};
     RestaurantMap map_;
-    double scale_{512.0 / 9.0};
+    double scale_{1.0};
 };
 
 class PlannedPathWorldOverlay {

@@ -8,8 +8,8 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/project
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/appearances/protos/VarnishedPine.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/lights/protos/CeilingLight.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/tables/protos/Table.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/chairs/protos/Chair.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/humans/pedestrian/protos/Pedestrian.proto"
-EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/plants/protos/PottedTree.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/robots/robotis/turtlebot/protos/TurtleBot3Burger.proto"
 
 WorldInfo {
@@ -18,7 +18,7 @@ WorldInfo {
 
 Viewpoint {
   orientation 0 1 0 1.5708
-  position 4 4 12
+  position 9 9 24.3
 }
 
 TexturedBackground {
@@ -28,8 +28,8 @@ TexturedBackgroundLight {
 }
 
 Floor {
-  translation 4 4 0
-  size 9 9
+  translation 9 9 0
+  size 18 18
   appearance Parquetry {
     type "light strip"
     textureTransform TextureTransform {
@@ -39,16 +39,32 @@ Floor {
 }
 
 CeilingLight {
-  translation 2.2 2.2 2.5
-  name "dining ceiling light 1"
+  translation 4.5 4.5 2.8
+  name "facility ceiling light 1"
   bulbColor 1 0.86 0.62
   pointLightColor 1 0.86 0.62
   pointLightIntensity 2.5
 }
 
 CeilingLight {
-  translation 6.2 5.3 2.5
-  name "dining ceiling light 2"
+  translation 13.5 4.5 2.8
+  name "facility ceiling light 2"
+  bulbColor 1 0.86 0.62
+  pointLightColor 1 0.86 0.62
+  pointLightIntensity 2.5
+}
+
+CeilingLight {
+  translation 4.5 13.5 2.8
+  name "facility ceiling light 3"
+  bulbColor 1 0.86 0.62
+  pointLightColor 1 0.86 0.62
+  pointLightIntensity 2.5
+}
+
+CeilingLight {
+  translation 13.5 13.5 2.8
+  name "facility ceiling light 4"
   bulbColor 1 0.86 0.62
   pointLightColor 1 0.86 0.62
   pointLightIntensity 2.5
@@ -57,9 +73,13 @@ CeilingLight {
 DEF DELIVERY_ROBOT TurtleBot3Burger {
   name "delivery robot"
   supervisor TRUE
-  translation 0.8 0.8 0.0
-  rotation 0 0 1 0
+  translation 8 1.2 0.0
+  rotation 0 0 1 1.5708
   controller "restaurant_delivery_controller"
+  controllerArgs [
+    "--map-input-json"
+    "../../../config/facility_layout_map.json"
+  ]
   extensionSlot [
     Lidar {
       translation -0.03 0 0.19
@@ -83,6 +103,47 @@ DEF DELIVERY_ROBOT TurtleBot3Burger {
       width 512
       height 512
     }
+    Transform {
+      translation 0 0 0.026
+      children [
+        Shape {
+          appearance PBRAppearance {
+            baseColor 0.10 0.25 1.00
+            transparency 0.70
+            roughness 0.5
+          }
+          geometry Cylinder { radius 0.32 height 0.012 subdivision 64 }
+        }
+      ]
+    }
+    Transform {
+      translation 0.16 0 0.036
+      scale 0.16 0.22 1
+      children [
+        Shape {
+          appearance PBRAppearance {
+            baseColor 1.00 0.00 0.00
+            transparency 0.62
+            roughness 0.5
+          }
+          geometry Cylinder { radius 1 height 0.012 subdivision 64 }
+        }
+      ]
+    }
+    Transform {
+      translation 0.5 0 0.046
+      scale 0.5 0.50 1
+      children [
+        Shape {
+          appearance PBRAppearance {
+            baseColor 1.00 0.70 0.00
+            transparency 0.78
+            roughness 0.5
+          }
+          geometry Cylinder { radius 1 height 0.012 subdivision 64 }
+        }
+      ]
+    }
   ]
 }
 
@@ -92,318 +153,1561 @@ Robot {
   controller "restaurant_scenario_supervisor"
 }
 
-DEF WALL_N Solid {
+DEF WALL_NORTH Solid {
   name "wall north"
-  translation 4 8.45 0.6
+  translation 9 18.06 0.6
   children [
     Shape {
-      appearance PBRAppearance { baseColor 0.72 0.72 0.68 roughness 0.85 }
-      geometry Box { size 9 0.1 1.2 }
+      appearance PBRAppearance { baseColor 0.72 0.72 0.68 roughness 0.82 }
+      geometry Box { size 18.24 0.12 1.2 }
     }
   ]
-  boundingObject Box { size 9 0.1 1.2 }
+  boundingObject Box { size 18.24 0.12 1.2 }
 }
 
-DEF WALL_S Solid {
+DEF WALL_SOUTH Solid {
   name "wall south"
-  translation 4 -0.45 0.6
+  translation 9 -0.06 0.6
   children [
     Shape {
-      appearance PBRAppearance { baseColor 0.72 0.72 0.68 roughness 0.85 }
-      geometry Box { size 9 0.1 1.2 }
+      appearance PBRAppearance { baseColor 0.72 0.72 0.68 roughness 0.82 }
+      geometry Box { size 18.24 0.12 1.2 }
     }
   ]
-  boundingObject Box { size 9 0.1 1.2 }
+  boundingObject Box { size 18.24 0.12 1.2 }
 }
 
-DEF WALL_E Solid {
+DEF WALL_EAST Solid {
   name "wall east"
-  translation 8.45 4 0.6
+  translation 18.06 9 0.6
   children [
     Shape {
-      appearance PBRAppearance { baseColor 0.72 0.72 0.68 roughness 0.85 }
-      geometry Box { size 0.1 9 1.2 }
+      appearance PBRAppearance { baseColor 0.72 0.72 0.68 roughness 0.82 }
+      geometry Box { size 0.12 18 1.2 }
     }
   ]
-  boundingObject Box { size 0.1 9 1.2 }
+  boundingObject Box { size 0.12 18 1.2 }
 }
 
-DEF WALL_W Solid {
+DEF WALL_WEST Solid {
   name "wall west"
-  translation -0.45 4 0.6
+  translation -0.06 9 0.6
   children [
     Shape {
-      appearance PBRAppearance { baseColor 0.72 0.72 0.68 roughness 0.85 }
-      geometry Box { size 0.1 9 1.2 }
+      appearance PBRAppearance { baseColor 0.72 0.72 0.68 roughness 0.82 }
+      geometry Box { size 0.12 18 1.2 }
     }
   ]
-  boundingObject Box { size 0.1 9 1.2 }
+  boundingObject Box { size 0.12 18 1.2 }
 }
 
-DEF KITCHEN_COUNTER Solid {
-  name "kitchen counter"
-  translation 1.2 7.2 0.45
-  children [
-    Shape {
-      appearance PBRAppearance { baseColor 0.52 0.50 0.47 roughness 0.7 }
-      geometry Box { size 2.4 1.6 0.9 }
-    }
-  ]
-  boundingObject Box { size 2.4 1.6 0.9 }
-}
-
-DEF CORRIDOR_DIVIDER Solid {
-  name "corridor divider"
-  translation 5.075 4.925 0.35
-  children [
-    Shape {
-      appearance PBRAppearance { baseColor 0.45 0.48 0.50 roughness 0.8 }
-      geometry Box { size 0.35 3.15 0.7 }
-    }
-  ]
-  boundingObject Box { size 0.35 3.15 0.7 }
-}
-
-DEF TABLE_1 Solid {
-  name "table marker 1"
-  translation 2.0 2.0 0.01
+DEF TABLE_1_PROP Solid {
+  name "TABLE_1 table"
+  translation 2.5 4 0.01
   children [
     Table {
       translation 0 0 0
       name "TABLE_1"
-      size 0.90 0.90 0.90
+      size 1.2 0.8 0.75
       feetSize 0 0
-      trayAppearance DEF RESTAURANT_TABLE_TOP VarnishedPine {
-        textureTransform TextureTransform {
-          scale 6 6
-        }
+      trayAppearance DEF GENERATED_TABLE_TOP VarnishedPine {
+        textureTransform TextureTransform { scale 6 6 }
       }
       legAppearance MattePaint {
         baseColor 0.12 0.12 0.12
       }
     }
   ]
-  boundingObject Cylinder { radius 0.45 height 0.90 }
+  boundingObject Box { size 2.2 1.8 0.75 }
 }
 
-DEF TABLE_2 Solid {
-  name "table marker 2"
-  translation 4.3 2.1 0.01
+Chair {
+  translation 1.52 4 0
+  rotation 0 0 1 0
+  name "TABLE_1 chair west"
+}
+
+Chair {
+  translation 3.48 4 0
+  rotation 0 0 1 3.14159
+  name "TABLE_1 chair east"
+}
+
+Chair {
+  translation 2.5 3.22 0
+  rotation 0 0 1 1.5708
+  name "TABLE_1 chair south"
+}
+
+Chair {
+  translation 2.5 4.78 0
+  rotation 0 0 1 -1.5708
+  name "TABLE_1 chair north"
+}
+
+DEF ALGO_RAW_TABLE_1 Solid {
+  name "algorithm raw footprint TABLE_1"
+  translation 2.5 4 0.022
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 0.70 0.34 0.05
+        transparency 0.7
+        roughness 0.5
+      }
+      geometry Box { size 2.2 1.8 0.018 }
+      castShadows FALSE
+    }
+  ]
+}
+
+DEF ALGO_BOUNDARY_TABLE_1_N Solid {
+  name "algorithm table boundary TABLE_1 north edge"
+  translation 2.5 4.9 0.04
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1.00 0.20 0.00
+        transparency 0.12
+        roughness 0.5
+      }
+      geometry Box { size 2.2 0.035 0.018 }
+      castShadows FALSE
+    }
+  ]
+}
+
+DEF ALGO_BOUNDARY_TABLE_1_S Solid {
+  name "algorithm table boundary TABLE_1 south edge"
+  translation 2.5 3.1 0.04
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1.00 0.20 0.00
+        transparency 0.12
+        roughness 0.5
+      }
+      geometry Box { size 2.2 0.035 0.018 }
+      castShadows FALSE
+    }
+  ]
+}
+
+DEF ALGO_BOUNDARY_TABLE_1_E Solid {
+  name "algorithm table boundary TABLE_1 east edge"
+  translation 3.6 4 0.04
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1.00 0.20 0.00
+        transparency 0.12
+        roughness 0.5
+      }
+      geometry Box { size 0.035 1.8 0.018 }
+      castShadows FALSE
+    }
+  ]
+}
+
+DEF ALGO_BOUNDARY_TABLE_1_W Solid {
+  name "algorithm table boundary TABLE_1 west edge"
+  translation 1.4 4 0.04
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1.00 0.20 0.00
+        transparency 0.12
+        roughness 0.5
+      }
+      geometry Box { size 0.035 1.8 0.018 }
+      castShadows FALSE
+    }
+  ]
+}
+
+DEF TABLE_2_PROP Solid {
+  name "TABLE_2 table"
+  translation 2.5 8 0.01
   children [
     Table {
       translation 0 0 0
       name "TABLE_2"
-      size 0.90 0.90 0.90
+      size 1.2 0.8 0.75
       feetSize 0 0
-      trayAppearance USE RESTAURANT_TABLE_TOP
+      trayAppearance USE GENERATED_TABLE_TOP
       legAppearance MattePaint {
         baseColor 0.12 0.12 0.12
       }
     }
   ]
-  boundingObject Cylinder { radius 0.45 height 0.90 }
+  boundingObject Box { size 2.2 1.8 0.75 }
 }
 
-DEF TABLE_3 Solid {
-  name "table marker 3"
-  translation 6.4 2.0 0.01
+Chair {
+  translation 1.52 8 0
+  rotation 0 0 1 0
+  name "TABLE_2 chair west"
+}
+
+Chair {
+  translation 3.48 8 0
+  rotation 0 0 1 3.14159
+  name "TABLE_2 chair east"
+}
+
+Chair {
+  translation 2.5 7.22 0
+  rotation 0 0 1 1.5708
+  name "TABLE_2 chair south"
+}
+
+Chair {
+  translation 2.5 8.78 0
+  rotation 0 0 1 -1.5708
+  name "TABLE_2 chair north"
+}
+
+DEF ALGO_RAW_TABLE_2 Solid {
+  name "algorithm raw footprint TABLE_2"
+  translation 2.5 8 0.022
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 0.70 0.34 0.05
+        transparency 0.7
+        roughness 0.5
+      }
+      geometry Box { size 2.2 1.8 0.018 }
+      castShadows FALSE
+    }
+  ]
+}
+
+DEF ALGO_BOUNDARY_TABLE_2_N Solid {
+  name "algorithm table boundary TABLE_2 north edge"
+  translation 2.5 8.9 0.04
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1.00 0.20 0.00
+        transparency 0.12
+        roughness 0.5
+      }
+      geometry Box { size 2.2 0.035 0.018 }
+      castShadows FALSE
+    }
+  ]
+}
+
+DEF ALGO_BOUNDARY_TABLE_2_S Solid {
+  name "algorithm table boundary TABLE_2 south edge"
+  translation 2.5 7.1 0.04
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1.00 0.20 0.00
+        transparency 0.12
+        roughness 0.5
+      }
+      geometry Box { size 2.2 0.035 0.018 }
+      castShadows FALSE
+    }
+  ]
+}
+
+DEF ALGO_BOUNDARY_TABLE_2_E Solid {
+  name "algorithm table boundary TABLE_2 east edge"
+  translation 3.6 8 0.04
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1.00 0.20 0.00
+        transparency 0.12
+        roughness 0.5
+      }
+      geometry Box { size 0.035 1.8 0.018 }
+      castShadows FALSE
+    }
+  ]
+}
+
+DEF ALGO_BOUNDARY_TABLE_2_W Solid {
+  name "algorithm table boundary TABLE_2 west edge"
+  translation 1.4 8 0.04
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1.00 0.20 0.00
+        transparency 0.12
+        roughness 0.5
+      }
+      geometry Box { size 0.035 1.8 0.018 }
+      castShadows FALSE
+    }
+  ]
+}
+
+DEF TABLE_3_PROP Solid {
+  name "TABLE_3 table"
+  translation 2.5 12 0.01
   children [
     Table {
       translation 0 0 0
       name "TABLE_3"
-      size 0.90 0.90 0.90
+      size 1.2 0.8 0.75
       feetSize 0 0
-      trayAppearance USE RESTAURANT_TABLE_TOP
+      trayAppearance USE GENERATED_TABLE_TOP
       legAppearance MattePaint {
         baseColor 0.12 0.12 0.12
       }
     }
   ]
-  boundingObject Cylinder { radius 0.45 height 0.90 }
+  boundingObject Box { size 2.2 1.8 0.75 }
 }
 
-DEF TABLE_4 Solid {
-  name "table marker 4"
-  translation 3.1 5.0 0.01
+Chair {
+  translation 1.52 12 0
+  rotation 0 0 1 0
+  name "TABLE_3 chair west"
+}
+
+Chair {
+  translation 3.48 12 0
+  rotation 0 0 1 3.14159
+  name "TABLE_3 chair east"
+}
+
+Chair {
+  translation 2.5 11.22 0
+  rotation 0 0 1 1.5708
+  name "TABLE_3 chair south"
+}
+
+Chair {
+  translation 2.5 12.78 0
+  rotation 0 0 1 -1.5708
+  name "TABLE_3 chair north"
+}
+
+DEF ALGO_RAW_TABLE_3 Solid {
+  name "algorithm raw footprint TABLE_3"
+  translation 2.5 12 0.022
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 0.70 0.34 0.05
+        transparency 0.7
+        roughness 0.5
+      }
+      geometry Box { size 2.2 1.8 0.018 }
+      castShadows FALSE
+    }
+  ]
+}
+
+DEF ALGO_BOUNDARY_TABLE_3_N Solid {
+  name "algorithm table boundary TABLE_3 north edge"
+  translation 2.5 12.9 0.04
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1.00 0.20 0.00
+        transparency 0.12
+        roughness 0.5
+      }
+      geometry Box { size 2.2 0.035 0.018 }
+      castShadows FALSE
+    }
+  ]
+}
+
+DEF ALGO_BOUNDARY_TABLE_3_S Solid {
+  name "algorithm table boundary TABLE_3 south edge"
+  translation 2.5 11.1 0.04
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1.00 0.20 0.00
+        transparency 0.12
+        roughness 0.5
+      }
+      geometry Box { size 2.2 0.035 0.018 }
+      castShadows FALSE
+    }
+  ]
+}
+
+DEF ALGO_BOUNDARY_TABLE_3_E Solid {
+  name "algorithm table boundary TABLE_3 east edge"
+  translation 3.6 12 0.04
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1.00 0.20 0.00
+        transparency 0.12
+        roughness 0.5
+      }
+      geometry Box { size 0.035 1.8 0.018 }
+      castShadows FALSE
+    }
+  ]
+}
+
+DEF ALGO_BOUNDARY_TABLE_3_W Solid {
+  name "algorithm table boundary TABLE_3 west edge"
+  translation 1.4 12 0.04
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1.00 0.20 0.00
+        transparency 0.12
+        roughness 0.5
+      }
+      geometry Box { size 0.035 1.8 0.018 }
+      castShadows FALSE
+    }
+  ]
+}
+
+DEF TABLE_4_PROP Solid {
+  name "TABLE_4 table"
+  translation 8 4 0.01
   children [
     Table {
       translation 0 0 0
       name "TABLE_4"
-      size 0.90 0.90 0.90
+      size 1.2 0.8 0.75
       feetSize 0 0
-      trayAppearance USE RESTAURANT_TABLE_TOP
+      trayAppearance USE GENERATED_TABLE_TOP
       legAppearance MattePaint {
         baseColor 0.12 0.12 0.12
       }
     }
   ]
-  boundingObject Cylinder { radius 0.45 height 0.90 }
+  boundingObject Box { size 2.2 1.8 0.75 }
 }
 
-DEF TABLE_5 Solid {
-  name "table marker 5"
-  translation 6.2 5.2 0.01
+Chair {
+  translation 7.02 4 0
+  rotation 0 0 1 0
+  name "TABLE_4 chair west"
+}
+
+Chair {
+  translation 8.98 4 0
+  rotation 0 0 1 3.14159
+  name "TABLE_4 chair east"
+}
+
+Chair {
+  translation 8 3.22 0
+  rotation 0 0 1 1.5708
+  name "TABLE_4 chair south"
+}
+
+Chair {
+  translation 8 4.78 0
+  rotation 0 0 1 -1.5708
+  name "TABLE_4 chair north"
+}
+
+DEF ALGO_RAW_TABLE_4 Solid {
+  name "algorithm raw footprint TABLE_4"
+  translation 8 4 0.022
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 0.70 0.34 0.05
+        transparency 0.7
+        roughness 0.5
+      }
+      geometry Box { size 2.2 1.8 0.018 }
+      castShadows FALSE
+    }
+  ]
+}
+
+DEF ALGO_BOUNDARY_TABLE_4_N Solid {
+  name "algorithm table boundary TABLE_4 north edge"
+  translation 8 4.9 0.04
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1.00 0.20 0.00
+        transparency 0.12
+        roughness 0.5
+      }
+      geometry Box { size 2.2 0.035 0.018 }
+      castShadows FALSE
+    }
+  ]
+}
+
+DEF ALGO_BOUNDARY_TABLE_4_S Solid {
+  name "algorithm table boundary TABLE_4 south edge"
+  translation 8 3.1 0.04
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1.00 0.20 0.00
+        transparency 0.12
+        roughness 0.5
+      }
+      geometry Box { size 2.2 0.035 0.018 }
+      castShadows FALSE
+    }
+  ]
+}
+
+DEF ALGO_BOUNDARY_TABLE_4_E Solid {
+  name "algorithm table boundary TABLE_4 east edge"
+  translation 9.1 4 0.04
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1.00 0.20 0.00
+        transparency 0.12
+        roughness 0.5
+      }
+      geometry Box { size 0.035 1.8 0.018 }
+      castShadows FALSE
+    }
+  ]
+}
+
+DEF ALGO_BOUNDARY_TABLE_4_W Solid {
+  name "algorithm table boundary TABLE_4 west edge"
+  translation 6.9 4 0.04
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1.00 0.20 0.00
+        transparency 0.12
+        roughness 0.5
+      }
+      geometry Box { size 0.035 1.8 0.018 }
+      castShadows FALSE
+    }
+  ]
+}
+
+DEF TABLE_5_PROP Solid {
+  name "TABLE_5 table"
+  translation 15.5 4 0.01
   children [
     Table {
       translation 0 0 0
       name "TABLE_5"
-      size 0.90 0.90 0.90
+      size 1.2 0.8 0.75
       feetSize 0 0
-      trayAppearance USE RESTAURANT_TABLE_TOP
+      trayAppearance USE GENERATED_TABLE_TOP
       legAppearance MattePaint {
         baseColor 0.12 0.12 0.12
       }
     }
   ]
-  boundingObject Cylinder { radius 0.45 height 0.90 }
+  boundingObject Box { size 2.2 1.8 0.75 }
 }
 
-PottedTree {
-  translation 7.75 7.45 0
-  name "corner plant"
+Chair {
+  translation 14.52 4 0
+  rotation 0 0 1 0
+  name "TABLE_5 chair west"
 }
 
-Solid {
-  name "keyboard destination pad"
-  translation 0.75 0.35 0.015
+Chair {
+  translation 16.48 4 0
+  rotation 0 0 1 3.14159
+  name "TABLE_5 chair east"
+}
+
+Chair {
+  translation 15.5 3.22 0
+  rotation 0 0 1 1.5708
+  name "TABLE_5 chair south"
+}
+
+Chair {
+  translation 15.5 4.78 0
+  rotation 0 0 1 -1.5708
+  name "TABLE_5 chair north"
+}
+
+DEF ALGO_RAW_TABLE_5 Solid {
+  name "algorithm raw footprint TABLE_5"
+  translation 15.5 4 0.022
   children [
-    Transform {
-      translation -0.24 0 0
-      children [
-        Shape {
-          appearance PBRAppearance { baseColor 0.10 0.20 0.70 roughness 0.45 }
-          geometry Cylinder { radius 0.08 height 0.012 }
-        }
-      ]
+    Shape {
+      appearance PBRAppearance {
+        baseColor 0.70 0.34 0.05
+        transparency 0.7
+        roughness 0.5
+      }
+      geometry Box { size 2.2 1.8 0.018 }
+      castShadows FALSE
     }
-    Transform {
-      translation -0.12 0 0
-      children [
-        Shape {
-          appearance PBRAppearance { baseColor 0.10 0.45 0.20 roughness 0.45 }
-          geometry Cylinder { radius 0.08 height 0.012 }
-        }
-      ]
+  ]
+}
+
+DEF ALGO_BOUNDARY_TABLE_5_N Solid {
+  name "algorithm table boundary TABLE_5 north edge"
+  translation 15.5 4.9 0.04
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1.00 0.20 0.00
+        transparency 0.12
+        roughness 0.5
+      }
+      geometry Box { size 2.2 0.035 0.018 }
+      castShadows FALSE
     }
-    Transform {
+  ]
+}
+
+DEF ALGO_BOUNDARY_TABLE_5_S Solid {
+  name "algorithm table boundary TABLE_5 south edge"
+  translation 15.5 3.1 0.04
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1.00 0.20 0.00
+        transparency 0.12
+        roughness 0.5
+      }
+      geometry Box { size 2.2 0.035 0.018 }
+      castShadows FALSE
+    }
+  ]
+}
+
+DEF ALGO_BOUNDARY_TABLE_5_E Solid {
+  name "algorithm table boundary TABLE_5 east edge"
+  translation 16.6 4 0.04
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1.00 0.20 0.00
+        transparency 0.12
+        roughness 0.5
+      }
+      geometry Box { size 0.035 1.8 0.018 }
+      castShadows FALSE
+    }
+  ]
+}
+
+DEF ALGO_BOUNDARY_TABLE_5_W Solid {
+  name "algorithm table boundary TABLE_5 west edge"
+  translation 14.4 4 0.04
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1.00 0.20 0.00
+        transparency 0.12
+        roughness 0.5
+      }
+      geometry Box { size 0.035 1.8 0.018 }
+      castShadows FALSE
+    }
+  ]
+}
+
+DEF TABLE_6_PROP Solid {
+  name "TABLE_6 table"
+  translation 15.5 8 0.01
+  children [
+    Table {
       translation 0 0 0
-      children [
-        Shape {
-          appearance PBRAppearance { baseColor 0.65 0.18 0.16 roughness 0.45 }
-          geometry Cylinder { radius 0.08 height 0.012 }
-        }
-      ]
+      name "TABLE_6"
+      size 1.2 0.8 0.75
+      feetSize 0 0
+      trayAppearance USE GENERATED_TABLE_TOP
+      legAppearance MattePaint {
+        baseColor 0.12 0.12 0.12
+      }
     }
-    Transform {
-      translation 0.12 0 0
-      children [
-        Shape {
-          appearance PBRAppearance { baseColor 0.62 0.45 0.08 roughness 0.45 }
-          geometry Cylinder { radius 0.08 height 0.012 }
-        }
-      ]
+  ]
+  boundingObject Box { size 2.2 1.8 0.75 }
+}
+
+Chair {
+  translation 14.52 8 0
+  rotation 0 0 1 0
+  name "TABLE_6 chair west"
+}
+
+Chair {
+  translation 16.48 8 0
+  rotation 0 0 1 3.14159
+  name "TABLE_6 chair east"
+}
+
+Chair {
+  translation 15.5 7.22 0
+  rotation 0 0 1 1.5708
+  name "TABLE_6 chair south"
+}
+
+Chair {
+  translation 15.5 8.78 0
+  rotation 0 0 1 -1.5708
+  name "TABLE_6 chair north"
+}
+
+DEF ALGO_RAW_TABLE_6 Solid {
+  name "algorithm raw footprint TABLE_6"
+  translation 15.5 8 0.022
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 0.70 0.34 0.05
+        transparency 0.7
+        roughness 0.5
+      }
+      geometry Box { size 2.2 1.8 0.018 }
+      castShadows FALSE
     }
-    Transform {
-      translation 0.24 0 0
-      children [
-        Shape {
-          appearance PBRAppearance { baseColor 0.35 0.12 0.55 roughness 0.45 }
-          geometry Cylinder { radius 0.08 height 0.012 }
-        }
-      ]
+  ]
+}
+
+DEF ALGO_BOUNDARY_TABLE_6_N Solid {
+  name "algorithm table boundary TABLE_6 north edge"
+  translation 15.5 8.9 0.04
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1.00 0.20 0.00
+        transparency 0.12
+        roughness 0.5
+      }
+      geometry Box { size 2.2 0.035 0.018 }
+      castShadows FALSE
+    }
+  ]
+}
+
+DEF ALGO_BOUNDARY_TABLE_6_S Solid {
+  name "algorithm table boundary TABLE_6 south edge"
+  translation 15.5 7.1 0.04
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1.00 0.20 0.00
+        transparency 0.12
+        roughness 0.5
+      }
+      geometry Box { size 2.2 0.035 0.018 }
+      castShadows FALSE
+    }
+  ]
+}
+
+DEF ALGO_BOUNDARY_TABLE_6_E Solid {
+  name "algorithm table boundary TABLE_6 east edge"
+  translation 16.6 8 0.04
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1.00 0.20 0.00
+        transparency 0.12
+        roughness 0.5
+      }
+      geometry Box { size 0.035 1.8 0.018 }
+      castShadows FALSE
+    }
+  ]
+}
+
+DEF ALGO_BOUNDARY_TABLE_6_W Solid {
+  name "algorithm table boundary TABLE_6 west edge"
+  translation 14.4 8 0.04
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1.00 0.20 0.00
+        transparency 0.12
+        roughness 0.5
+      }
+      geometry Box { size 0.035 1.8 0.018 }
+      castShadows FALSE
+    }
+  ]
+}
+
+DEF TABLE_7_PROP Solid {
+  name "TABLE_7 table"
+  translation 15.5 12 0.01
+  children [
+    Table {
+      translation 0 0 0
+      name "TABLE_7"
+      size 1.2 0.8 0.75
+      feetSize 0 0
+      trayAppearance USE GENERATED_TABLE_TOP
+      legAppearance MattePaint {
+        baseColor 0.12 0.12 0.12
+      }
+    }
+  ]
+  boundingObject Box { size 2.2 1.8 0.75 }
+}
+
+Chair {
+  translation 14.52 12 0
+  rotation 0 0 1 0
+  name "TABLE_7 chair west"
+}
+
+Chair {
+  translation 16.48 12 0
+  rotation 0 0 1 3.14159
+  name "TABLE_7 chair east"
+}
+
+Chair {
+  translation 15.5 11.22 0
+  rotation 0 0 1 1.5708
+  name "TABLE_7 chair south"
+}
+
+Chair {
+  translation 15.5 12.78 0
+  rotation 0 0 1 -1.5708
+  name "TABLE_7 chair north"
+}
+
+DEF ALGO_RAW_TABLE_7 Solid {
+  name "algorithm raw footprint TABLE_7"
+  translation 15.5 12 0.022
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 0.70 0.34 0.05
+        transparency 0.7
+        roughness 0.5
+      }
+      geometry Box { size 2.2 1.8 0.018 }
+      castShadows FALSE
+    }
+  ]
+}
+
+DEF ALGO_BOUNDARY_TABLE_7_N Solid {
+  name "algorithm table boundary TABLE_7 north edge"
+  translation 15.5 12.9 0.04
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1.00 0.20 0.00
+        transparency 0.12
+        roughness 0.5
+      }
+      geometry Box { size 2.2 0.035 0.018 }
+      castShadows FALSE
+    }
+  ]
+}
+
+DEF ALGO_BOUNDARY_TABLE_7_S Solid {
+  name "algorithm table boundary TABLE_7 south edge"
+  translation 15.5 11.1 0.04
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1.00 0.20 0.00
+        transparency 0.12
+        roughness 0.5
+      }
+      geometry Box { size 2.2 0.035 0.018 }
+      castShadows FALSE
+    }
+  ]
+}
+
+DEF ALGO_BOUNDARY_TABLE_7_E Solid {
+  name "algorithm table boundary TABLE_7 east edge"
+  translation 16.6 12 0.04
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1.00 0.20 0.00
+        transparency 0.12
+        roughness 0.5
+      }
+      geometry Box { size 0.035 1.8 0.018 }
+      castShadows FALSE
+    }
+  ]
+}
+
+DEF ALGO_BOUNDARY_TABLE_7_W Solid {
+  name "algorithm table boundary TABLE_7 west edge"
+  translation 14.4 12 0.04
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1.00 0.20 0.00
+        transparency 0.12
+        roughness 0.5
+      }
+      geometry Box { size 0.035 1.8 0.018 }
+      castShadows FALSE
+    }
+  ]
+}
+
+DEF TABLE_8_PROP Solid {
+  name "TABLE_8 table"
+  translation 12 4 0.01
+  children [
+    Table {
+      translation 0 0 0
+      name "TABLE_8"
+      size 1.2 0.8 0.75
+      feetSize 0 0
+      trayAppearance USE GENERATED_TABLE_TOP
+      legAppearance MattePaint {
+        baseColor 0.12 0.12 0.12
+      }
+    }
+  ]
+  boundingObject Box { size 2.2 1.8 0.75 }
+}
+
+Chair {
+  translation 11.02 4 0
+  rotation 0 0 1 0
+  name "TABLE_8 chair west"
+}
+
+Chair {
+  translation 12.98 4 0
+  rotation 0 0 1 3.14159
+  name "TABLE_8 chair east"
+}
+
+Chair {
+  translation 12 3.22 0
+  rotation 0 0 1 1.5708
+  name "TABLE_8 chair south"
+}
+
+Chair {
+  translation 12 4.78 0
+  rotation 0 0 1 -1.5708
+  name "TABLE_8 chair north"
+}
+
+DEF ALGO_RAW_TABLE_8 Solid {
+  name "algorithm raw footprint TABLE_8"
+  translation 12 4 0.022
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 0.70 0.34 0.05
+        transparency 0.7
+        roughness 0.5
+      }
+      geometry Box { size 2.2 1.8 0.018 }
+      castShadows FALSE
+    }
+  ]
+}
+
+DEF ALGO_BOUNDARY_TABLE_8_N Solid {
+  name "algorithm table boundary TABLE_8 north edge"
+  translation 12 4.9 0.04
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1.00 0.20 0.00
+        transparency 0.12
+        roughness 0.5
+      }
+      geometry Box { size 2.2 0.035 0.018 }
+      castShadows FALSE
+    }
+  ]
+}
+
+DEF ALGO_BOUNDARY_TABLE_8_S Solid {
+  name "algorithm table boundary TABLE_8 south edge"
+  translation 12 3.1 0.04
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1.00 0.20 0.00
+        transparency 0.12
+        roughness 0.5
+      }
+      geometry Box { size 2.2 0.035 0.018 }
+      castShadows FALSE
+    }
+  ]
+}
+
+DEF ALGO_BOUNDARY_TABLE_8_E Solid {
+  name "algorithm table boundary TABLE_8 east edge"
+  translation 13.1 4 0.04
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1.00 0.20 0.00
+        transparency 0.12
+        roughness 0.5
+      }
+      geometry Box { size 0.035 1.8 0.018 }
+      castShadows FALSE
+    }
+  ]
+}
+
+DEF ALGO_BOUNDARY_TABLE_8_W Solid {
+  name "algorithm table boundary TABLE_8 west edge"
+  translation 10.9 4 0.04
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 1.00 0.20 0.00
+        transparency 0.12
+        roughness 0.5
+      }
+      geometry Box { size 0.035 1.8 0.018 }
+      castShadows FALSE
     }
   ]
 }
 
 Solid {
-  name "kitchen service marker"
-  translation 2.4 5.75 0.015
+  name "kitchen zone 9"
+  translation 3 15.5 0.006
   children [
     Shape {
-      appearance PBRAppearance { baseColor 0.05 0.30 0.10 roughness 0.6 }
+      appearance PBRAppearance { baseColor 0.86 0.53 0.14 roughness 0.6 }
+      geometry Box { size 4.8 3.8 0.012 }
+      castShadows FALSE
+    }
+  ]
+}
+
+DEF WALL_10 Solid {
+  name "KITCHEN_COUNTER_BACK"
+  translation 2.95 16.5 0.45
+  children [
+    Shape {
+      appearance PBRAppearance { baseColor 0.42 0.30 0.18 roughness 0.82 }
+      geometry Box { size 4.1 1 0.9 }
+    }
+  ]
+  boundingObject Box { size 4.1 1 0.9 }
+}
+
+DEF ALGO_RAW_WALL_10 Solid {
+  name "algorithm raw wall 10"
+  translation 2.95 16.5 0.022
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 0.05 0.05 0.05
+        transparency 0.45
+        roughness 0.5
+      }
+      geometry Box { size 4.1 1 0.018 }
+      castShadows FALSE
+    }
+  ]
+}
+
+DEF WALL_11 Solid {
+  name "KITCHEN_COUNTER_SERVICE"
+  translation 2.95 14.45 0.45
+  children [
+    Shape {
+      appearance PBRAppearance { baseColor 0.42 0.30 0.18 roughness 0.82 }
+      geometry Box { size 4.1 0.7 0.9 }
+    }
+  ]
+  boundingObject Box { size 4.1 0.7 0.9 }
+}
+
+DEF ALGO_RAW_WALL_11 Solid {
+  name "algorithm raw wall 11"
+  translation 2.95 14.45 0.022
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 0.05 0.05 0.05
+        transparency 0.45
+        roughness 0.5
+      }
+      geometry Box { size 4.1 0.7 0.018 }
+      castShadows FALSE
+    }
+  ]
+}
+
+Solid {
+  name "charging zone 12"
+  translation 16.3 16.2 0.006
+  children [
+    Shape {
+      appearance PBRAppearance { baseColor 0.16 0.62 0.68 roughness 0.6 }
+      geometry Box { size 1.8 2 0.012 }
+      castShadows FALSE
+    }
+  ]
+}
+
+Solid {
+  name "CHARGING service marker"
+  translation 16.3 16.2 0.025
+  children [
+    Shape {
+      appearance PBRAppearance { baseColor 0.05 0.48 0.55 roughness 0.45 }
       geometry Cylinder { radius 0.18 height 0.012 }
     }
   ]
 }
 
 Solid {
-  name "table service number markers"
-  translation 0 0 0.025
+  name "HOME service marker"
+  translation 8 1.2 0.025
   children [
+    Shape {
+      appearance PBRAppearance { baseColor 0.12 0.48 0.18 roughness 0.45 }
+      geometry Cylinder { radius 0.18 height 0.012 }
+    }
+  ]
+}
+
+Solid {
+  name "KITCHEN service marker"
+  translation 6.2 15.5 0.025
+  children [
+    Shape {
+      appearance PBRAppearance { baseColor 0.80 0.42 0.05 roughness 0.45 }
+      geometry Cylinder { radius 0.18 height 0.012 }
+    }
+  ]
+}
+
+Solid {
+  name "TABLE_1 service marker"
+  translation 4.15 4 0.025
+  children [
+    Shape {
+      appearance PBRAppearance { baseColor 0.10 0.20 0.70 roughness 0.45 }
+      geometry Cylinder { radius 0.22 height 0.012 }
+    }
     Transform {
-      translation 2.0 2.85 0
+      translation 0.065 0.045 0.014
       children [
         Shape {
-          appearance PBRAppearance { baseColor 0.10 0.20 0.70 roughness 0.45 }
-          geometry Cylinder { radius 0.22 height 0.012 }
-        }
-        Transform {
-          translation 0.07 0.05 0.014
-          children [
-            Shape { appearance DEF NUMBER_BLACK PBRAppearance { baseColor 0.02 0.02 0.02 roughness 0.5 } geometry Box { size 0.04 0.18 0.012 } }
-          ]
-        }
-        Transform {
-          translation 0.07 -0.12 0.014
-          children [
-            Shape { appearance USE NUMBER_BLACK geometry Box { size 0.04 0.18 0.012 } }
-          ]
+          appearance PBRAppearance { baseColor 0.02 0.02 0.02 roughness 0.5 }
+          geometry Box { size 0.025 0.1 0.012 }
         }
       ]
     }
     Transform {
-      translation 4.3 2.95 0
+      translation 0.065 -0.065 0.014
       children [
         Shape {
-          appearance PBRAppearance { baseColor 0.10 0.45 0.20 roughness 0.45 }
-          geometry Cylinder { radius 0.22 height 0.012 }
+          appearance PBRAppearance { baseColor 0.02 0.02 0.02 roughness 0.5 }
+          geometry Box { size 0.025 0.1 0.012 }
         }
-        Transform { translation 0 0.14 0.014 children [ Shape { appearance USE NUMBER_BLACK geometry Box { size 0.26 0.04 0.012 } } ] }
-        Transform { translation 0.10 0.05 0.014 children [ Shape { appearance USE NUMBER_BLACK geometry Box { size 0.04 0.16 0.012 } } ] }
-        Transform { translation 0 0 0.014 children [ Shape { appearance USE NUMBER_BLACK geometry Box { size 0.26 0.04 0.012 } } ] }
-        Transform { translation -0.10 -0.09 0.014 children [ Shape { appearance USE NUMBER_BLACK geometry Box { size 0.04 0.16 0.012 } } ] }
-        Transform { translation 0 -0.17 0.014 children [ Shape { appearance USE NUMBER_BLACK geometry Box { size 0.26 0.04 0.012 } } ] }
+      ]
+    }
+  ]
+}
+
+Solid {
+  name "TABLE_2 service marker"
+  translation 4.15 8 0.025
+  children [
+    Shape {
+      appearance PBRAppearance { baseColor 0.10 0.20 0.70 roughness 0.45 }
+      geometry Cylinder { radius 0.22 height 0.012 }
+    }
+    Transform {
+      translation 0 0.095 0.014
+      children [
+        Shape {
+          appearance PBRAppearance { baseColor 0.02 0.02 0.02 roughness 0.5 }
+          geometry Box { size 0.12 0.025 0.012 }
+        }
       ]
     }
     Transform {
-      translation 6.4 3.15 0
+      translation 0.065 0.045 0.014
       children [
         Shape {
-          appearance PBRAppearance { baseColor 0.65 0.18 0.16 roughness 0.45 }
-          geometry Cylinder { radius 0.22 height 0.012 }
+          appearance PBRAppearance { baseColor 0.02 0.02 0.02 roughness 0.5 }
+          geometry Box { size 0.025 0.1 0.012 }
         }
-        Transform { translation 0 0.14 0.014 children [ Shape { appearance USE NUMBER_BLACK geometry Box { size 0.26 0.04 0.012 } } ] }
-        Transform { translation 0.10 0.05 0.014 children [ Shape { appearance USE NUMBER_BLACK geometry Box { size 0.04 0.16 0.012 } } ] }
-        Transform { translation 0 0 0.014 children [ Shape { appearance USE NUMBER_BLACK geometry Box { size 0.26 0.04 0.012 } } ] }
-        Transform { translation 0.10 -0.09 0.014 children [ Shape { appearance USE NUMBER_BLACK geometry Box { size 0.04 0.16 0.012 } } ] }
-        Transform { translation 0 -0.17 0.014 children [ Shape { appearance USE NUMBER_BLACK geometry Box { size 0.26 0.04 0.012 } } ] }
       ]
     }
     Transform {
-      translation 3.1 5.85 0
+      translation 0 -0.01 0.014
       children [
         Shape {
-          appearance PBRAppearance { baseColor 0.62 0.45 0.08 roughness 0.45 }
-          geometry Cylinder { radius 0.22 height 0.012 }
+          appearance PBRAppearance { baseColor 0.02 0.02 0.02 roughness 0.5 }
+          geometry Box { size 0.12 0.025 0.012 }
         }
-        Transform { translation -0.10 0.05 0.014 children [ Shape { appearance USE NUMBER_BLACK geometry Box { size 0.04 0.16 0.012 } } ] }
-        Transform { translation 0.10 0.05 0.014 children [ Shape { appearance USE NUMBER_BLACK geometry Box { size 0.04 0.16 0.012 } } ] }
-        Transform { translation 0 0 0.014 children [ Shape { appearance USE NUMBER_BLACK geometry Box { size 0.26 0.04 0.012 } } ] }
-        Transform { translation 0.10 -0.09 0.014 children [ Shape { appearance USE NUMBER_BLACK geometry Box { size 0.04 0.16 0.012 } } ] }
       ]
     }
     Transform {
-      translation 7.25 5.45 0
+      translation -0.065 -0.065 0.014
       children [
         Shape {
-          appearance PBRAppearance { baseColor 0.35 0.12 0.55 roughness 0.45 }
-          geometry Cylinder { radius 0.22 height 0.012 }
+          appearance PBRAppearance { baseColor 0.02 0.02 0.02 roughness 0.5 }
+          geometry Box { size 0.025 0.1 0.012 }
         }
-        Transform { translation 0 0.14 0.014 children [ Shape { appearance USE NUMBER_BLACK geometry Box { size 0.26 0.04 0.012 } } ] }
-        Transform { translation -0.10 0.05 0.014 children [ Shape { appearance USE NUMBER_BLACK geometry Box { size 0.04 0.16 0.012 } } ] }
-        Transform { translation 0 0 0.014 children [ Shape { appearance USE NUMBER_BLACK geometry Box { size 0.26 0.04 0.012 } } ] }
-        Transform { translation 0.10 -0.09 0.014 children [ Shape { appearance USE NUMBER_BLACK geometry Box { size 0.04 0.16 0.012 } } ] }
-        Transform { translation 0 -0.17 0.014 children [ Shape { appearance USE NUMBER_BLACK geometry Box { size 0.26 0.04 0.012 } } ] }
+      ]
+    }
+    Transform {
+      translation 0 -0.115 0.014
+      children [
+        Shape {
+          appearance PBRAppearance { baseColor 0.02 0.02 0.02 roughness 0.5 }
+          geometry Box { size 0.12 0.025 0.012 }
+        }
+      ]
+    }
+  ]
+}
+
+Solid {
+  name "TABLE_3 service marker"
+  translation 4.15 12 0.025
+  children [
+    Shape {
+      appearance PBRAppearance { baseColor 0.10 0.20 0.70 roughness 0.45 }
+      geometry Cylinder { radius 0.22 height 0.012 }
+    }
+    Transform {
+      translation 0 0.095 0.014
+      children [
+        Shape {
+          appearance PBRAppearance { baseColor 0.02 0.02 0.02 roughness 0.5 }
+          geometry Box { size 0.12 0.025 0.012 }
+        }
+      ]
+    }
+    Transform {
+      translation 0.065 0.045 0.014
+      children [
+        Shape {
+          appearance PBRAppearance { baseColor 0.02 0.02 0.02 roughness 0.5 }
+          geometry Box { size 0.025 0.1 0.012 }
+        }
+      ]
+    }
+    Transform {
+      translation 0 -0.01 0.014
+      children [
+        Shape {
+          appearance PBRAppearance { baseColor 0.02 0.02 0.02 roughness 0.5 }
+          geometry Box { size 0.12 0.025 0.012 }
+        }
+      ]
+    }
+    Transform {
+      translation 0.065 -0.065 0.014
+      children [
+        Shape {
+          appearance PBRAppearance { baseColor 0.02 0.02 0.02 roughness 0.5 }
+          geometry Box { size 0.025 0.1 0.012 }
+        }
+      ]
+    }
+    Transform {
+      translation 0 -0.115 0.014
+      children [
+        Shape {
+          appearance PBRAppearance { baseColor 0.02 0.02 0.02 roughness 0.5 }
+          geometry Box { size 0.12 0.025 0.012 }
+        }
+      ]
+    }
+  ]
+}
+
+Solid {
+  name "TABLE_4 service marker"
+  translation 8 2.45 0.025
+  children [
+    Shape {
+      appearance PBRAppearance { baseColor 0.10 0.20 0.70 roughness 0.45 }
+      geometry Cylinder { radius 0.22 height 0.012 }
+    }
+    Transform {
+      translation -0.065 0.045 0.014
+      children [
+        Shape {
+          appearance PBRAppearance { baseColor 0.02 0.02 0.02 roughness 0.5 }
+          geometry Box { size 0.025 0.1 0.012 }
+        }
+      ]
+    }
+    Transform {
+      translation 0 -0.01 0.014
+      children [
+        Shape {
+          appearance PBRAppearance { baseColor 0.02 0.02 0.02 roughness 0.5 }
+          geometry Box { size 0.12 0.025 0.012 }
+        }
+      ]
+    }
+    Transform {
+      translation 0.065 0.045 0.014
+      children [
+        Shape {
+          appearance PBRAppearance { baseColor 0.02 0.02 0.02 roughness 0.5 }
+          geometry Box { size 0.025 0.1 0.012 }
+        }
+      ]
+    }
+    Transform {
+      translation 0.065 -0.065 0.014
+      children [
+        Shape {
+          appearance PBRAppearance { baseColor 0.02 0.02 0.02 roughness 0.5 }
+          geometry Box { size 0.025 0.1 0.012 }
+        }
+      ]
+    }
+  ]
+}
+
+Solid {
+  name "TABLE_5 service marker"
+  translation 13.85 4 0.025
+  children [
+    Shape {
+      appearance PBRAppearance { baseColor 0.10 0.20 0.70 roughness 0.45 }
+      geometry Cylinder { radius 0.22 height 0.012 }
+    }
+    Transform {
+      translation 0 0.095 0.014
+      children [
+        Shape {
+          appearance PBRAppearance { baseColor 0.02 0.02 0.02 roughness 0.5 }
+          geometry Box { size 0.12 0.025 0.012 }
+        }
+      ]
+    }
+    Transform {
+      translation -0.065 0.045 0.014
+      children [
+        Shape {
+          appearance PBRAppearance { baseColor 0.02 0.02 0.02 roughness 0.5 }
+          geometry Box { size 0.025 0.1 0.012 }
+        }
+      ]
+    }
+    Transform {
+      translation 0 -0.01 0.014
+      children [
+        Shape {
+          appearance PBRAppearance { baseColor 0.02 0.02 0.02 roughness 0.5 }
+          geometry Box { size 0.12 0.025 0.012 }
+        }
+      ]
+    }
+    Transform {
+      translation 0.065 -0.065 0.014
+      children [
+        Shape {
+          appearance PBRAppearance { baseColor 0.02 0.02 0.02 roughness 0.5 }
+          geometry Box { size 0.025 0.1 0.012 }
+        }
+      ]
+    }
+    Transform {
+      translation 0 -0.115 0.014
+      children [
+        Shape {
+          appearance PBRAppearance { baseColor 0.02 0.02 0.02 roughness 0.5 }
+          geometry Box { size 0.12 0.025 0.012 }
+        }
+      ]
+    }
+  ]
+}
+
+Solid {
+  name "TABLE_6 service marker"
+  translation 13.85 8 0.025
+  children [
+    Shape {
+      appearance PBRAppearance { baseColor 0.10 0.20 0.70 roughness 0.45 }
+      geometry Cylinder { radius 0.22 height 0.012 }
+    }
+    Transform {
+      translation 0 0.095 0.014
+      children [
+        Shape {
+          appearance PBRAppearance { baseColor 0.02 0.02 0.02 roughness 0.5 }
+          geometry Box { size 0.12 0.025 0.012 }
+        }
+      ]
+    }
+    Transform {
+      translation -0.065 0.045 0.014
+      children [
+        Shape {
+          appearance PBRAppearance { baseColor 0.02 0.02 0.02 roughness 0.5 }
+          geometry Box { size 0.025 0.1 0.012 }
+        }
+      ]
+    }
+    Transform {
+      translation 0 -0.01 0.014
+      children [
+        Shape {
+          appearance PBRAppearance { baseColor 0.02 0.02 0.02 roughness 0.5 }
+          geometry Box { size 0.12 0.025 0.012 }
+        }
+      ]
+    }
+    Transform {
+      translation -0.065 -0.065 0.014
+      children [
+        Shape {
+          appearance PBRAppearance { baseColor 0.02 0.02 0.02 roughness 0.5 }
+          geometry Box { size 0.025 0.1 0.012 }
+        }
+      ]
+    }
+    Transform {
+      translation 0.065 -0.065 0.014
+      children [
+        Shape {
+          appearance PBRAppearance { baseColor 0.02 0.02 0.02 roughness 0.5 }
+          geometry Box { size 0.025 0.1 0.012 }
+        }
+      ]
+    }
+    Transform {
+      translation 0 -0.115 0.014
+      children [
+        Shape {
+          appearance PBRAppearance { baseColor 0.02 0.02 0.02 roughness 0.5 }
+          geometry Box { size 0.12 0.025 0.012 }
+        }
+      ]
+    }
+  ]
+}
+
+Solid {
+  name "TABLE_7 service marker"
+  translation 13.85 12 0.025
+  children [
+    Shape {
+      appearance PBRAppearance { baseColor 0.10 0.20 0.70 roughness 0.45 }
+      geometry Cylinder { radius 0.22 height 0.012 }
+    }
+    Transform {
+      translation 0 0.095 0.014
+      children [
+        Shape {
+          appearance PBRAppearance { baseColor 0.02 0.02 0.02 roughness 0.5 }
+          geometry Box { size 0.12 0.025 0.012 }
+        }
+      ]
+    }
+    Transform {
+      translation 0.065 0.045 0.014
+      children [
+        Shape {
+          appearance PBRAppearance { baseColor 0.02 0.02 0.02 roughness 0.5 }
+          geometry Box { size 0.025 0.1 0.012 }
+        }
+      ]
+    }
+    Transform {
+      translation 0.065 -0.065 0.014
+      children [
+        Shape {
+          appearance PBRAppearance { baseColor 0.02 0.02 0.02 roughness 0.5 }
+          geometry Box { size 0.025 0.1 0.012 }
+        }
+      ]
+    }
+  ]
+}
+
+Solid {
+  name "TABLE_8 service marker"
+  translation 12 2.45 0.025
+  children [
+    Shape {
+      appearance PBRAppearance { baseColor 0.10 0.20 0.70 roughness 0.45 }
+      geometry Cylinder { radius 0.22 height 0.012 }
+    }
+    Transform {
+      translation 0 0.095 0.014
+      children [
+        Shape {
+          appearance PBRAppearance { baseColor 0.02 0.02 0.02 roughness 0.5 }
+          geometry Box { size 0.12 0.025 0.012 }
+        }
+      ]
+    }
+    Transform {
+      translation 0.065 0.045 0.014
+      children [
+        Shape {
+          appearance PBRAppearance { baseColor 0.02 0.02 0.02 roughness 0.5 }
+          geometry Box { size 0.025 0.1 0.012 }
+        }
+      ]
+    }
+    Transform {
+      translation 0.065 -0.065 0.014
+      children [
+        Shape {
+          appearance PBRAppearance { baseColor 0.02 0.02 0.02 roughness 0.5 }
+          geometry Box { size 0.025 0.1 0.012 }
+        }
+      ]
+    }
+    Transform {
+      translation 0 -0.115 0.014
+      children [
+        Shape {
+          appearance PBRAppearance { baseColor 0.02 0.02 0.02 roughness 0.5 }
+          geometry Box { size 0.12 0.025 0.012 }
+        }
+      ]
+    }
+    Transform {
+      translation -0.065 -0.065 0.014
+      children [
+        Shape {
+          appearance PBRAppearance { baseColor 0.02 0.02 0.02 roughness 0.5 }
+          geometry Box { size 0.025 0.1 0.012 }
+        }
+      ]
+    }
+    Transform {
+      translation -0.065 0.045 0.014
+      children [
+        Shape {
+          appearance PBRAppearance { baseColor 0.02 0.02 0.02 roughness 0.5 }
+          geometry Box { size 0.025 0.1 0.012 }
+        }
+      ]
+    }
+    Transform {
+      translation 0 -0.01 0.014
+      children [
+        Shape {
+          appearance PBRAppearance { baseColor 0.02 0.02 0.02 roughness 0.5 }
+          geometry Box { size 0.12 0.025 0.012 }
+        }
       ]
     }
   ]
@@ -413,7 +1717,9 @@ DEF DYNAMIC_OBSTACLE_1 Pedestrian {
   name "pedestrian customer 1"
   translation -21 -20 1.27
   controller "<none>"
-  controllerArgs [ "--supervisor-controlled" ]
+  controllerArgs [
+    "--supervisor-controlled"
+  ]
   enableBoundingObject TRUE
   shirtColor 0.12 0.34 0.80
   pantsColor 0.10 0.10 0.13
@@ -423,7 +1729,9 @@ DEF DYNAMIC_OBSTACLE_2 Pedestrian {
   name "pedestrian customer 2"
   translation -22 -20 1.27
   controller "<none>"
-  controllerArgs [ "--supervisor-controlled" ]
+  controllerArgs [
+    "--supervisor-controlled"
+  ]
   enableBoundingObject TRUE
   shirtColor 0.12 0.58 0.42
   pantsColor 0.16 0.16 0.18
@@ -433,7 +1741,9 @@ DEF DYNAMIC_OBSTACLE_3 Pedestrian {
   name "pedestrian customer 3"
   translation -23 -20 1.27
   controller "<none>"
-  controllerArgs [ "--supervisor-controlled" ]
+  controllerArgs [
+    "--supervisor-controlled"
+  ]
   enableBoundingObject TRUE
   shirtColor 0.72 0.22 0.18
   pantsColor 0.15 0.15 0.18
@@ -443,7 +1753,9 @@ DEF DYNAMIC_OBSTACLE_4 Pedestrian {
   name "pedestrian customer 4"
   translation -24 -20 1.27
   controller "<none>"
-  controllerArgs [ "--supervisor-controlled" ]
+  controllerArgs [
+    "--supervisor-controlled"
+  ]
   enableBoundingObject TRUE
   shirtColor 0.62 0.45 0.08
   pantsColor 0.12 0.16 0.24
@@ -453,7 +1765,9 @@ DEF DYNAMIC_OBSTACLE_5 Pedestrian {
   name "pedestrian customer 5"
   translation -25 -20 1.27
   controller "<none>"
-  controllerArgs [ "--supervisor-controlled" ]
+  controllerArgs [
+    "--supervisor-controlled"
+  ]
   enableBoundingObject TRUE
   shirtColor 0.45 0.20 0.65
   pantsColor 0.20 0.16 0.12
@@ -463,7 +1777,9 @@ DEF DYNAMIC_OBSTACLE_6 Pedestrian {
   name "pedestrian customer 6"
   translation -26 -20 1.27
   controller "<none>"
-  controllerArgs [ "--supervisor-controlled" ]
+  controllerArgs [
+    "--supervisor-controlled"
+  ]
   enableBoundingObject TRUE
   shirtColor 0.05 0.52 0.62
   pantsColor 0.13 0.13 0.16
@@ -473,7 +1789,9 @@ DEF DYNAMIC_OBSTACLE_7 Pedestrian {
   name "pedestrian customer 7"
   translation -27 -20 1.27
   controller "<none>"
-  controllerArgs [ "--supervisor-controlled" ]
+  controllerArgs [
+    "--supervisor-controlled"
+  ]
   enableBoundingObject TRUE
   shirtColor 0.12 0.34 0.80
   pantsColor 0.10 0.10 0.13
@@ -483,7 +1801,9 @@ DEF DYNAMIC_OBSTACLE_8 Pedestrian {
   name "pedestrian customer 8"
   translation -28 -20 1.27
   controller "<none>"
-  controllerArgs [ "--supervisor-controlled" ]
+  controllerArgs [
+    "--supervisor-controlled"
+  ]
   enableBoundingObject TRUE
   shirtColor 0.12 0.58 0.42
   pantsColor 0.16 0.16 0.18
@@ -493,7 +1813,9 @@ DEF DYNAMIC_OBSTACLE_9 Pedestrian {
   name "pedestrian customer 9"
   translation -29 -20 1.27
   controller "<none>"
-  controllerArgs [ "--supervisor-controlled" ]
+  controllerArgs [
+    "--supervisor-controlled"
+  ]
   enableBoundingObject TRUE
   shirtColor 0.72 0.22 0.18
   pantsColor 0.15 0.15 0.18
@@ -503,7 +1825,9 @@ DEF DYNAMIC_OBSTACLE_10 Pedestrian {
   name "pedestrian customer 10"
   translation -30 -20 1.27
   controller "<none>"
-  controllerArgs [ "--supervisor-controlled" ]
+  controllerArgs [
+    "--supervisor-controlled"
+  ]
   enableBoundingObject TRUE
   shirtColor 0.62 0.45 0.08
   pantsColor 0.12 0.16 0.24
@@ -513,7 +1837,9 @@ DEF DYNAMIC_OBSTACLE_11 Pedestrian {
   name "pedestrian customer 11"
   translation -31 -20 1.27
   controller "<none>"
-  controllerArgs [ "--supervisor-controlled" ]
+  controllerArgs [
+    "--supervisor-controlled"
+  ]
   enableBoundingObject TRUE
   shirtColor 0.45 0.20 0.65
   pantsColor 0.20 0.16 0.12
@@ -523,7 +1849,9 @@ DEF DYNAMIC_OBSTACLE_12 Pedestrian {
   name "pedestrian customer 12"
   translation -32 -20 1.27
   controller "<none>"
-  controllerArgs [ "--supervisor-controlled" ]
+  controllerArgs [
+    "--supervisor-controlled"
+  ]
   enableBoundingObject TRUE
   shirtColor 0.05 0.52 0.62
   pantsColor 0.13 0.13 0.16

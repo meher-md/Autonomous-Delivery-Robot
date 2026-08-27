@@ -3,11 +3,12 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 DEFAULT_WORLD_PATH="${ROOT_DIR}/restaurant_robot/simulator/worlds/restaurant_delivery.wbt"
+DEFAULT_MAP_INPUT="${ROOT_DIR}/restaurant_robot/config/facility_layout_map.json"
 WORLD_PATH="${WEBOTS_WORLD:-${WORLD_PATH:-${DEFAULT_WORLD_PATH}}}"
 CONTROL_FILE="${CONTROL_FILE:-${ROOT_DIR}/build/restaurant_robot/control_command.txt}"
 OUTPUT_PREFIX="${MAP_OUTPUT_PREFIX:-${ROOT_DIR}/build/restaurant_robot/manual_restaurant_map}"
 MAX_TIME_SECONDS="${MAX_TIME:-0}"
-MAP_INPUT="${MAP_INPUT_JSON:-}"
+MAP_INPUT="${MAP_INPUT_JSON:-${DEFAULT_MAP_INPUT}}"
 SCENARIO_NAME="${SCENARIO:-none}"
 HUMAN_COUNT_VALUE="${HUMAN_COUNT:-3}"
 
