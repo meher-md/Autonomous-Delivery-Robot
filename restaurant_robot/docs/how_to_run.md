@@ -98,6 +98,15 @@ SCENARIO=stationary_blockage bash restaurant_robot/scripts/run_webots_gui_contro
 SCENARIO=moving_crowd bash restaurant_robot/scripts/run_webots_gui_control.sh
 ```
 
+The moving crowd uses three humans by default. Set `HUMAN_COUNT` from 1 to 12
+to change the crowd size. Humans continuously follow closed routes that stay
+inside the floor and avoid the fixed tables and corners.
+
+```bash
+HUMAN_COUNT=8 SCENARIO=moving_crowd \
+bash restaurant_robot/scripts/run_webots_gui_control.sh
+```
+
 ```bash
 SCENARIO=chair_moved bash restaurant_robot/scripts/run_webots_gui_control.sh
 ```

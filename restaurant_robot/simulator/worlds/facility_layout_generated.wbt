@@ -138,62 +138,62 @@ Robot {
 
 DEF WALL_NORTH Solid {
   name "wall north"
-  translation 4.5 9.06 0.25
+  translation 4.5 9.06 0.6
   children [
     Shape {
       appearance PBRAppearance { baseColor 0.72 0.72 0.68 roughness 0.82 }
-      geometry Box { size 9.24 0.12 0.5 }
+      geometry Box { size 9.24 0.12 1.2 }
     }
   ]
-  boundingObject Box { size 9.24 0.12 0.5 }
+  boundingObject Box { size 9.24 0.12 1.2 }
 }
 
 DEF WALL_SOUTH Solid {
   name "wall south"
-  translation 4.5 -0.06 0.25
+  translation 4.5 -0.06 0.6
   children [
     Shape {
       appearance PBRAppearance { baseColor 0.72 0.72 0.68 roughness 0.82 }
-      geometry Box { size 9.24 0.12 0.5 }
+      geometry Box { size 9.24 0.12 1.2 }
     }
   ]
-  boundingObject Box { size 9.24 0.12 0.5 }
+  boundingObject Box { size 9.24 0.12 1.2 }
 }
 
 DEF WALL_EAST Solid {
   name "wall east"
-  translation 9.06 4.5 0.25
+  translation 9.06 4.5 0.6
   children [
     Shape {
       appearance PBRAppearance { baseColor 0.72 0.72 0.68 roughness 0.82 }
-      geometry Box { size 0.12 9 0.5 }
+      geometry Box { size 0.12 9 1.2 }
     }
   ]
-  boundingObject Box { size 0.12 9 0.5 }
+  boundingObject Box { size 0.12 9 1.2 }
 }
 
 DEF WALL_WEST Solid {
   name "wall west"
-  translation -0.06 4.5 0.25
+  translation -0.06 4.5 0.6
   children [
     Shape {
       appearance PBRAppearance { baseColor 0.72 0.72 0.68 roughness 0.82 }
-      geometry Box { size 0.12 9 0.5 }
+      geometry Box { size 0.12 9 1.2 }
     }
   ]
-  boundingObject Box { size 0.12 9 0.5 }
+  boundingObject Box { size 0.12 9 1.2 }
 }
 
 DEF WALL_1 Solid {
   name "layout wall 1"
-  translation 0.432 4.7095 0.25
+  translation 0.432 4.7095 0.6
   children [
     Shape {
       appearance PBRAppearance { baseColor 0.48 0.50 0.50 roughness 0.82 }
-      geometry Box { size 0.12 7.847 0.5 }
+      geometry Box { size 0.12 7.847 1.2 }
     }
   ]
-  boundingObject Box { size 0.12 7.847 0.5 }
+  boundingObject Box { size 0.12 7.847 1.2 }
 }
 
 DEF ALGO_RAW_WALL_1 Solid {
@@ -214,14 +214,14 @@ DEF ALGO_RAW_WALL_1 Solid {
 
 DEF WALL_2 Solid {
   name "layout wall 2"
-  translation 4.461 8.659 0.25
+  translation 4.461 8.659 0.6
   children [
     Shape {
       appearance PBRAppearance { baseColor 0.48 0.50 0.50 roughness 0.82 }
-      geometry Box { size 7.834 0.12 0.5 }
+      geometry Box { size 7.834 0.12 1.2 }
     }
   ]
-  boundingObject Box { size 7.834 0.12 0.5 }
+  boundingObject Box { size 7.834 0.12 1.2 }
 }
 
 DEF ALGO_RAW_WALL_2 Solid {
@@ -242,14 +242,14 @@ DEF ALGO_RAW_WALL_2 Solid {
 
 DEF WALL_3 Solid {
   name "layout wall 3"
-  translation 8.476 4.762 0.25
+  translation 8.476 4.762 0.6
   children [
     Shape {
       appearance PBRAppearance { baseColor 0.48 0.50 0.50 roughness 0.82 }
-      geometry Box { size 0.12 7.82 0.5 }
+      geometry Box { size 0.12 7.82 1.2 }
     }
   ]
-  boundingObject Box { size 0.12 7.82 0.5 }
+  boundingObject Box { size 0.12 7.82 1.2 }
 }
 
 DEF ALGO_RAW_WALL_3 Solid {
@@ -275,7 +275,7 @@ DEF TABLE_1_PROP Solid {
     Table {
       translation 0 0 0
       name "TABLE_1"
-      size 0.9676 0.94546 0.72
+      size 1.1092 1.08382 0.90
       feetSize 0 0
       trayAppearance DEF GENERATED_TABLE_TOP VarnishedPine {
         textureTransform TextureTransform { scale 6 6 }
@@ -285,7 +285,7 @@ DEF TABLE_1_PROP Solid {
       }
     }
   ]
-  boundingObject Box { size 1.18 1.153 0.72 }
+  boundingObject Box { size 1.18 1.153 0.90 }
 }
 
 DEF ALGO_RAW_TABLE_1 Solid {
@@ -375,7 +375,7 @@ DEF TABLE_4_PROP Solid {
     Table {
       translation 0 0 0
       name "TABLE_4"
-      size 0.87002 0.93398 0.72
+      size 0.99734 1.07066 0.90
       feetSize 0 0
       trayAppearance USE GENERATED_TABLE_TOP
       legAppearance MattePaint {
@@ -383,7 +383,7 @@ DEF TABLE_4_PROP Solid {
       }
     }
   ]
-  boundingObject Box { size 1.061 1.139 0.72 }
+  boundingObject Box { size 1.061 1.139 0.90 }
 }
 
 DEF ALGO_RAW_TABLE_4 Solid {
@@ -473,7 +473,7 @@ DEF TABLE_2_PROP Solid {
     Table {
       translation 0 0 0
       name "TABLE_2"
-      size 0.90282 0.85936 0.72
+      size 1.03494 0.98512 0.90
       feetSize 0 0
       trayAppearance USE GENERATED_TABLE_TOP
       legAppearance MattePaint {
@@ -481,7 +481,7 @@ DEF TABLE_2_PROP Solid {
       }
     }
   ]
-  boundingObject Box { size 1.101 1.048 0.72 }
+  boundingObject Box { size 1.101 1.048 0.90 }
 }
 
 DEF ALGO_RAW_TABLE_2 Solid {
@@ -571,7 +571,7 @@ DEF TABLE_3_PROP Solid {
     Table {
       translation 0 0 0
       name "TABLE_3"
-      size 0.89134 0.87002 0.72
+      size 1.02178 0.99734 0.90
       feetSize 0 0
       trayAppearance USE GENERATED_TABLE_TOP
       legAppearance MattePaint {
@@ -579,7 +579,7 @@ DEF TABLE_3_PROP Solid {
       }
     }
   ]
-  boundingObject Box { size 1.087 1.061 0.72 }
+  boundingObject Box { size 1.087 1.061 0.90 }
 }
 
 DEF ALGO_RAW_TABLE_3 Solid {
@@ -909,21 +909,144 @@ Solid {
 
 DEF DYNAMIC_OBSTACLE_1 Pedestrian {
   name "pedestrian customer 1"
-  translation -20 -20 1.27
+  translation -21 -20 1.27
+  controller "<none>"
+  controllerArgs [
+    "--supervisor-controlled"
+  ]
+  enableBoundingObject TRUE
   shirtColor 0.12 0.34 0.80
   pantsColor 0.10 0.10 0.13
 }
 
 DEF DYNAMIC_OBSTACLE_2 Pedestrian {
   name "pedestrian customer 2"
-  translation -21 -20 1.27
+  translation -22 -20 1.27
+  controller "<none>"
+  controllerArgs [
+    "--supervisor-controlled"
+  ]
+  enableBoundingObject TRUE
   shirtColor 0.12 0.58 0.42
   pantsColor 0.16 0.16 0.18
 }
 
 DEF DYNAMIC_OBSTACLE_3 Pedestrian {
   name "pedestrian customer 3"
-  translation -22 -20 1.27
+  translation -23 -20 1.27
+  controller "<none>"
+  controllerArgs [
+    "--supervisor-controlled"
+  ]
+  enableBoundingObject TRUE
   shirtColor 0.72 0.22 0.18
   pantsColor 0.15 0.15 0.18
+}
+
+DEF DYNAMIC_OBSTACLE_4 Pedestrian {
+  name "pedestrian customer 4"
+  translation -24 -20 1.27
+  controller "<none>"
+  controllerArgs [
+    "--supervisor-controlled"
+  ]
+  enableBoundingObject TRUE
+  shirtColor 0.62 0.45 0.08
+  pantsColor 0.12 0.16 0.24
+}
+
+DEF DYNAMIC_OBSTACLE_5 Pedestrian {
+  name "pedestrian customer 5"
+  translation -25 -20 1.27
+  controller "<none>"
+  controllerArgs [
+    "--supervisor-controlled"
+  ]
+  enableBoundingObject TRUE
+  shirtColor 0.45 0.20 0.65
+  pantsColor 0.20 0.16 0.12
+}
+
+DEF DYNAMIC_OBSTACLE_6 Pedestrian {
+  name "pedestrian customer 6"
+  translation -26 -20 1.27
+  controller "<none>"
+  controllerArgs [
+    "--supervisor-controlled"
+  ]
+  enableBoundingObject TRUE
+  shirtColor 0.05 0.52 0.62
+  pantsColor 0.13 0.13 0.16
+}
+
+DEF DYNAMIC_OBSTACLE_7 Pedestrian {
+  name "pedestrian customer 7"
+  translation -27 -20 1.27
+  controller "<none>"
+  controllerArgs [
+    "--supervisor-controlled"
+  ]
+  enableBoundingObject TRUE
+  shirtColor 0.12 0.34 0.80
+  pantsColor 0.10 0.10 0.13
+}
+
+DEF DYNAMIC_OBSTACLE_8 Pedestrian {
+  name "pedestrian customer 8"
+  translation -28 -20 1.27
+  controller "<none>"
+  controllerArgs [
+    "--supervisor-controlled"
+  ]
+  enableBoundingObject TRUE
+  shirtColor 0.12 0.58 0.42
+  pantsColor 0.16 0.16 0.18
+}
+
+DEF DYNAMIC_OBSTACLE_9 Pedestrian {
+  name "pedestrian customer 9"
+  translation -29 -20 1.27
+  controller "<none>"
+  controllerArgs [
+    "--supervisor-controlled"
+  ]
+  enableBoundingObject TRUE
+  shirtColor 0.72 0.22 0.18
+  pantsColor 0.15 0.15 0.18
+}
+
+DEF DYNAMIC_OBSTACLE_10 Pedestrian {
+  name "pedestrian customer 10"
+  translation -30 -20 1.27
+  controller "<none>"
+  controllerArgs [
+    "--supervisor-controlled"
+  ]
+  enableBoundingObject TRUE
+  shirtColor 0.62 0.45 0.08
+  pantsColor 0.12 0.16 0.24
+}
+
+DEF DYNAMIC_OBSTACLE_11 Pedestrian {
+  name "pedestrian customer 11"
+  translation -31 -20 1.27
+  controller "<none>"
+  controllerArgs [
+    "--supervisor-controlled"
+  ]
+  enableBoundingObject TRUE
+  shirtColor 0.45 0.20 0.65
+  pantsColor 0.20 0.16 0.12
+}
+
+DEF DYNAMIC_OBSTACLE_12 Pedestrian {
+  name "pedestrian customer 12"
+  translation -32 -20 1.27
+  controller "<none>"
+  controllerArgs [
+    "--supervisor-controlled"
+  ]
+  enableBoundingObject TRUE
+  shirtColor 0.05 0.52 0.62
+  pantsColor 0.13 0.13 0.16
 }

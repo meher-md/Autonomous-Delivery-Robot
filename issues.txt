@@ -1,0 +1,45 @@
+Your suspicion is correct. The largest issue is that the Webots LiDAR scan is mirrored before being transformed into the world frame.
+
+Webots stores LiDAR pixels from left to right. For its cylindrical projection, index `0` corresponds to `+FOV/2`, while the last index corresponds to `-FOV/2`. The controller currently assumes the opposite:
+
+```cpp
+scan.angle_min = -lidar_->getFov() / 2.0;
+scan.angle_increment = lidar_->getFov() / (count - 1);
+```
+
+See [restaurant_delivery_controller/main.cpp](/home/vezhof/Documents/Autonomous-Delivery-Robot/restaurant_robot/simulator/controllers/restaurant_delivery_controller/main.cpp:380) and the [official Webots LiDAR documentation](https://www.cyberbotics.com/doc/reference/lidar).
+
+For example, a return physically 90° to the robot’s left is treated as being 90° to its right. For a fixed world object with bearing `φ`, the erroneous projection behaves approximately like:
+
+```text
+displayed angle = 2 × robot heading − φ
+```
+
+That explains why the scan appears to rotate with the robot instead of remaining fixed in the global frame.
+
+Other findings:
+
+- In normal navigation, there is deliberately no global LiDAR-map accumulation. The display draws the preloaded static map plus only the current yellow scan points. See [drawLidarHits()](/home/vezhof/Documents/Autonomous-Delivery-Robot/restaurant_robot/simulator/controllers/restaurant_delivery_controller/main.cpp:557).
+- Accumulation only happens in manual mapping mode at [main.cpp:950](/home/vezhof/Documents/Autonomous-Delivery-Robot/restaurant_robot/simulator/controllers/restaurant_delivery_controller/main.cpp:950).
+- Batch mapping accumulates into the SLAM backend, but its accumulated grid is never passed to the debug renderer. Consequently, the displayed grid can remain the static map even while a different map is being built internally.
+- The initial pose is assumed to equal the map’s `HOME` pose at [main.cpp:876](/home/vezhof/Documents/Autonomous-Delivery-Robot/restaurant_robot/simulator/controllers/restaurant_delivery_controller/main.cpp:876). It is not obtained from Webots ground truth.
+- Scan-map localization is disabled by default. Even when `ENABLE_SCAN_LOCALIZATION=1`, it only becomes active after the special `DISTURB_POSE` command.
+- The LiDAR’s `-0.03 m` mounting offset is ignored during projection. This is a smaller error, but it should be included in the sensor-to-base transform.
+
+The LiDAR is still useful for immediate front/rear stopping because those checks use symmetric angular sectors, so left/right mirroring has limited effect there. However, the following are currently unreliable:
+
+- Global hit visualization
+- Manual occupancy mapping while turning
+- Dynamic-obstacle world positions
+- Scan-map localization
+- Ceres scan association
+
+The primary correction is:
+
+```cpp
+scan.angle_min = lidar_->getFov() / 2.0;
+scan.angle_increment =
+    count > 1 ? -lidar_->getFov() / static_cast<double>(count - 1) : 0.0;
+```
+
+No files were modified during this diagnosis.

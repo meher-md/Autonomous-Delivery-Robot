@@ -17,7 +17,27 @@ struct Proxy {
     webots::Node* node{nullptr};
     webots::Node* boundary{nullptr};
     const double* position{nullptr};
+    webots::Field* rotation{nullptr};
+    webots::Field* left_arm{nullptr};
+    webots::Field* right_arm{nullptr};
+    webots::Field* left_leg{nullptr};
+    webots::Field* right_leg{nullptr};
+    webots::Field* left_knee{nullptr};
+    webots::Field* right_knee{nullptr};
 };
+
+struct Point2 {
+    double x{0.0};
+    double y{0.0};
+};
+
+struct RoutePose {
+    double x{0.0};
+    double y{0.0};
+    double yaw{0.0};
+};
+
+using Route = std::vector<Point2>;
 
 struct CollisionCounts {
     int clearance{0};
@@ -34,6 +54,11 @@ double getenvDoubleOr(const char* name, double fallback) {
     return value ? std::atof(value) : fallback;
 }
 
+int getenvIntOr(const char* name, int fallback) {
+    const char* value = std::getenv(name);
+    return value ? std::atoi(value) : fallback;
+}
+
 void setTranslation(webots::Node* node, double x, double y, double z) {
     if (!node) {
         return;
@@ -47,14 +72,102 @@ void setProxyTranslation(const Proxy& proxy, double x, double y, double z) {
     setTranslation(proxy.boundary, x, y, 0.03);
 }
 
+void setRotation(webots::Field* field, double x, double y, double z, double angle) {
+    if (!field) {
+        return;
+    }
+    const double value[4] = {x, y, z, angle};
+    field->setSFRotation(value);
+}
+
+void setJointAngle(webots::Field* field, double angle) {
+    if (field) {
+        field->setSFFloat(angle);
+    }
+}
+
+void setWalkingPose(const Proxy& proxy, double walking_distance, bool walking) {
+    const double phase = walking ? walking_distance * 10.0 : 0.0;
+    const double swing = std::sin(phase);
+    const double left_knee = walking ? 0.48 * std::max(0.0, -swing) : 0.0;
+    const double right_knee = walking ? 0.48 * std::max(0.0, swing) : 0.0;
+    setJointAngle(proxy.left_arm, -0.55 * swing);
+    setJointAngle(proxy.right_arm, 0.55 * swing);
+    setJointAngle(proxy.left_leg, 0.62 * swing);
+    setJointAngle(proxy.right_leg, -0.62 * swing);
+    setJointAngle(proxy.left_knee, left_knee);
+    setJointAngle(proxy.right_knee, right_knee);
+}
+
+void setProxyPose(const Proxy& proxy, double x, double y, double yaw, double walking_distance, bool walking = true) {
+    const double bounce = walking ? 0.018 * std::abs(std::sin(walking_distance * 10.0)) : 0.0;
+    setProxyTranslation(proxy, x, y, 1.27 + bounce);
+    setRotation(proxy.rotation, 0.0, 0.0, 1.0, yaw);
+    setWalkingPose(proxy, walking_distance, walking);
+}
+
+double routeLength(const Route& route) {
+    double length = 0.0;
+    for (std::size_t i = 0; i < route.size(); ++i) {
+        const Point2& from = route[i];
+        const Point2& to = route[(i + 1) % route.size()];
+        length += std::hypot(to.x - from.x, to.y - from.y);
+    }
+    return length;
+}
+
+RoutePose sampleRoute(const Route& route, double distance) {
+    const double length = routeLength(route);
+    if (route.size() < 2 || length <= 0.0) {
+        return {};
+    }
+    double remaining = std::fmod(distance, length);
+    if (remaining < 0.0) {
+        remaining += length;
+    }
+    for (std::size_t i = 0; i < route.size(); ++i) {
+        const Point2& from = route[i];
+        const Point2& to = route[(i + 1) % route.size()];
+        const double segment = std::hypot(to.x - from.x, to.y - from.y);
+        if (remaining <= segment || i + 1 == route.size()) {
+            const double ratio = segment > 0.0 ? remaining / segment : 0.0;
+            return {
+                from.x + ratio * (to.x - from.x),
+                from.y + ratio * (to.y - from.y),
+                std::atan2(to.y - from.y, to.x - from.x),
+            };
+        }
+        remaining -= segment;
+    }
+    return {};
+}
+
+const std::vector<Route>& crowdRoutes(bool generated_facility) {
+    static const std::vector<Route> prototype_routes = {
+        {{0.8, 0.8}, {7.7, 0.8}, {7.7, 7.4}, {3.0, 7.4}, {3.0, 6.1}, {0.8, 6.1}},
+        {{0.8, 0.9}, {7.6, 0.9}, {7.6, 2.85}, {0.8, 2.85}},
+        {{0.8, 3.3}, {4.5, 3.3}, {4.5, 6.0}, {3.8, 6.0}, {3.8, 4.2}, {0.8, 4.2}},
+        {{7.2, 0.8}, {7.7, 0.8}, {7.7, 7.4}, {7.2, 7.4}},
+    };
+    static const std::vector<Route> generated_routes = {
+        {{0.9, 1.2}, {7.8, 1.2}, {7.8, 7.8}, {6.5, 7.8}, {6.5, 3.1}, {3.5, 3.1}, {3.5, 7.8}, {0.9, 7.8}},
+        {{0.9, 1.2}, {7.8, 1.2}, {7.8, 3.0}, {0.9, 3.0}},
+        {{3.4, 1.2}, {4.2, 1.2}, {4.2, 7.8}, {3.4, 7.8}},
+        {{6.4, 3.0}, {7.8, 3.0}, {7.8, 7.4}, {6.4, 7.4}},
+    };
+    return generated_facility ? generated_routes : prototype_routes;
+}
+
+void hideProxy(const Proxy& proxy, std::size_t index) {
+    setProxyPose(proxy, -20.0 - static_cast<double>(index), -20.0, 0.0, 0.0, false);
+}
+
 double distance2d(const double* a, const double* b) {
     if (!a || !b) {
         return 1000.0;
     }
     return std::hypot(a[0] - b[0], a[1] - b[1]);
 }
-
-constexpr double kPedestrianZ = 1.27;
 
 int nonFloorContactPointCount(webots::Node* robot) {
     if (!robot) {
@@ -73,48 +186,66 @@ int nonFloorContactPointCount(webots::Node* robot) {
     return count;
 }
 
-void updateScenario(const std::string& scenario, double time, const std::vector<Proxy>& proxies) {
+void updateScenario(
+    const std::string& scenario,
+    double time,
+    const std::vector<Proxy>& proxies,
+    int human_count,
+    bool generated_facility) {
+    for (std::size_t i = 3; i < proxies.size(); ++i) {
+        hideProxy(proxies[i], i);
+    }
     if (scenario == "person_crossing") {
         const double phase = std::clamp((time - 8.0) / 8.0, 0.0, 1.0);
-        setProxyTranslation(proxies[0], 3.4, 1.1 + phase * 2.5, kPedestrianZ);
-        setProxyTranslation(proxies[1], -20.0, -20.0, kPedestrianZ);
-        setProxyTranslation(proxies[2], -21.0, -20.0, kPedestrianZ);
+        setProxyPose(proxies[0], 3.4, 1.1 + phase * 2.5, 1.5708, phase * 2.5);
+        hideProxy(proxies[1], 1);
+        hideProxy(proxies[2], 2);
     } else if (scenario == "stationary_blockage") {
-        setProxyTranslation(proxies[0], 1.50, 2.95, kPedestrianZ);
-        setProxyTranslation(proxies[1], -20.0, -20.0, kPedestrianZ);
-        setProxyTranslation(proxies[2], -21.0, -20.0, kPedestrianZ);
+        setProxyPose(proxies[0], 1.50, 2.95, 0.0, 0.0, false);
+        hideProxy(proxies[1], 1);
+        hideProxy(proxies[2], 2);
     } else if (scenario == "moving_crowd") {
-        setProxyTranslation(proxies[0], 2.8 + std::sin(time * 0.45), 2.2, kPedestrianZ);
-        setProxyTranslation(proxies[1], 4.2, 1.2 + 1.2 * std::sin(time * 0.35), kPedestrianZ);
-        setProxyTranslation(proxies[2], 5.8 + 0.7 * std::sin(time * 0.55), 3.5, kPedestrianZ);
+        const std::vector<Route>& routes = crowdRoutes(generated_facility);
+        for (std::size_t i = 0; i < proxies.size(); ++i) {
+            if (static_cast<int>(i) >= human_count) {
+                hideProxy(proxies[i], i);
+                continue;
+            }
+            const Route& route = routes[i % routes.size()];
+            const double speed = 0.48 + 0.04 * static_cast<double>(i % 3);
+            const double offset = routeLength(route) * std::fmod(static_cast<double>(i) * 0.381966, 1.0);
+            const double distance = offset + speed * time;
+            const RoutePose pose = sampleRoute(route, distance);
+            setProxyPose(proxies[i], pose.x, pose.y, pose.yaw, distance);
+        }
     } else if (scenario == "destination_change") {
-        setProxyTranslation(proxies[0], -20.0, -20.0, kPedestrianZ);
-        setProxyTranslation(proxies[1], -21.0, -20.0, kPedestrianZ);
-        setProxyTranslation(proxies[2], -22.0, -20.0, kPedestrianZ);
+        hideProxy(proxies[0], 0);
+        hideProxy(proxies[1], 1);
+        hideProxy(proxies[2], 2);
     } else if (scenario == "emergency_stop") {
-        setProxyTranslation(proxies[0], -20.0, -20.0, kPedestrianZ);
-        setProxyTranslation(proxies[1], -21.0, -20.0, kPedestrianZ);
-        setProxyTranslation(proxies[2], -22.0, -20.0, kPedestrianZ);
+        hideProxy(proxies[0], 0);
+        hideProxy(proxies[1], 1);
+        hideProxy(proxies[2], 2);
     } else if (scenario == "chair_moved") {
         if (time < 6.0) {
-            setProxyTranslation(proxies[0], -20.0, -20.0, kPedestrianZ);
+            hideProxy(proxies[0], 0);
         } else {
-            setProxyTranslation(proxies[0], 1.50, 2.95, kPedestrianZ);
+            setProxyPose(proxies[0], 1.50, 2.95, 0.0, 0.0, false);
         }
-        setProxyTranslation(proxies[1], -21.0, -20.0, kPedestrianZ);
-        setProxyTranslation(proxies[2], -22.0, -20.0, kPedestrianZ);
+        hideProxy(proxies[1], 1);
+        hideProxy(proxies[2], 2);
     } else if (scenario == "blocked_corridor") {
-        setProxyTranslation(proxies[0], 1.35, 2.90, kPedestrianZ);
-        setProxyTranslation(proxies[1], 1.55, 3.10, kPedestrianZ);
-        setProxyTranslation(proxies[2], 1.75, 3.30, kPedestrianZ);
+        setProxyPose(proxies[0], 1.35, 2.90, 0.0, 0.0, false);
+        setProxyPose(proxies[1], 1.55, 3.10, 0.0, 0.0, false);
+        setProxyPose(proxies[2], 1.75, 3.30, 0.0, 0.0, false);
     } else if (scenario == "localization_disturbance") {
-        setProxyTranslation(proxies[0], -20.0, -20.0, kPedestrianZ);
-        setProxyTranslation(proxies[1], -21.0, -20.0, kPedestrianZ);
-        setProxyTranslation(proxies[2], -22.0, -20.0, kPedestrianZ);
+        hideProxy(proxies[0], 0);
+        hideProxy(proxies[1], 1);
+        hideProxy(proxies[2], 2);
     } else {
-        setProxyTranslation(proxies[0], -20.0, -20.0, kPedestrianZ);
-        setProxyTranslation(proxies[1], -21.0, -20.0, kPedestrianZ);
-        setProxyTranslation(proxies[2], -22.0, -20.0, kPedestrianZ);
+        hideProxy(proxies[0], 0);
+        hideProxy(proxies[1], 1);
+        hideProxy(proxies[2], 2);
     }
 }
 
@@ -125,6 +256,8 @@ int main() {
     const int time_step_ms = static_cast<int>(supervisor.getBasicTimeStep());
     const std::string scenario = getenvOr("SCENARIO", "person_crossing");
     const double max_time_s = getenvDoubleOr("MAX_TIME", 45.0);
+    constexpr int kMaximumHumanCount = 12;
+    const int human_count = std::clamp(getenvIntOr("HUMAN_COUNT", 3), 1, kMaximumHumanCount);
     const std::string scene_export_path = getenvOr("WORLD_SCREENSHOT_PATH", "");
     const double scene_export_time_s = getenvDoubleOr("WORLD_SCREENSHOT_TIME", 0.5);
 
@@ -133,11 +266,31 @@ int main() {
     if (robot) {
         robot->enableContactPointsTracking(time_step_ms, true);
     }
-    std::vector<Proxy> proxies = {
-        {supervisor.getFromDef("DYNAMIC_OBSTACLE_1"), supervisor.getFromDef("DYNAMIC_OBSTACLE_1_KEEP_OUT"), nullptr},
-        {supervisor.getFromDef("DYNAMIC_OBSTACLE_2"), supervisor.getFromDef("DYNAMIC_OBSTACLE_2_KEEP_OUT"), nullptr},
-        {supervisor.getFromDef("DYNAMIC_OBSTACLE_3"), supervisor.getFromDef("DYNAMIC_OBSTACLE_3_KEEP_OUT"), nullptr},
-    };
+    std::vector<Proxy> proxies;
+    for (int i = 1; i <= kMaximumHumanCount; ++i) {
+        const std::string def = "DYNAMIC_OBSTACLE_" + std::to_string(i);
+        webots::Node* node = supervisor.getFromDef(def);
+        if (!node) {
+            continue;
+        }
+        Proxy proxy;
+        proxy.node = node;
+        proxy.boundary = supervisor.getFromDef(def + "_KEEP_OUT");
+        proxy.rotation = node->getField("rotation");
+        proxy.left_arm = node->getField("leftArmAngle");
+        proxy.right_arm = node->getField("rightArmAngle");
+        proxy.left_leg = node->getField("leftLegAngle");
+        proxy.right_leg = node->getField("rightLegAngle");
+        proxy.left_knee = node->getField("leftLowerLegAngle");
+        proxy.right_knee = node->getField("rightLowerLegAngle");
+        proxies.push_back(proxy);
+    }
+    if (proxies.size() < 3) {
+        std::cerr << "The world must provide at least three DYNAMIC_OBSTACLE nodes.\n";
+        return 1;
+    }
+    const bool generated_facility = supervisor.getFromDef("WALL_NORTH") != nullptr;
+    std::cout << "human_count=" << human_count << "\n";
 
     std::ofstream metrics("scenario_metrics.csv");
     metrics << "timestamp,scenario,robot_x,robot_y,min_dynamic_clearance,collision_count,clearance_collision_count,contact_collision_count,contact_point_count\n";
@@ -148,7 +301,7 @@ int main() {
     bool scene_exported = false;
     while (supervisor.step(time_step_ms) != -1) {
         const double time = supervisor.getTime();
-        updateScenario(scenario, time, proxies);
+        updateScenario(scenario, time, proxies, human_count, generated_facility);
         if (!scene_exported && !scene_export_path.empty() && time >= scene_export_time_s) {
             supervisor.exportImage(scene_export_path, 95);
             scene_exported = true;
@@ -190,7 +343,7 @@ int main() {
                 << collisions.contact << ","
                 << contact_point_count << "\n";
 
-        if (time >= max_time_s) {
+        if (max_time_s > 0.0 && time >= max_time_s) {
             break;
         }
     }

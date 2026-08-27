@@ -11,6 +11,7 @@ from typing import Any
 ROBOT_CLEARANCE_RADIUS_M = 0.32
 FRONT_STOP_DISTANCE_M = 0.32
 FRONT_CAUTION_DISTANCE_M = 1.0
+MAX_SCENARIO_HUMANS = 12
 
 
 def repo_root() -> pathlib.Path:
@@ -205,8 +206,10 @@ def floor_marker(name: str, x: float, y: float, sx: float, sy: float, color: str
 def table_solid(zone: dict[str, Any], table_index: int, label_override: str | None = None) -> str:
     x, y = zone_center(zone)
     sx, sy = zone_size(zone)
-    table_x = min(max(sx * 0.82, 0.45), 1.4)
-    table_y = min(max(sy * 0.82, 0.45), 1.4)
+    # Use most of the reserved footprint so full-size people look proportional
+    # without changing the navigation coordinates represented by the layout.
+    table_x = min(max(sx * 0.94, 0.80), 1.5)
+    table_y = min(max(sy * 0.94, 0.80), 1.5)
     label = label_override or str(zone.get("name") or f"TABLE_ZONE_{table_index}")
     tray = "DEF GENERATED_TABLE_TOP VarnishedPine {\n        textureTransform TextureTransform { scale 6 6 }\n      }" if table_index == 1 else "USE GENERATED_TABLE_TOP"
     return f"""DEF {sanitize_def(label + "_PROP")} Solid {{
@@ -216,7 +219,7 @@ def table_solid(zone: dict[str, Any], table_index: int, label_override: str | No
     Table {{
       translation 0 0 0
       name "{label}"
-      size {fmt(table_x)} {fmt(table_y)} 0.72
+      size {fmt(table_x)} {fmt(table_y)} 0.90
       feetSize 0 0
       trayAppearance {tray}
       legAppearance MattePaint {{
@@ -224,8 +227,37 @@ def table_solid(zone: dict[str, Any], table_index: int, label_override: str | No
       }}
     }}
   ]
-  boundingObject Box {{ size {fmt(sx)} {fmt(sy)} 0.72 }}
+  boundingObject Box {{ size {fmt(sx)} {fmt(sy)} 0.90 }}
 }}"""
+
+
+def scenario_humans() -> list[str]:
+    palettes = [
+        ("0.12 0.34 0.80", "0.10 0.10 0.13"),
+        ("0.12 0.58 0.42", "0.16 0.16 0.18"),
+        ("0.72 0.22 0.18", "0.15 0.15 0.18"),
+        ("0.62 0.45 0.08", "0.12 0.16 0.24"),
+        ("0.45 0.20 0.65", "0.20 0.16 0.12"),
+        ("0.05 0.52 0.62", "0.13 0.13 0.16"),
+    ]
+    nodes: list[str] = []
+    for index in range(1, MAX_SCENARIO_HUMANS + 1):
+        shirt, pants = palettes[(index - 1) % len(palettes)]
+        nodes.extend([
+            "",
+            f'''DEF DYNAMIC_OBSTACLE_{index} Pedestrian {{
+  name "pedestrian customer {index}"
+  translation {-20 - index} -20 1.27
+  controller "<none>"
+  controllerArgs [
+    "--supervisor-controlled"
+  ]
+  enableBoundingObject TRUE
+  shirtColor {shirt}
+  pantsColor {pants}
+}}''',
+        ])
+    return nodes
 
 
 SEGMENTS_BY_DIGIT = {
@@ -422,13 +454,13 @@ def generated_world_text(data: dict[str, Any]) -> str:
         "",
         'Robot {\n  name "scenario supervisor"\n  supervisor TRUE\n  controller "restaurant_scenario_supervisor"\n}',
         "",
-        solid_box("WALL_NORTH", "wall north", width / 2.0, height + wall_thickness / 2.0, width + 2 * wall_thickness, wall_thickness, 0.5, "0.72 0.72 0.68"),
+        solid_box("WALL_NORTH", "wall north", width / 2.0, height + wall_thickness / 2.0, width + 2 * wall_thickness, wall_thickness, 1.2, "0.72 0.72 0.68"),
         "",
-        solid_box("WALL_SOUTH", "wall south", width / 2.0, -wall_thickness / 2.0, width + 2 * wall_thickness, wall_thickness, 0.5, "0.72 0.72 0.68"),
+        solid_box("WALL_SOUTH", "wall south", width / 2.0, -wall_thickness / 2.0, width + 2 * wall_thickness, wall_thickness, 1.2, "0.72 0.72 0.68"),
         "",
-        solid_box("WALL_EAST", "wall east", width + wall_thickness / 2.0, height / 2.0, wall_thickness, height, 0.5, "0.72 0.72 0.68"),
+        solid_box("WALL_EAST", "wall east", width + wall_thickness / 2.0, height / 2.0, wall_thickness, height, 1.2, "0.72 0.72 0.68"),
         "",
-        solid_box("WALL_WEST", "wall west", -wall_thickness / 2.0, height / 2.0, wall_thickness, height, 0.5, "0.72 0.72 0.68"),
+        solid_box("WALL_WEST", "wall west", -wall_thickness / 2.0, height / 2.0, wall_thickness, height, 1.2, "0.72 0.72 0.68"),
     ]
 
     table_count = 0
@@ -437,7 +469,7 @@ def generated_world_text(data: dict[str, Any]) -> str:
         sx, sy = zone_size(zone)
         zone_type = zone.get("type", "")
         if zone_type == "wall":
-            body.extend(["", solid_box(f"WALL_{index}", f"layout wall {index}", x, y, sx, sy, 0.5, "0.48 0.50 0.50")])
+            body.extend(["", solid_box(f"WALL_{index}", f"layout wall {index}", x, y, sx, sy, 1.2, "0.48 0.50 0.50")])
             body.extend(["", visual_box(f"ALGO_RAW_WALL_{index}", f"algorithm raw wall {index}", x, y, sx, sy, 0.022, "0.05 0.05 0.05", 0.45)])
         elif zone_type == "no_go":
             body.extend(["", solid_box(f"NO_GO_{index}", f"no go zone {index}", x, y, sx, sy, 0.18, "0.75 0.22 0.18")])
@@ -456,17 +488,8 @@ def generated_world_text(data: dict[str, Any]) -> str:
     for label, pose in sorted(destinations.items()):
         body.extend(["", service_marker(label, pose)])
 
-    body.extend(
-        [
-            "",
-            'DEF DYNAMIC_OBSTACLE_1 Pedestrian {\n  name "pedestrian customer 1"\n  translation -20 -20 1.27\n  shirtColor 0.12 0.34 0.80\n  pantsColor 0.10 0.10 0.13\n}',
-            "",
-            'DEF DYNAMIC_OBSTACLE_2 Pedestrian {\n  name "pedestrian customer 2"\n  translation -21 -20 1.27\n  shirtColor 0.12 0.58 0.42\n  pantsColor 0.16 0.16 0.18\n}',
-            "",
-            'DEF DYNAMIC_OBSTACLE_3 Pedestrian {\n  name "pedestrian customer 3"\n  translation -22 -20 1.27\n  shirtColor 0.72 0.22 0.18\n  pantsColor 0.15 0.15 0.18\n}',
-            "",
-        ]
-    )
+    body.extend(scenario_humans())
+    body.append("")
     return "\n".join(body)
 
 

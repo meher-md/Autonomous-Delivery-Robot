@@ -94,50 +94,50 @@ Robot {
 
 DEF WALL_N Solid {
   name "wall north"
-  translation 4 8.45 0.25
+  translation 4 8.45 0.6
   children [
     Shape {
       appearance PBRAppearance { baseColor 0.72 0.72 0.68 roughness 0.85 }
-      geometry Box { size 9 0.1 0.5 }
+      geometry Box { size 9 0.1 1.2 }
     }
   ]
-  boundingObject Box { size 9 0.1 0.5 }
+  boundingObject Box { size 9 0.1 1.2 }
 }
 
 DEF WALL_S Solid {
   name "wall south"
-  translation 4 -0.45 0.25
+  translation 4 -0.45 0.6
   children [
     Shape {
       appearance PBRAppearance { baseColor 0.72 0.72 0.68 roughness 0.85 }
-      geometry Box { size 9 0.1 0.5 }
+      geometry Box { size 9 0.1 1.2 }
     }
   ]
-  boundingObject Box { size 9 0.1 0.5 }
+  boundingObject Box { size 9 0.1 1.2 }
 }
 
 DEF WALL_E Solid {
   name "wall east"
-  translation 8.45 4 0.25
+  translation 8.45 4 0.6
   children [
     Shape {
       appearance PBRAppearance { baseColor 0.72 0.72 0.68 roughness 0.85 }
-      geometry Box { size 0.1 9 0.5 }
+      geometry Box { size 0.1 9 1.2 }
     }
   ]
-  boundingObject Box { size 0.1 9 0.5 }
+  boundingObject Box { size 0.1 9 1.2 }
 }
 
 DEF WALL_W Solid {
   name "wall west"
-  translation -0.45 4 0.25
+  translation -0.45 4 0.6
   children [
     Shape {
       appearance PBRAppearance { baseColor 0.72 0.72 0.68 roughness 0.85 }
-      geometry Box { size 0.1 9 0.5 }
+      geometry Box { size 0.1 9 1.2 }
     }
   ]
-  boundingObject Box { size 0.1 9 0.5 }
+  boundingObject Box { size 0.1 9 1.2 }
 }
 
 DEF KITCHEN_COUNTER Solid {
@@ -171,7 +171,7 @@ DEF TABLE_1 Solid {
     Table {
       translation 0 0 0
       name "TABLE_1"
-      size 0.65 0.65 0.72
+      size 0.90 0.90 0.90
       feetSize 0 0
       trayAppearance DEF RESTAURANT_TABLE_TOP VarnishedPine {
         textureTransform TextureTransform {
@@ -183,7 +183,7 @@ DEF TABLE_1 Solid {
       }
     }
   ]
-  boundingObject Cylinder { radius 0.32 height 0.72 }
+  boundingObject Cylinder { radius 0.45 height 0.90 }
 }
 
 DEF TABLE_2 Solid {
@@ -193,7 +193,7 @@ DEF TABLE_2 Solid {
     Table {
       translation 0 0 0
       name "TABLE_2"
-      size 0.65 0.65 0.72
+      size 0.90 0.90 0.90
       feetSize 0 0
       trayAppearance USE RESTAURANT_TABLE_TOP
       legAppearance MattePaint {
@@ -201,7 +201,7 @@ DEF TABLE_2 Solid {
       }
     }
   ]
-  boundingObject Cylinder { radius 0.32 height 0.72 }
+  boundingObject Cylinder { radius 0.45 height 0.90 }
 }
 
 DEF TABLE_3 Solid {
@@ -211,7 +211,7 @@ DEF TABLE_3 Solid {
     Table {
       translation 0 0 0
       name "TABLE_3"
-      size 0.65 0.65 0.72
+      size 0.90 0.90 0.90
       feetSize 0 0
       trayAppearance USE RESTAURANT_TABLE_TOP
       legAppearance MattePaint {
@@ -219,7 +219,7 @@ DEF TABLE_3 Solid {
       }
     }
   ]
-  boundingObject Cylinder { radius 0.32 height 0.72 }
+  boundingObject Cylinder { radius 0.45 height 0.90 }
 }
 
 DEF TABLE_4 Solid {
@@ -229,7 +229,7 @@ DEF TABLE_4 Solid {
     Table {
       translation 0 0 0
       name "TABLE_4"
-      size 0.65 0.65 0.72
+      size 0.90 0.90 0.90
       feetSize 0 0
       trayAppearance USE RESTAURANT_TABLE_TOP
       legAppearance MattePaint {
@@ -237,7 +237,7 @@ DEF TABLE_4 Solid {
       }
     }
   ]
-  boundingObject Cylinder { radius 0.32 height 0.72 }
+  boundingObject Cylinder { radius 0.45 height 0.90 }
 }
 
 DEF TABLE_5 Solid {
@@ -247,7 +247,7 @@ DEF TABLE_5 Solid {
     Table {
       translation 0 0 0
       name "TABLE_5"
-      size 0.65 0.65 0.72
+      size 0.90 0.90 0.90
       feetSize 0 0
       trayAppearance USE RESTAURANT_TABLE_TOP
       legAppearance MattePaint {
@@ -255,7 +255,7 @@ DEF TABLE_5 Solid {
       }
     }
   ]
-  boundingObject Cylinder { radius 0.32 height 0.72 }
+  boundingObject Cylinder { radius 0.45 height 0.90 }
 }
 
 PottedTree {
@@ -411,21 +411,120 @@ Solid {
 
 DEF DYNAMIC_OBSTACLE_1 Pedestrian {
   name "pedestrian customer 1"
-  translation -20 -20 1.27
+  translation -21 -20 1.27
+  controller "<none>"
+  controllerArgs [ "--supervisor-controlled" ]
+  enableBoundingObject TRUE
   shirtColor 0.12 0.34 0.80
   pantsColor 0.10 0.10 0.13
 }
 
 DEF DYNAMIC_OBSTACLE_2 Pedestrian {
   name "pedestrian customer 2"
-  translation -21 -20 1.27
+  translation -22 -20 1.27
+  controller "<none>"
+  controllerArgs [ "--supervisor-controlled" ]
+  enableBoundingObject TRUE
   shirtColor 0.12 0.58 0.42
   pantsColor 0.16 0.16 0.18
 }
 
 DEF DYNAMIC_OBSTACLE_3 Pedestrian {
   name "pedestrian customer 3"
-  translation -22 -20 1.27
+  translation -23 -20 1.27
+  controller "<none>"
+  controllerArgs [ "--supervisor-controlled" ]
+  enableBoundingObject TRUE
   shirtColor 0.72 0.22 0.18
   pantsColor 0.15 0.15 0.18
+}
+
+DEF DYNAMIC_OBSTACLE_4 Pedestrian {
+  name "pedestrian customer 4"
+  translation -24 -20 1.27
+  controller "<none>"
+  controllerArgs [ "--supervisor-controlled" ]
+  enableBoundingObject TRUE
+  shirtColor 0.62 0.45 0.08
+  pantsColor 0.12 0.16 0.24
+}
+
+DEF DYNAMIC_OBSTACLE_5 Pedestrian {
+  name "pedestrian customer 5"
+  translation -25 -20 1.27
+  controller "<none>"
+  controllerArgs [ "--supervisor-controlled" ]
+  enableBoundingObject TRUE
+  shirtColor 0.45 0.20 0.65
+  pantsColor 0.20 0.16 0.12
+}
+
+DEF DYNAMIC_OBSTACLE_6 Pedestrian {
+  name "pedestrian customer 6"
+  translation -26 -20 1.27
+  controller "<none>"
+  controllerArgs [ "--supervisor-controlled" ]
+  enableBoundingObject TRUE
+  shirtColor 0.05 0.52 0.62
+  pantsColor 0.13 0.13 0.16
+}
+
+DEF DYNAMIC_OBSTACLE_7 Pedestrian {
+  name "pedestrian customer 7"
+  translation -27 -20 1.27
+  controller "<none>"
+  controllerArgs [ "--supervisor-controlled" ]
+  enableBoundingObject TRUE
+  shirtColor 0.12 0.34 0.80
+  pantsColor 0.10 0.10 0.13
+}
+
+DEF DYNAMIC_OBSTACLE_8 Pedestrian {
+  name "pedestrian customer 8"
+  translation -28 -20 1.27
+  controller "<none>"
+  controllerArgs [ "--supervisor-controlled" ]
+  enableBoundingObject TRUE
+  shirtColor 0.12 0.58 0.42
+  pantsColor 0.16 0.16 0.18
+}
+
+DEF DYNAMIC_OBSTACLE_9 Pedestrian {
+  name "pedestrian customer 9"
+  translation -29 -20 1.27
+  controller "<none>"
+  controllerArgs [ "--supervisor-controlled" ]
+  enableBoundingObject TRUE
+  shirtColor 0.72 0.22 0.18
+  pantsColor 0.15 0.15 0.18
+}
+
+DEF DYNAMIC_OBSTACLE_10 Pedestrian {
+  name "pedestrian customer 10"
+  translation -30 -20 1.27
+  controller "<none>"
+  controllerArgs [ "--supervisor-controlled" ]
+  enableBoundingObject TRUE
+  shirtColor 0.62 0.45 0.08
+  pantsColor 0.12 0.16 0.24
+}
+
+DEF DYNAMIC_OBSTACLE_11 Pedestrian {
+  name "pedestrian customer 11"
+  translation -31 -20 1.27
+  controller "<none>"
+  controllerArgs [ "--supervisor-controlled" ]
+  enableBoundingObject TRUE
+  shirtColor 0.45 0.20 0.65
+  pantsColor 0.20 0.16 0.12
+}
+
+DEF DYNAMIC_OBSTACLE_12 Pedestrian {
+  name "pedestrian customer 12"
+  translation -32 -20 1.27
+  controller "<none>"
+  controllerArgs [ "--supervisor-controlled" ]
+  enableBoundingObject TRUE
+  shirtColor 0.05 0.52 0.62
+  pantsColor 0.13 0.13 0.16
 }
