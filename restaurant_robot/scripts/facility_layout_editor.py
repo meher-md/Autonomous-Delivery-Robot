@@ -11,9 +11,9 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
 try:
-    from generate_webots_world_from_layout import default_world_path, generate_world_file
+    from generate_webots_world_from_layout import default_map_path, default_world_path, generate_world_file
 except ModuleNotFoundError:
-    from restaurant_robot.scripts.generate_webots_world_from_layout import default_world_path, generate_world_file
+    from restaurant_robot.scripts.generate_webots_world_from_layout import default_map_path, default_world_path, generate_world_file
 
 FREE = 0
 OCCUPIED = 100
@@ -918,8 +918,7 @@ class FacilityLayoutEditor:
 
 
 def default_output_path() -> pathlib.Path:
-    root = pathlib.Path(__file__).resolve().parents[2]
-    return root / "build" / "restaurant_robot" / "facility_layout_map.json"
+    return default_map_path()
 
 
 def main():

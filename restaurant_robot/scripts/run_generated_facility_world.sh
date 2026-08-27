@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-FACILITY_MAP_JSON="${FACILITY_MAP_JSON:-${ROOT_DIR}/build/restaurant_robot/facility_layout_map.json}"
+FACILITY_MAP_JSON="${FACILITY_MAP_JSON:-${ROOT_DIR}/restaurant_robot/config/facility_layout_map.json}"
 FACILITY_WORLD="${FACILITY_WORLD:-${ROOT_DIR}/restaurant_robot/simulator/worlds/facility_layout_generated.wbt}"
 
 if [[ ! -f "${FACILITY_MAP_JSON}" ]]; then

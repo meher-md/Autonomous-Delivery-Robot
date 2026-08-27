@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import pathlib
 import re
 from typing import Any
@@ -18,6 +19,29 @@ def repo_root() -> pathlib.Path:
 
 def default_world_path() -> pathlib.Path:
     return repo_root() / "restaurant_robot" / "simulator" / "worlds" / "facility_layout_generated.wbt"
+
+
+def default_map_path() -> pathlib.Path:
+    return repo_root() / "restaurant_robot" / "config" / "facility_layout_map.json"
+
+
+def controller_dir() -> pathlib.Path:
+    return repo_root() / "restaurant_robot" / "simulator" / "controllers" / "restaurant_delivery_controller"
+
+
+def controller_relative_map_path(path: pathlib.Path) -> str:
+    resolved = path.resolve()
+    try:
+        return os.path.relpath(resolved, controller_dir())
+    except ValueError:
+        return str(resolved)
+
+
+def portable_map_argument(map_json: str) -> str:
+    path = pathlib.Path(map_json)
+    if not path.is_absolute():
+        path = repo_root() / path
+    return controller_relative_map_path(path)
 
 
 def fmt(value: float) -> str:
@@ -287,7 +311,7 @@ def robot_node(home: dict[str, Any], map_json: str | None) -> str:
     theta = float(home.get("theta", 0.0))
     controller_args = ""
     if map_json:
-        escaped = map_json.replace("\\", "\\\\").replace('"', '\\"')
+        escaped = portable_map_argument(map_json).replace("\\", "\\\\").replace('"', '\\"')
         controller_args = f"""  controllerArgs [
     "--map-input-json"
     "{escaped}"
@@ -454,13 +478,13 @@ def generate_world_file(data: dict[str, Any], output_path: pathlib.Path) -> path
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("layout_json", type=pathlib.Path)
+    parser.add_argument("layout_json", type=pathlib.Path, nargs="?", default=default_map_path())
     parser.add_argument("world_path", type=pathlib.Path, nargs="?", default=default_world_path())
     args = parser.parse_args()
 
     with args.layout_json.open("r", encoding="utf-8") as handle:
         data = json.load(handle)
-    data.setdefault("layout", {}).setdefault("map_json", str(args.layout_json.resolve()))
+    data.setdefault("layout", {})["map_json"] = str(args.layout_json.resolve())
     output = generate_world_file(data, args.world_path.resolve())
     print(output)
 
