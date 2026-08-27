@@ -1,9 +1,9 @@
 # How To Run Webots GUI Simulations
 
-Run all commands from the repository root:
+Run all commands from the repository root. First clone or pull the repo, then enter your local checkout:
 
 ```bash
-cd /home/meher1087/delivery_robot_ws_clean
+cd Autonomous-Delivery-Robot
 ```
 
 Only keep one Webots world open at a time. The launcher scripts stop if another `.wbt` is already running.
